@@ -20,22 +20,25 @@ TEST=$(TEST_crypto_compute_hash)
 
 all: simulator smartcard
 
+$(BINDIR):
+	mkdir $(BINDIR)
+
 simulator: $(HEADERS) $(SOURCES) $(SIMULATOR)
 
-$(SIMULATOR): $(HEADERS) $(SOURCES)
+$(SIMULATOR): $(HEADERS) $(SOURCES) $(BINDIR)
 	hcl $(SIMFLAGS) $(SOURCES) -o $(SIMULATOR)
 
 smartcard: $(HEADERS) $(SOURCES) $(SMARTCARD)
 
-$(SMARTCARD): $(HEADERS) $(SOURCES)
+$(SMARTCARD): $(HEADERS) $(SOURCES) $(BINDIR)
 	hcl $(CARDFLAGS) $(SOURCES) -o $(SMARTCARD)
 
 test: $(TEST)
 
-$(TEST_crypto_compute_hash): $(HEADERS) $(SOURCES_crypto_compute_hash)
+$(TEST_crypto_compute_hash): $(HEADERS) $(SOURCES_crypto_compute_hash) $(BINDIR)
 	hcl $(SIMFLAGS) $(SOURCES_crypto_compute_hash) -o $(TEST_crypto_compute_hash)
 
 clean:
-	rm -rf $(BINDIR)/* $(SRCDIR)/*~ $(INCDIR)/*~
+	rm -rf $(BINDIR)/* $(SRCDIR)/*~ $(INCDIR)/*~ $(TESTDIR)/*~
 
 .PHONY: all clean simulator smartcard test
