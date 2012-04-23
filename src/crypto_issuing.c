@@ -29,7 +29,6 @@
 #include "defs_sizes.h"
 #include "defs_types.h"
 #include "funcs_debug.h"
-#include "funcs_helper.h"
 #include "crypto_helper.h"
 
 /********************************************************************/
@@ -86,8 +85,8 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   debugValue("c", challenge.c, SIZE_H);
 
   // - Compute response vHat = vTilde + c * vPrime
-  crypto_compute_vHat(challenge.prefix_vPrime, vPrime);
-  debugValue("vHat", vHat, SIZE_VPRIME_);
+  crypto_compute_vPrimeHat(challenge.prefix_vPrime, vPrime);
+  debugValue("vPrimeHat", vPrimeHat, SIZE_VPRIME_);
 
   // - Compute response s_A = mTilde_1 + c * m_1
   crypto_compute_mHat(challenge.prefix_m, 0);
@@ -97,7 +96,7 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   crypto_generate_random(nonce, SIZE_STATZK);
   debugValue("nonce", nonce, SIZE_STATZK);
   
-  // Return vPrime, U, c, vHat, mHat[0], n_2
+  // Return vPrime, U, c, vPrimeHat, mHat[0], n_2
 }
 
 void constructSignature(ByteArray vPrimePrime) {

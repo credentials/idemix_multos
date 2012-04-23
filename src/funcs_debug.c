@@ -57,6 +57,24 @@ void debugValue(String label, ByteArray value, int length) {
   printf("\n");
 }
 
+void debugValueI(String label, ByteArray value, int length, int index) {
+  int i;
+
+  printf("%s[%d]: ", label, index);
+  for (i = 0; i < length; i++) {
+    printf("%02X", (value + (index * length))[i]);
+  }
+  printf("\n");
+}
+
+void debugValues(String label, ByteArray value, int length, int count) {
+  int i;
+
+  for (i = 0; i < count; i++) {
+    debugValueI(label, value, length, i);
+  }
+}
+
 void debugNumberI(String label, Numbers value, int index) {
   int i;
 

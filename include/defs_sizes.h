@@ -28,6 +28,7 @@
 #define LENGTH_M       256
 #define LENGTH_STATZK   80
 #define LENGTH_H       160 // SHA-1
+#define LENGTH_V      1604
 #define LENGTH_E       501 // > L_STATZK(80) + L_H(160) + L_M(256) + 4
 
 // Variable byte size definitions
@@ -38,10 +39,13 @@
 #define SIZE_H       20 //  160 bits
 #define SIZE_V      201 // 1604 bits
 #define SIZE_E       63 //  504 bits
+#define SIZE_EPRIME  15 //  120 bits
 
 #define SIZE_VPRIME  (SIZE_N + SIZE_STATZK) // 138 bytes
 #define SIZE_VPRIME_ (SIZE_N + 2*SIZE_STATZK + SIZE_H) // 168 bytes
 #define SIZE_M_      (SIZE_M + SIZE_STATZK + SIZE_H + 1) // 63 bytes
+#define SIZE_V_      (SIZE_V + SIZE_STATZK + SIZE_H) // 231 bytes
+#define SIZE_E_      (SIZE_EPRIME + SIZE_STATZK + SIZE_H) // 45 bytes
 
 #define SIZE_BUFFER_C1 ((SIZE_H+2) + 2*(SIZE_N+3) + (SIZE_STATZK+2) + 3 + 4)
 #define SIZE_BUFFER_C2 ((SIZE_H+2) + 3*(SIZE_N+3) + (SIZE_STATZK+2) + 3 + 4)

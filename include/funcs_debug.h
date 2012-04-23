@@ -32,6 +32,7 @@ void debugInteger(String label, int value);
 void debugPointer(String label, ByteArray value);
 
 void debugValue(String label, ByteArray value, int length);
+void debugValues(String label, ByteArray value, int length, int count);
 
 void debugNumberI(String label, Numbers value, int index);
 void debugNumbers(String label, Numbers value, int count);
@@ -49,6 +50,7 @@ void debugCLMessages(String label, CLMessages value, int count);
 #define debugPointer(P1,P2)
 
 #define debugValue(P1,P2,P3)
+#define debugValues(P1,P2,P3,P4)
 
 #define debugNumberI(P1,P2,P3)
 #define debugNumbers(P1,P2,P3)

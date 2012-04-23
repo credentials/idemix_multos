@@ -28,10 +28,14 @@ extern CLMessages messages;
 extern Hash context;
 
 extern Byte buffer[3*SIZE_VPRIME];//SIZE_BUFFER_C1 + SIZE_H];
+extern Byte D[SIZE_L];
 extern Nonce nonce;
 extern Challenge challenge;
-extern ResponseV vHat;
+extern ResponseE eHat;
 extern ResponseM mHat[SIZE_L];
+extern ResponseV vHat;
+extern ResponseVPRIME vPrimeHat;
+extern CLSignature signature_;
 
 extern Number Q, R, U_;
 extern Value values[5];

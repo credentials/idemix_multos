@@ -29,8 +29,10 @@ typedef Byte *ByteArray;
 
 typedef Byte Hash[SIZE_H];
 typedef Byte Nonce[SIZE_STATZK];
-typedef Byte ResponseV[SIZE_VPRIME_];
+typedef Byte ResponseE[SIZE_E_];
 typedef Byte ResponseM[SIZE_M_];
+typedef Byte ResponseV[SIZE_V_];
+typedef Byte ResponseVPRIME[SIZE_VPRIME_];
 typedef Byte Number[SIZE_N];
 typedef Number Numbers[];
 
@@ -58,6 +60,7 @@ typedef struct {
 } CLSignature;
 
 typedef struct {
+  Byte prefix_v[SIZE_V/2 - SIZE_VPRIME/2];
   Byte prefix_vPrime[SIZE_VPRIME/2 - SIZE_M];
   Byte prefix_m[SIZE_M - SIZE_H];
   Hash c;

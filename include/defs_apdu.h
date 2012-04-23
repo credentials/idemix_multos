@@ -53,7 +53,7 @@
 #define INS_PROVE_RESPONSE      0x24
 
 #define P1_PROOF_U_C            0x00
-#define P1_PROOF_U_VHATPRIME    0x01
+#define P1_PROOF_U_VPRIMEHAT    0x01
 #define P1_PROOF_U_S_A          0x02
 
 #define P1_SIGNATURE_A          0x00

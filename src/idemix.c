@@ -62,9 +62,13 @@ CLSignature signature;
 
 // Shared protocol variables
 Hash context;
-ResponseV vHat;
+ResponseE eHat;
 ResponseM mHat[SIZE_L];
+ResponseV vHat;
+ResponseVPRIME vPrimeHat;
 Number Q, R, s_e;
+CLSignature signature_;
+Byte D[SIZE_L];
 
 Byte buffer[SIZE_BUFFER_C2];
 Nonce nonce;
@@ -167,11 +171,11 @@ void main(void) {
           ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_H);
           break;
           
-        case P1_PROOF_U_VHATPRIME:
-          debugMessage("P1_PROOF_U_VHATPRIME");
+        case P1_PROOF_U_VPRIMEHAT:
+          debugMessage("P1_PROOF_U_VPRIMEHAT");
           if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-          COPYN(SIZE_VPRIME_, apdu.data, vHat);
-          debugValue("Returned vHat", apdu.data, SIZE_VPRIME_);
+          COPYN(SIZE_VPRIME_, apdu.data, vPrimeHat);
+          debugValue("Returned vPrimeHat", apdu.data, SIZE_VPRIME_);
           ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_VPRIME_);
           break;
           

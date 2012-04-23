@@ -51,6 +51,17 @@ void crypto_generate_random(ByteArray buffer, int length);
  * @param c the challenge
  * @param vPrime the value to be hidden
  */
+void crypto_compute_vPrimeHat(ByteArray c, ByteArray vPrime);
+
+/**
+ * Compute the response value vHat = vTilde + c*v
+ * 
+ * Requires buffer of size SIZE_V_ + SIZE_V and vTilde to be stored in 
+ * vHat.
+ * 
+ * @param c the challenge
+ * @param v the value to be hidden
+ */
 void crypto_compute_vHat(ByteArray c, ByteArray v);
 
 /**
@@ -63,6 +74,16 @@ void crypto_compute_vHat(ByteArray c, ByteArray v);
  * @param index of the message to be hidden
  */
 void crypto_compute_mHat(ByteArray c, int index);
+
+/**
+ * Compute the response value eHat = eTilde + c*e
+ * 
+ * Requires buffer of size 2*SIZE_E and eTilde to be stored in eHat.
+ * 
+ * @param c the challenge
+ * @param e the value to be hidden
+ */
+void crypto_compute_eHat(ByteArray c, ByteArray e);
 
 /**
  * Compute the helper value S' = S^(2_l) where l = SIZE_S_EXPONENT*8

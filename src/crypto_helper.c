@@ -108,15 +108,15 @@ void crypto_generate_random(ByteArray buffer, int length) {
 }
 
 /**
- * Compute the response value vHat = vTilde + c*vPrime
+ * Compute the response value vPrimeHat = vTilde + c*vPrime
  * 
- * Requires buffer of size SIZE_VPRIME_ + SIZE_VPRIME and vTilde to be 
- * stored in vHat.
+ * Requires buffer of size SIZE_VPRIME_ + SIZE_VPRIME and vPrimeTilde 
+ * to be stored in vPrimeHat.
  * 
  * @param c the challenge
  * @param vPrime the value to be hidden
  */
-void crypto_compute_vHat(ByteArray c, ByteArray vPrime) {
+void crypto_compute_vPrimeHat(ByteArray c, ByteArray vPrime) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_VPRIME_ - SIZE_VPRIME, buffer);
   
@@ -131,8 +131,35 @@ void crypto_compute_vHat(ByteArray c, ByteArray vPrime) {
   ASSIGN_ADDN(SIZE_VPRIME/2 + SIZE_VPRIME_ - SIZE_VPRIME, 
     buffer, buffer + SIZE_VPRIME + SIZE_VPRIME/2);
   
+  // Add vPrimeTilde and store the result in vPrimeHat
+  ASSIGN_ADDN(SIZE_VPRIME_, vPrimeHat, buffer);
+}
+
+/**
+ * Compute the response value vHat = vTilde + c*v
+ * 
+ * Requires buffer of size SIZE_V_ + SIZE_V and vTilde to be stored in 
+ * vHat.
+ * 
+ * @param c the challenge
+ * @param v the value to be hidden
+ */
+void crypto_compute_vHat(ByteArray c, ByteArray v) {
+  // Clear the buffer, to prevent garbage messing up the computation
+  CLEARN(SIZE_V_ - SIZE_V, buffer);
+  
+  // Multiply c with least significant half of v
+  MULN(SIZE_V/2, buffer + SIZE_V_ - SIZE_V, c, v + (SIZE_V/2));
+  
+  // Multiply c with most significant half of v
+  MULN(SIZE_V/2, buffer + SIZE_V_, c, v);
+  
+  // Combine the two multiplications into a single result
+  ASSIGN_ADDN(SIZE_V/2 + SIZE_V_ - SIZE_V, buffer, 
+    buffer + SIZE_V + SIZE_V/2);
+  
   // Add vTilde and store the result in vHat
-  ASSIGN_ADDN(SIZE_VPRIME_, vHat, buffer);
+  ASSIGN_ADDN(SIZE_V_, vHat, buffer);
 }
 
 /**
@@ -153,6 +180,22 @@ void crypto_compute_mHat(ByteArray c, int index) {
   
   // Store the result in mHat
   COPYN(SIZE_M_, mHat[index], buffer + 2*SIZE_M);
+}
+
+/**
+ * Compute the response value eHat = eTilde + c*ePrime
+ * 
+ * Requires buffer of size 2*SIZE_EPRIME and eTilde to be stored in eHat.
+ * 
+ * @param c the challenge
+ * @param e the value to be hidden
+ */
+void crypto_compute_eHat(ByteArray c, ByteArray ePrime) {
+  // Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_E)
+  MULN(SIZE_H, buffer + SIZE_E_ - 2*SIZE_H, c, ePrime);
+  
+  // Add eTilde and store the result in eHat
+  ASSIGN_ADDN(SIZE_E_, eHat, buffer);
 }
 
 /**
