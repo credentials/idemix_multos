@@ -43,6 +43,7 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   debugNumbers(" - issuerKey.R", issuerKey.R, SIZE_L);
   debugValue(" - secret", messages[0], SIZE_M);
   debugValue(" - nonce", nonce, SIZE_STATZK);
+  debugValue(" - context", context, SIZE_H);
   
   // Generate random vPrime
   crypto_generate_random(vPrime, SIZE_VPRIME);
@@ -58,10 +59,11 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   
   // Compute P1:
   // - Generate random vPrimeTilde, m_1Tilde
-  crypto_generate_random(vHat, SIZE_VPRIME_);
-  debugValue("vPrimeTilde", vHat, SIZE_VPRIME_);
-  // FIXME: make random generator operate on bitlengths
-  crypto_generate_random(mHat[0] + 1, SIZE_M_ - 1);
+  crypto_generate_random(vPrimeHat, SIZE_VPRIME_);
+  debugValue("vPrimeTilde", vPrimeHat, SIZE_VPRIME_);
+  crypto_generate_random(mHat[0], SIZE_M_);
+  // FIXME: make random generator operate on bitlengths (now truncate:)
+  mHat[0][0] = mHat[0][0] & 0x7F;
   debugValue("mTilde[0]", mHat[0], SIZE_M_);
 
   // - Compute U_ = S^vPrimeTilde R_1^m_1Tilde
