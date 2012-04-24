@@ -38,18 +38,17 @@ void constructProof(void) {
   // Generate randoms m~[i], e~, v~ and r_A
   for (i = 1; i < SIZE_L; i++) {
     if (D[i] == 0x00) {
-      // FIXME: make random generator operate on bitlengths
-      crypto_generate_random(mHat[i] + 2, SIZE_M_ - 2);
+      crypto_generate_random(mHat[i] + 1, LENGTH_M_);
     }
   }
   debugValues("m_", (ByteArray) mHat, SIZE_M_, SIZE_L);
-  crypto_generate_random(signature_.e, SIZE_E_);
+  crypto_generate_random(signature_.e, LENGTH_E_);
   debugValue("e_", signature_.e, SIZE_E_);
-  crypto_generate_random(signature_.v, SIZE_V_);
+  crypto_generate_random(signature_.v, LENGTH_V_);
   debugValue("v_", signature_.v, SIZE_V_);
   
   // Compute A' = A S^r_A
-  crypto_generate_random(buffer, SIZE_N + SIZE_STATZK);
+  crypto_generate_random(buffer, LENGTH_N + LENGTH_STATZK);
   debugValue("r_A", buffer, SIZE_N + SIZE_STATZK);
   // FIXME: crypto_compute_SpecialModularExponentiation also uses buffer
   crypto_compute_SpecialModularExponentiation(

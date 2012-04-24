@@ -63,42 +63,48 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
 }
 
 /**
- * Generate a random number in the buffer of size bytes
+ * Generate a random number in the buffer of length bits
  * 
  * @param buffer to store the generated random number
- * @param length of the random number to generate
+ * @param length in bits of the random number to generate
  */
 void crypto_generate_random(ByteArray buffer, int length) {
 #ifndef TEST
   Byte number[8];
-  
-  // Generate the random number in blocks of eight bytes
-  while (length >= 8) {
+  ByteArray random = buffer;
+    
+  // Generate the random number in blocks of eight bytes (64 bits)
+  while (length >= 64) {
     GetRandomNumber(number);
-    COPYN(8, buffer, number);
-    length -= 8;
-    buffer += 8;
+    COPYN(8, random, number);
+    length -= 64;
+    random += 8;
   }
   
-  // Generate the remaining few bytes
+  // Generate the remaining few bytes/bits
   if (length > 0) {
     GetRandomNumber(number);
-    memcpy(buffer, number, length);
+    if (length % 8 == 0) {
+      memcpy(random, number, length / 8);
+    } else {
+      memcpy(random, number, (length / 8) + 1);
+      buffer[0] &= 0xFF >> (8 - (length % 8));
+    }
   }
 #else // TEST
 
   // Copy a test value instead of generating a random
   switch (length) {
-    case SIZE_VPRIME:
+    case LENGTH_VPRIME:
       memcpy(buffer, TEST_vPrime, SIZE_VPRIME);
       break;
-    case SIZE_VPRIME_:
+    case LENGTH_VPRIME_:
       memcpy(buffer, TEST_vPrime_, SIZE_VPRIME_);
       break;
-    case SIZE_M_:
+    case LENGTH_M_:
       memcpy(buffer, TEST_m_, SIZE_M_);
       break;
-    case SIZE_STATZK:
+    case LENGTH_STATZK:
       memcpy(buffer, TEST_n_2, SIZE_STATZK);
       break;
     default:

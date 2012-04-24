@@ -47,7 +47,7 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   debugValue(" - context", context, SIZE_H);
   
   // Generate random vPrime
-  crypto_generate_random(vPrime, SIZE_VPRIME);
+  crypto_generate_random(vPrime, LENGTH_VPRIME);
   debugValue("vPrime", vPrime, SIZE_VPRIME);
 
   // Compute U = S^vPrime * R_1^m_1
@@ -60,11 +60,9 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   
   // Compute P1:
   // - Generate random vPrimeTilde, m_1Tilde
-  crypto_generate_random(vPrimeHat, SIZE_VPRIME_);
+  crypto_generate_random(vPrimeHat, LENGTH_VPRIME_);
   debugValue("vPrimeTilde", vPrimeHat, SIZE_VPRIME_);
-  crypto_generate_random(mHat[0], SIZE_M_);
-  // FIXME: make random generator operate on bitlengths (now truncate:)
-  mHat[0][0] = mHat[0][0] & 0x7F;
+  crypto_generate_random(mHat[0], LENGTH_S_A);
   debugValue("mTilde[0]", mHat[0], SIZE_M_);
 
   // - Compute U_ = S^vPrimeTilde R_1^m_1Tilde
@@ -96,7 +94,7 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   debugValue("mHat[0]", mHat[0], SIZE_M_);
   
   // Generate random n_2
-  crypto_generate_random(nonce, SIZE_STATZK);
+  crypto_generate_random(nonce, LENGTH_STATZK);
   debugValue("nonce", nonce, SIZE_STATZK);
   
   // Return vPrime, U, c, vPrimeHat, mHat[0], n_2
