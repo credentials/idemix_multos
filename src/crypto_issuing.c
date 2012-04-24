@@ -67,7 +67,7 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   debugValue("mTilde[0]", mHat[0], SIZE_M_);
 
   // - Compute U_ = S^vPrimeTilde R_1^m_1Tilde
-  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME_, vHat, U_);
+  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME_, vPrimeHat, U_);
   debugValue("U_ = S^vPrimeTilde", U_, SIZE_N);
   ModularExponentiation(SIZE_M_, SIZE_N, mHat[0], issuerKey.n, issuerKey.R[0], buffer);
   debugValue("buffer = R_1^m_1Tilde", buffer, SIZE_N);
@@ -86,7 +86,7 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   crypto_compute_hash(values, 4, challenge.c, buffer, SIZE_BUFFER_C1);
   debugValue("c", challenge.c, SIZE_H);
 
-  // - Compute response vHat = vTilde + c * vPrime
+  // - Compute response vPrimeHat = vTilde + c * vPrime
   crypto_compute_vPrimeHat(challenge.prefix_vPrime, vPrime);
   debugValue("vPrimeHat", vPrimeHat, SIZE_VPRIME_);
 
