@@ -52,5 +52,6 @@
 
 // Auxiliary sizes
 #define SIZE_S_EXPONENT 96
+#define SIZE_V_ADDITION 80
 
 #endif // __sizes_H

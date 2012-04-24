@@ -21,6 +21,7 @@
 
 #include <ISO7816.h>
 #include <multosarith.h>
+#include <multosccr.h>
 #include <multoscomms.h>
 #include <multoscrypto.h>
 #include <string.h> // for memcmp()
@@ -102,10 +103,18 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
 }
 
 void constructSignature(ByteArray vPrimePrime) {
-  // Compute v = v' + v''
+  // Compute v = v' + v'' using add with carry
   debugValue("vPrime", signature.v, SIZE_V);
   debugValue("vPrimePrime", vPrimePrime, SIZE_V);
-  //ASSIGN_ADDN(SIZE_V, signature.v, vPrimePrime);
+  ASSIGN_ADDN(SIZE_V - SIZE_V_ADDITION, signature.v + SIZE_V_ADDITION, 
+    vPrimePrime + SIZE_V_ADDITION);
+  CFlag(&buffer[SIZE_V_ADDITION - 1]);
+  if (buffer[SIZE_V_ADDITION - 1] != 0x00) {
+    debugMessage("Addition with carry, adding 1");
+    CLEARN(SIZE_V_ADDITION -1, buffer);
+    ASSIGN_ADDN(SIZE_V_ADDITION, signature.v, buffer);
+  }
+  ASSIGN_ADDN(SIZE_V_ADDITION, signature.v, vPrimePrime);
   debugValue("vPrime + vPrimePrime", signature.v, SIZE_V);
 }
 
