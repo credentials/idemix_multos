@@ -148,7 +148,7 @@ void main(void) {
       if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
       // Do not allow NULL values
       CLEARN(SIZE_M, buffer);
-      if (memcmp(buffer, apdu.data, SIZE_M) != 0) ExitSW(ISO7816_SW_WRONG_DATA);
+      if (memcmp(buffer, apdu.data, SIZE_M) == 0) ExitSW(ISO7816_SW_WRONG_DATA);
       COPYN(SIZE_M, messages[P1], apdu.data);
       debugCLMessageI("Initialised messages", messages, P1);
       // TODO: Implement some proper handling of the number of attributes
