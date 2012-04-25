@@ -24,6 +24,7 @@
 #include <ISO7816.h>
 #include <multosarith.h> // for COPYN()
 #include <multoscomms.h>
+#include <string.h> // for memcmp()
 
 #include "defs_apdu.h"
 #include "defs_sizes.h"
@@ -57,6 +58,7 @@ APDUData apdu;
 CLPublicKey issuerKey;
 
 // Credential storage
+int attributes;
 CLMessages messages;
 CLSignature signature;
 
@@ -144,8 +146,15 @@ void main(void) {
       debugMessage("INS_SET_ATTRIBUTES");
       if (!(CheckCase(3) && Lc == SIZE_M)) ExitSW(ISO7816_SW_WRONG_LENGTH);
       if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
+      // Do not allow NULL values
+      CLEARN(SIZE_M, buffer);
+      if (memcmp(buffer, apdu.data, SIZE_M) != 0) ExitSW(ISO7816_SW_WRONG_DATA);
       COPYN(SIZE_M, messages[P1], apdu.data);
       debugCLMessageI("Initialised messages", messages, P1);
+      // TODO: Implement some proper handling of the number of attributes
+      if (P1 > attributes) {
+        attributes = P1;
+      }
       ExitSW(ISO7816_SW_NO_ERROR);
       break;
     

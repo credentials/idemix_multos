@@ -36,7 +36,7 @@ void constructProof(void) {
   int i;
   
   // Generate randoms m~[i], e~, v~ and r_A
-  for (i = 1; i < SIZE_L; i++) {
+  for (i = 1; i <= attributes; i++) {
     if (D[i] == 0x00) {
       crypto_generate_random(mHat[i] + 1, LENGTH_M_);
     }
@@ -80,7 +80,7 @@ void constructProof(void) {
   debugValue("buffer = A'^e_", buffer, SIZE_N);
   ModularMultiplication(SIZE_N, U_, buffer, issuerKey.n);
   debugValue("Z~ = Z~ * buffer", U_, SIZE_N);
-  for (i = 1; i < SIZE_L; i++) {
+  for (i = 1; i <= attributes; i++) {
     if (D[i] == 0x00) {
       ModularExponentiation(SIZE_M_, SIZE_N, mHat[i], issuerKey.n, issuerKey.R[i], buffer);
       debugValue("R_i^m_i", buffer, SIZE_N);

@@ -124,7 +124,7 @@ void verifySignature(void) {
   ModularExponentiation(SIZE_M, SIZE_N, 
     messages[0], issuerKey.n, issuerKey.R[0], R); // R = R_1^m_1
   debugValue("R", R, SIZE_N);
-  for (i = 1; i < SIZE_L; i++) {
+  for (i = 1; i <= attributes; i++) {
     ModularExponentiation(SIZE_M, SIZE_N, 
       messages[i], issuerKey.n, issuerKey.R[i], buffer); // buffer = R_i^m_i
     debugValue("Ri^mi", buffer, SIZE_N);
@@ -152,7 +152,7 @@ void verifySignature(void) {
   // - Verify Z =?= Z'
   debugValue("Z ", issuerKey.Z, SIZE_N);    
   debugValue("U_", U_, SIZE_N);    
-  if (memcmp(issuerKey.Z, U_, SIZE_N)!=0) {
+  if (memcmp(issuerKey.Z, U_, SIZE_N) != 0) {
     // FAIL, TODO: clear already stored things 
     debugError("verifySignature(): verification of signature failed");
     ExitSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);

@@ -26,6 +26,7 @@ extern CLPublicKey issuerKey;
 extern CLSignature signature;
 extern CLMessages messages;
 extern Hash context;
+extern int attributes;
 
 extern Byte buffer[3*SIZE_VPRIME];//SIZE_BUFFER_C1 + SIZE_H];
 extern Byte D[SIZE_L];
