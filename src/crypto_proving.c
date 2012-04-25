@@ -19,7 +19,9 @@
  
 #include "crypto_proving.h"
 
+#include <ISO7816.h>
 #include <multosarith.h>
+#include <multoscomms.h>
 #include <multoscrypto.h>
 
 #include "defs_externals.h"
@@ -31,6 +33,22 @@
 /********************************************************************/
 /* Proving functions                                                */
 /********************************************************************/
+
+void selectAttributes(ByteArray list, int length) {
+  int i = 0;
+
+  debugValue("Disclosure list", list, length);
+  CLEARN(MAX_ATTR, D);
+  for (i = 0; i < length; i++) {
+    if (list[i] == 0 || list[i] > MAX_ATTR) {
+      // FAIL, TODO: clear already stored things
+      debugError("selectAttributes(): invalid attribute index");
+      ExitSW(ISO7816_SW_WRONG_DATA);
+    }
+    D[list[i]] = 0x01;
+  }
+  debugValue("Disclosure selection", D, MAX_ATTR);
+}
 
 void constructProof(void) {
   int i;

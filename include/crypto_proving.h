@@ -20,14 +20,15 @@
 #ifndef __crypto_proving_H
 #define __crypto_proving_H
 
+#include "defs_types.h"
+
+/**
+ * Select the attributes to be disclosed
+ */
+void selectAttributes(ByteArray list, int length);
+
 /**
  * Construct a proof
- *
- * pre: 
- *   n_1 contains the fresh nonce from the issuer.
- *   D contains the index set of disclosed attributes.
- * post: 
- *   
  */
 void constructProof(void);
 
