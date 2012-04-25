@@ -39,6 +39,6 @@ $(TEST_crypto_compute_hash): $(HEADERS) $(SOURCES_crypto_compute_hash) $(BINDIR)
 	hcl $(SIMFLAGS) $(SOURCES_crypto_compute_hash) -o $(TEST_crypto_compute_hash)
 
 clean:
-	rm -rf $(BINDIR)/* $(SRCDIR)/*~ $(INCDIR)/*~ $(TESTDIR)/*~
+	rm -f $(BINDIR)/*.hzx $(SRCDIR)/*~ $(INCDIR)/*~ $(TESTDIR)/*~
 
 .PHONY: all clean simulator smartcard test
