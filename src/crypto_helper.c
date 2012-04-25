@@ -101,7 +101,7 @@ void crypto_generate_random(ByteArray buffer, int length) {
     case LENGTH_VPRIME_:
       memcpy(buffer, TEST_vPrime_, SIZE_VPRIME_);
       break;
-    case LENGTH_M_:
+    case LENGTH_S_A:
       memcpy(buffer, TEST_m_, SIZE_M_);
       break;
     case LENGTH_STATZK:
