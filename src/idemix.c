@@ -239,6 +239,7 @@ void main(void) {
         
         case P1_SIGNATURE_VERIFY:
           debugMessage("P1_SIGNATURE_VERIFY");
+          if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
           verifySignature();
           debugMessage("Verified signature");
           ExitSW(ISO7816_SW_NO_ERROR);
@@ -272,6 +273,7 @@ void main(void) {
         
         case P1_PROOF_A_VERIFY:
           debugMessage("P1_PROOF_A_VERIFY");
+          if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
           verifyProof(s_e);
           debugMessage("Verified proof");
           ExitSW(ISO7816_SW_NO_ERROR);
@@ -286,28 +288,75 @@ void main(void) {
     
     // Disclosure / Proving instructions
     case INS_PROVE_SELECTION:
-      debugWarning("Unknown instruction INS_PROVE_SELECTION");
-      ExitSW(ISO7816_SW_INS_NOT_SUPPORTED);
+      debugMessage("INS_PROVE_SELECTION");
+      if (!(CheckCase(3) && Lc < SIZE_L)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+      selectAttributes(apdu.data, Lc);
+      ExitSW(ISO7816_SW_NO_ERROR);
       break;
       
     case INS_PROVE_NONCE:
-      debugWarning("Unknown instruction INS_PROVE_NONCE");
-      ExitSW(ISO7816_SW_INS_NOT_SUPPORTED);
+      debugMessage("INS_PROVE_NONCE");
+      if (!(CheckCase(3) && Lc == SIZE_STATZK)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+      COPYN(SIZE_STATZK, nonce, apdu.data);
+      debugValue("Initialised nonce", nonce, SIZE_STATZK);
+      constructProof();
+      COPYN(SIZE_H, apdu.data, challenge.c);
+      debugValue("Returned c", apdu.data, SIZE_H);
+      ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_N);
       break;
     
     case INS_PROVE_SIGNATURE:
-      debugWarning("Unknown instruction INS_PROVE_SIGNATURE");
-      ExitSW(ISO7816_SW_INS_NOT_SUPPORTED);
+      debugMessage("INS_PROVE_SIGNATURE");
+      switch(P1) {
+        case P1_SIGNATURE_A:
+          debugMessage("P1_SIGNATURE_A");
+          if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+          COPYN(SIZE_N, apdu.data, signature_.A);
+          debugValue("Returned A'", apdu.data, SIZE_N);
+          ExitSW(ISO7816_SW_NO_ERROR);
+          break;
+
+        case P1_SIGNATURE_E:
+          debugMessage("P1_SIGNATURE_E");
+          if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+          COPYN(SIZE_E_, apdu.data, eHat);
+          debugValue("Returned e^", apdu.data, SIZE_E_);
+          ExitSW(ISO7816_SW_NO_ERROR);
+          break;
+
+        case P1_SIGNATURE_V:
+          debugMessage("P1_SIGNATURE_V");
+          if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+          COPYN(SIZE_V_, apdu.data, vHat);
+          debugValue("Returned v^", apdu.data, SIZE_V_);
+          ExitSW(ISO7816_SW_NO_ERROR);
+          break;
+
+        default:
+          debugWarning("Unknown parameter");
+          ExitSW(ISO7816_SW_WRONG_P1P2);
+          break;
+      }
       break;
     
     case INS_PROVE_ATTRIBUTE:
-      debugWarning("Unknown instruction INS_PROVE_ATTRIBUTE");
-      ExitSW(ISO7816_SW_INS_NOT_SUPPORTED);
+      debugMessage("INS_PROVE_ATTRIBUTE");
+      if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+      if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
+      if (D[P1] != 0x01) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation!
+      COPYN(SIZE_M, apdu.data, messages[P1]);
+      debugValue("Returned attribute", apdu.data, SIZE_M);
+      ExitSW(ISO7816_SW_NO_ERROR);
       break;
       
     case INS_PROVE_RESPONSE:
-      debugWarning("Unknown instruction INS_PROVE_RESPONSE");
-      ExitSW(ISO7816_SW_INS_NOT_SUPPORTED);
+      debugMessage("INS_PROVE_RESPONSE");
+      if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+      if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
+      if (D[P1] != 0x00) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation?
+      COPYN(SIZE_M_, apdu.data, mHat[P1]);
+      debugValue("Returned response", apdu.data, SIZE_M_);
+      ExitSW(ISO7816_SW_NO_ERROR);
       break;
     
     // Fetch instructions
