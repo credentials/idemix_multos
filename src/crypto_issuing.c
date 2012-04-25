@@ -118,7 +118,6 @@ void constructSignature(ByteArray vPrimePrime) {
 
 void verifySignature(void) {
   int i;
-  Number Z_;
   
   // Verification of signature (A, e, v)
   // - Compute R = R_i^(m_i) mod n for i=1..l-1
@@ -141,19 +140,19 @@ void verifySignature(void) {
   
   // - Compute Z' = Q * S^v * R
   crypto_compute_SpecialModularExponentiation(SIZE_V,
-    signature.v, Z_); // Z_ = S^v
-  debugValue("S^v", Z_, SIZE_N);    
+    signature.v, U_); // U_ = S^v
+  debugValue("S^v", U_, SIZE_N);    
   ModularMultiplication(SIZE_N, 
-    Z_, Q, issuerKey.n); // Z_ = Z_ * Q
-  debugValue("S^v * Q", Z_, SIZE_N);    
+    U_, Q, issuerKey.n); // U_ = U_ * Q
+  debugValue("S^v * Q", U_, SIZE_N);    
   ModularMultiplication(SIZE_N, 
-    Z_, R, issuerKey.n); // Z_ = Z_ * R
-  debugValue("S^v * Q * R", Z_, SIZE_N);    
+    U_, R, issuerKey.n); // U_ = U_ * R
+  debugValue("S^v * Q * R", U_, SIZE_N);    
   
   // - Verify Z =?= Z'
   debugValue("Z ", issuerKey.Z, SIZE_N);    
-  debugValue("Z_", Z_, SIZE_N);    
-  if (memcmp(issuerKey.Z, Z_, SIZE_N)!=0) {
+  debugValue("U_", U_, SIZE_N);    
+  if (memcmp(issuerKey.Z, U_, SIZE_N)!=0) {
     // FAIL, TODO: clear already stored things 
     debugError("verifySignature(): verification of signature failed");
     ExitSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
