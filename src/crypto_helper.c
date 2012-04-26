@@ -169,11 +169,40 @@ void crypto_compute_vPrimeHat(ByteArray c, ByteArray vPrime) {
   MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_, c, vPrime);
   
   // Combine the two multiplications into a single result
-  ASSIGN_ADDN(SIZE_VPRIME/2 + SIZE_VPRIME_ - SIZE_VPRIME, 
-    buffer, buffer + SIZE_VPRIME + SIZE_VPRIME/2);
+  ASSIGN_ADDN(SIZE_VPRIME_ - SIZE_VPRIME/2, buffer,
+    buffer + SIZE_VPRIME + SIZE_VPRIME/2);
   
   // Add vPrimeTilde and store the result in vPrimeHat
   ASSIGN_ADDN(SIZE_VPRIME_, vPrimeHat, buffer);
+}
+
+/**
+ * Compute the response value v' = v - e*r_A
+ *
+ * Requires buffer of size SIZE_V + 2*SIZE_R_A.
+ *
+ * @param r_A the randomisation value
+ */
+void crypto_compute_vPrime(ByteArray r_A) {
+  // Clear the buffer, to prevent garbage messing up the computation
+  CLEARN(SIZE_V - SIZE_R_A, buffer);
+
+  // Prepare e for computations
+  CLEARN(SIZE_R_A/2 - SIZE_E, buffer + SIZE_V + SIZE_R_A);
+  COPYN(SIZE_E, buffer + SIZE_V + SIZE_R_A, signature.e);
+
+  // Multiply e with least significant half of r_A
+  MULN(SIZE_R_A/2, buffer + SIZE_V - SIZE_R_A, buffer + SIZE_V + SIZE_R_A,
+    r_A + (SIZE_R_A/2));
+
+  // Multiply e with most significant half of r_A
+  MULN(SIZE_R_A/2, buffer + SIZE_V, buffer + SIZE_V + SIZE_R_A, r_A);
+
+  // Combine the two multiplications into a single result
+  ASSIGN_ADDN(SIZE_V - SIZE_R_A/2, buffer, buffer + SIZE_R_A + SIZE_V/2);
+
+  // Subtract from v and store the result in v'
+  SUBN(SIZE_V, signature_.v, signature.v, buffer);
 }
 
 /**

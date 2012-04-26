@@ -43,6 +43,15 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
 void crypto_generate_random(ByteArray buffer, int length);
 
 /**
+ * Compute the response value v' = v - e*r_A
+ *
+ * Requires buffer of size SIZE_V + 2*SIZE_R_A.
+ *
+ * @param r_A the randomisation value
+ */
+void crypto_compute_vPrime(ByteArray r_A);
+
+/**
  * Compute the response value vHat = vTilde + c*vPrime
  * 
  * Requires buffer of size SIZE_VPRIME_ + SIZE_VPRIME and vTilde to be 

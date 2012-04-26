@@ -75,11 +75,8 @@ void constructProof(void) {
   debugValue("A' = A' * A mod n", signature_.A, SIZE_N);
   
   // Compute v' = v - e r_A
-  // FIXME: prepend e with sufficient zeros
-  MULN(SIZE_N + SIZE_STATZK, buffer + 3*SIZE_N, signature.e, buffer);
-  debugValue("buffer = e * r_A", buffer, 2*(SIZE_N + SIZE_STATZK));
-  SUBN(SIZE_V, signature_.v, signature.v, buffer + 2*(SIZE_N + SIZE_STATZK) - SIZE_V);
-  debugValue("v_ = v - buffer", signature_.v, SIZE_V);
+  crypto_compute_vPrime(rA);
+  debugValue("v_ = v - e*rA", signature_.v, SIZE_V);
 
   // Compute e' = e - 2^(l_e' - 1)
   CLEARN(SIZE_E, buffer);

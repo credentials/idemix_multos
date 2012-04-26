@@ -143,11 +143,11 @@ void verifySignature(void) {
     signature.v, U_); // U_ = S^v
   debugValue("S^v", U_, SIZE_N);    
   ModularMultiplication(SIZE_N, 
-    U_, Q, issuerKey.n); // U_ = U_ * Q
-  debugValue("S^v * Q", U_, SIZE_N);    
-  ModularMultiplication(SIZE_N, 
     U_, R, issuerKey.n); // U_ = U_ * R
-  debugValue("S^v * Q * R", U_, SIZE_N);    
+  debugValue("S^v * R", U_, SIZE_N);
+  ModularMultiplication(SIZE_N, 
+    U_, Q, issuerKey.n); // U_ = U_ * R
+  debugValue("S^v * R * Q", U_, SIZE_N);
   
   // - Verify Z =?= Z'
   debugValue("Z ", issuerKey.Z, SIZE_N);    
