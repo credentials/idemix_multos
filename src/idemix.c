@@ -71,6 +71,7 @@ ResponseVPRIME vPrimeHat;
 Number Q, R, s_e;
 CLSignature signature_;
 Byte D[SIZE_L];
+Byte rA[SIZE_R_A];
 
 Byte buffer[SIZE_BUFFER_C2];
 Nonce nonce;
@@ -78,6 +79,11 @@ Challenge challenge;
 
 Value values[5];
 Number U_; 
+
+#ifdef TEST
+int m_count = 0;
+int r_count = 0;
+#endif // TEST
 
 
 /********************************************************************/
@@ -191,9 +197,9 @@ void main(void) {
         case P1_PROOF_U_S_A:
           debugMessage("P1_PROOF_U_S_A");
           if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-          COPYN(SIZE_M_, apdu.data, mHat[0]);
-          debugValue("Returned s_A", apdu.data, SIZE_M_);
-          ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M_);
+          COPYN(SIZE_S_A, apdu.data, mHat[0]);
+          debugValue("Returned s_A", apdu.data, SIZE_S_A);
+          ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_S_A);
           break;
         
         default:

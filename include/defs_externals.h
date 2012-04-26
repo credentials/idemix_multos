@@ -30,6 +30,7 @@ extern int attributes;
 
 extern Byte buffer[3*SIZE_VPRIME];//SIZE_BUFFER_C1 + SIZE_H];
 extern Byte D[SIZE_L];
+extern Byte rA[SIZE_R_A];
 extern Nonce nonce;
 extern Challenge challenge;
 extern ResponseE eHat;
@@ -40,6 +41,11 @@ extern CLSignature signature_;
 
 extern Number Q, R, U_;
 extern Value values[5];
+
+#ifdef TEST
+extern int m_count;
+extern int r_count;
+#endif // TEST
 
 #endif // __defs_externals_H
 

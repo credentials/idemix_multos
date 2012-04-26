@@ -30,7 +30,7 @@ typedef Byte *ByteArray;
 typedef Byte Hash[SIZE_H];
 typedef Byte Nonce[SIZE_STATZK];
 typedef Byte ResponseE[SIZE_E_];
-typedef Byte ResponseM[SIZE_M_];
+typedef Byte ResponseM[SIZE_S_A];
 typedef Byte ResponseV[SIZE_V_];
 typedef Byte ResponseVPRIME[SIZE_VPRIME_];
 typedef Byte Number[SIZE_N];

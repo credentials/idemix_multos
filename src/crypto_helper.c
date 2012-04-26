@@ -96,16 +96,51 @@ void crypto_generate_random(ByteArray buffer, int length) {
   // Copy a test value instead of generating a random
   switch (length) {
     case LENGTH_VPRIME:
-      memcpy(buffer, TEST_vPrime, SIZE_VPRIME);
+      switch (r_count % 2) {
+        case 0:
+          memcpy(buffer, TEST_vPrime, SIZE_VPRIME);
+          break;
+        case 1:
+          memcpy(buffer, TEST_r_A, SIZE_R_A);
+          break;
+        default:
+          break;
+      }
+      r_count++;
       break;
     case LENGTH_VPRIME_:
       memcpy(buffer, TEST_vPrime_, SIZE_VPRIME_);
       break;
     case LENGTH_S_A:
-      memcpy(buffer, TEST_m_, SIZE_M_);
+      memcpy(buffer, TEST_m_, SIZE_S_A);
       break;
     case LENGTH_STATZK:
       memcpy(buffer, TEST_n_2, SIZE_STATZK);
+      break;
+    case LENGTH_M_:
+      switch (m_count % 4) {
+        case 0:
+          memcpy(buffer, TEST_m_0, SIZE_M_);
+          break;
+        case 1:
+          memcpy(buffer, TEST_m_1, SIZE_M_);
+          break;
+        case 2:
+          memcpy(buffer, TEST_m_2, SIZE_M_);
+          break;
+        case 3:
+          memcpy(buffer, TEST_m_3, SIZE_M_);
+          break;
+        default:
+          break;
+      }
+      m_count++;
+      break;
+    case LENGTH_E_:
+      memcpy(buffer, TEST_e_, SIZE_E_);
+      break;
+    case LENGTH_V_:
+      memcpy(buffer, TEST_v_, SIZE_V_);
       break;
     default:
       break;

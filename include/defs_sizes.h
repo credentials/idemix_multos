@@ -35,6 +35,7 @@
 #define LENGTH_VPRIME_  (LENGTH_N + 2*LENGTH_STATZK + LENGTH_H)
 #define LENGTH_V_       (LENGTH_V + LENGTH_STATZK + LENGTH_H)
 #define LENGTH_S_A      (LENGTH_M + LENGTH_STATZK + LENGTH_H + 1)
+#define LENGTH_R_A      (LENGTH_N + LENGTH_STATZK)
 #define LENGTH_M_       (LENGTH_M + LENGTH_STATZK + LENGTH_H)
 #define LENGTH_E_       (LENGTH_EPRIME + LENGTH_STATZK + LENGTH_H)
 
@@ -50,7 +51,9 @@
 
 #define SIZE_VPRIME  (SIZE_N + SIZE_STATZK) // 138 bytes
 #define SIZE_VPRIME_ (SIZE_N + 2*SIZE_STATZK + SIZE_H) // 168 bytes
-#define SIZE_M_      (SIZE_M + SIZE_STATZK + SIZE_H + 1) // 63 bytes
+#define SIZE_M_      (SIZE_M + SIZE_STATZK + SIZE_H) // 62 bytes
+#define SIZE_S_A     (SIZE_M + SIZE_STATZK + SIZE_H + 1) // 63 bytes
+#define SIZE_R_A     (SIZE_N + SIZE_STATZK) // 138 bytes
 #define SIZE_V_      (SIZE_V + SIZE_STATZK + SIZE_H) // 231 bytes
 #define SIZE_E_      (SIZE_EPRIME + SIZE_STATZK + SIZE_H) // 45 bytes
 

@@ -38,7 +38,7 @@ void selectAttributes(ByteArray list, int length) {
   int i = 0;
 
   debugValue("Disclosure list", list, length);
-  CLEARN(MAX_ATTR, D);
+  CLEARN(SIZE_L, D);
   for (i = 0; i < length; i++) {
     if (list[i] == 0 || list[i] > MAX_ATTR) {
       // FAIL, TODO: clear already stored things
@@ -47,16 +47,16 @@ void selectAttributes(ByteArray list, int length) {
     }
     D[list[i]] = 0x01;
   }
-  debugValue("Disclosure selection", D, MAX_ATTR);
+  debugValue("Disclosure selection", D, SIZE_L);
 }
 
 void constructProof(void) {
   int i;
   
   // Generate random values for m~[i], e~, v~ and r_A
-  for (i = 1; i <= attributes; i++) {
+  for (i = 0; i <= attributes; i++) {
     if (D[i] == 0x00) {
-      crypto_generate_random(mHat[i] + 1, LENGTH_M_);
+      crypto_generate_random(mHat[i], LENGTH_M_);
     }
   }
   debugValues("m_", (ByteArray) mHat, SIZE_M_, SIZE_L);
@@ -66,10 +66,10 @@ void constructProof(void) {
   debugValue("v_", signature_.v, SIZE_V_);
   
   // Compute A' = A S^r_A
-  crypto_generate_random(buffer + 3*SIZE_N, LENGTH_N + LENGTH_STATZK);
-  debugValue("r_A", buffer + 3*SIZE_N, SIZE_N + SIZE_STATZK);
+  crypto_generate_random(rA, LENGTH_R_A);
+  debugValue("r_A", rA, SIZE_R_A);
   crypto_compute_SpecialModularExponentiation(
-    SIZE_N + SIZE_STATZK, buffer + 3*SIZE_N, signature_.A);
+    SIZE_R_A, rA, signature_.A);
   debugValue("A' = S^r_A mod n", signature_.A, SIZE_N);
   ModularMultiplication(SIZE_N, signature_.A, signature.A, issuerKey.n);
   debugValue("A' = A' * A mod n", signature_.A, SIZE_N);
