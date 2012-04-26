@@ -85,14 +85,12 @@ int asn1_encode_int(ByteArray number, int length,
   offset -= length;
   memcpy(buffer + offset, number + skip, length);
   
-#ifndef TEST
   // If needed, add a 0x00 byte for correct two-complements encoding
   if ((buffer[offset] & 0x80) != 0x00) {
     debugMessage("Correcting value for two-complements encoding");
     buffer[--offset] = 0x00;
     length++;
   }
-#endif
   
   // Store the length
   offset = asn1_encode_length(length, buffer, offset);
