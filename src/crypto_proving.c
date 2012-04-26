@@ -53,7 +53,7 @@ void selectAttributes(ByteArray list, int length) {
 void constructProof(void) {
   int i;
   
-  // Generate randoms m~[i], e~, v~ and r_A
+  // Generate random values for m~[i], e~, v~ and r_A
   for (i = 1; i <= attributes; i++) {
     if (D[i] == 0x00) {
       crypto_generate_random(mHat[i] + 1, LENGTH_M_);
@@ -66,20 +66,17 @@ void constructProof(void) {
   debugValue("v_", signature_.v, SIZE_V_);
   
   // Compute A' = A S^r_A
-  crypto_generate_random(buffer, LENGTH_N + LENGTH_STATZK);
-  debugValue("r_A", buffer, SIZE_N + SIZE_STATZK);
-  // FIXME: crypto_compute_SpecialModularExponentiation also uses buffer
+  crypto_generate_random(buffer + 3*SIZE_N, LENGTH_N + LENGTH_STATZK);
+  debugValue("r_A", buffer + 3*SIZE_N, SIZE_N + SIZE_STATZK);
   crypto_compute_SpecialModularExponentiation(
-    SIZE_N + SIZE_STATZK, buffer, signature_.A);
+    SIZE_N + SIZE_STATZK, buffer + 3*SIZE_N, signature_.A);
   debugValue("A' = S^r_A mod n", signature_.A, SIZE_N);
   ModularMultiplication(SIZE_N, signature_.A, signature.A, issuerKey.n);
   debugValue("A' = A' * A mod n", signature_.A, SIZE_N);
   
   // Compute v' = v - e r_A
   // FIXME: prepend e with sufficient zeros
-  // FIXME: rA and output are both in buffer
-  // FIXME: crypto_compute_SpecialModularExponentiation also used buffer 
-  MULN(SIZE_N + SIZE_STATZK, buffer, signature.e, buffer);
+  MULN(SIZE_N + SIZE_STATZK, buffer + 3*SIZE_N, signature.e, buffer);
   debugValue("buffer = e * r_A", buffer, 2*(SIZE_N + SIZE_STATZK));
   SUBN(SIZE_V, signature_.v, signature.v, buffer + 2*(SIZE_N + SIZE_STATZK) - SIZE_V);
   debugValue("v_ = v - buffer", signature_.v, SIZE_V);

@@ -352,7 +352,7 @@ void main(void) {
     case INS_PROVE_RESPONSE:
       debugMessage("INS_PROVE_RESPONSE");
       if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-      if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
+      if (P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
       if (D[P1] != 0x00) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation?
       COPYN(SIZE_M_, apdu.data, mHat[P1]);
       debugValue("Returned response", apdu.data, SIZE_M_);
