@@ -20,10 +20,12 @@
 #include "crypto_helper.h"
 
 #include <multosarith.h>
+#include <multosccr.h>
 #include <multoscrypto.h>
 #include <string.h>
 
 #include "defs_externals.h"
+#include "funcs_debug.h"
 #include "funcs_helper.h"
 
 #ifdef TEST
@@ -59,6 +61,7 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
   offset = asn1_encode_seq(size - offset, length, buffer, offset);
   
   // Hash the data
+  debugValue("asn1rep", buffer + offset, size - offset);
   SHA1(size - offset, result, buffer + offset);
 }
 
@@ -177,7 +180,7 @@ void crypto_compute_vPrimeHat(ByteArray c, ByteArray vPrime) {
 }
 
 /**
- * Compute the response value v' = v - e*r_A
+ * Compute the value v' = v - e*r_A
  *
  * Requires buffer of size SIZE_V + 2*SIZE_R_A.
  *
@@ -189,7 +192,7 @@ void crypto_compute_vPrime(ByteArray r_A) {
 
   // Prepare e for computations
   CLEARN(SIZE_R_A/2 - SIZE_E, buffer + SIZE_V + SIZE_R_A);
-  COPYN(SIZE_E, buffer + SIZE_V + SIZE_R_A, signature.e);
+  COPYN(SIZE_E, buffer + SIZE_V + SIZE_R_A + SIZE_R_A/2 - SIZE_E, signature.e);
 
   // Multiply e with least significant half of r_A
   MULN(SIZE_R_A/2, buffer + SIZE_V - SIZE_R_A, buffer + SIZE_V + SIZE_R_A,
@@ -199,10 +202,17 @@ void crypto_compute_vPrime(ByteArray r_A) {
   MULN(SIZE_R_A/2, buffer + SIZE_V, buffer + SIZE_V + SIZE_R_A, r_A);
 
   // Combine the two multiplications into a single result
-  ASSIGN_ADDN(SIZE_V - SIZE_R_A/2, buffer, buffer + SIZE_R_A + SIZE_V/2);
+  ASSIGN_ADDN(SIZE_V - SIZE_R_A/2, buffer, buffer + SIZE_R_A + SIZE_R_A/2);
 
-  // Subtract from v and store the result in v'
-  SUBN(SIZE_V, signature_.v, signature.v, buffer);
+  // Subtract (with carry) from v and store the result in v'
+  SUBN(SIZE_V - SIZE_V_ADDITION, signature_.v + SIZE_V_ADDITION,
+    signature.v + SIZE_V_ADDITION, buffer + SIZE_V_ADDITION);
+  CFlag(buffer + SIZE_V + SIZE_R_A);
+  if (buffer[SIZE_V + SIZE_R_A] != 0x00) {
+    debugMessage("Subtraction with carry, subtracting 1");
+    DECN(SIZE_V_ADDITION, signature_.v);
+  }
+  SUBN(SIZE_V_ADDITION, signature_.v, signature.v, buffer);
 }
 
 /**
@@ -219,7 +229,7 @@ void crypto_compute_vHat(ByteArray c, ByteArray v) {
   CLEARN(SIZE_V_ - SIZE_V, buffer);
   
   // Multiply c with least significant half of v
-  MULN(SIZE_V/2, buffer + SIZE_V_ - SIZE_V, c, v + (SIZE_V/2));
+  MULN(SIZE_V/2, buffer + SIZE_V_ - SIZE_V, c, v + SIZE_V/2);
   
   // Multiply c with most significant half of v
   MULN(SIZE_V/2, buffer + SIZE_V_, c, v);
@@ -246,10 +256,10 @@ void crypto_compute_mHat(ByteArray c, int index) {
   MULN(SIZE_M, buffer, c, messages[index]);
   
   // Add mTilde to the result of the multiplication
-  ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[index], buffer + 2*SIZE_M - SIZE_M_);
+  ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[index], buffer + 2*SIZE_M - SIZE_S_A);
   
   // Store the result in mHat
-  COPYN(SIZE_M_, mHat[index], buffer + 2*SIZE_M);
+  COPYN(SIZE_S_A, mHat[index], buffer + 2*SIZE_M);
 }
 
 /**

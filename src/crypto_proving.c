@@ -59,11 +59,11 @@ void constructProof(void) {
       crypto_generate_random(mHat[i], LENGTH_M_);
     }
   }
-  debugValues("m_", (ByteArray) mHat, SIZE_M_, SIZE_L);
-  crypto_generate_random(signature_.e, LENGTH_E_);
-  debugValue("e_", signature_.e, SIZE_E_);
-  crypto_generate_random(signature_.v, LENGTH_V_);
-  debugValue("v_", signature_.v, SIZE_V_);
+  debugValues("m_", (ByteArray) mHat, SIZE_S_A, SIZE_L);
+  crypto_generate_random(eHat, LENGTH_E_);
+  debugValue("e_", eHat, SIZE_E_);
+  crypto_generate_random(vHat, LENGTH_V_);
+  debugValue("v_", vHat, SIZE_V_);
   
   // Compute A' = A S^r_A
   crypto_generate_random(rA, LENGTH_R_A);
@@ -78,21 +78,19 @@ void constructProof(void) {
   crypto_compute_vPrime(rA);
   debugValue("v_ = v - e*rA", signature_.v, SIZE_V);
 
-  // Compute e' = e - 2^(l_e' - 1)
-  CLEARN(SIZE_E, buffer);
-  buffer[SIZE_E-SIZE_EPRIME] = 0x80;
-  SUBN(SIZE_E, signature_.e, signature.e, buffer);
-  debugValue("e_ = e - 2^(l_e' - 1)", signature_.e, SIZE_E);
+  // Compute e' = e - 2^(l_e' - 1) (just ignore the first bit of e)
+  debugValue("e_ = e - 2^(l_e' - 1)", signature.e + SIZE_E - SIZE_EPRIME,
+      SIZE_EPRIME);
   
-  // Compute Z~ = A'^e_ * S^v_ * (R_i^m_i_ foreach i not in D)
-  crypto_compute_SpecialModularExponentiation(
-    SIZE_N + SIZE_STATZK, signature_.v, U_);
+  // Compute Z~ = A'^eTilde * S^vTilde * (R_i^m_i_ foreach i not in D)
+  crypto_compute_SpecialModularExponentiation(SIZE_V_, vHat, U_);
   debugValue("Z~ = S^v_", U_, SIZE_N);
-  ModularExponentiation(SIZE_E, SIZE_N, signature_.e, issuerKey.n, signature_.A, buffer);
+  ModularExponentiation(SIZE_E_, SIZE_N, eHat, issuerKey.n, signature_.A,
+    buffer);
   debugValue("buffer = A'^e_", buffer, SIZE_N);
   ModularMultiplication(SIZE_N, U_, buffer, issuerKey.n);
   debugValue("Z~ = Z~ * buffer", U_, SIZE_N);
-  for (i = 1; i <= attributes; i++) {
+  for (i = 0; i <= attributes; i++) {
     if (D[i] == 0x00) {
       ModularExponentiation(SIZE_M_, SIZE_N, mHat[i], issuerKey.n, issuerKey.R[i], buffer);
       debugValue("R_i^m_i", buffer, SIZE_N);
@@ -113,12 +111,12 @@ void constructProof(void) {
   crypto_compute_hash(values, 4, challenge.c, buffer, SIZE_BUFFER_C1);
   debugValue("c", challenge.c, SIZE_H);
   
-  // Compute e^ = e~ + c e' //= e~ + c(e - 2^(l_e - 1))
-  crypto_compute_eHat(challenge.c, signature_.e);
+  // Compute e^ = e~ + c e'
+  crypto_compute_eHat(challenge.c, signature.e + SIZE_E - SIZE_EPRIME);
   debugValue("eHat", eHat, SIZE_E_);
   
-  // Compute v^ = v~ + c v' //= v~ + c(v - e r_A)
-  crypto_compute_vHat(challenge.prefix_v, signature.v);
+  // Compute v^ = v~ + c v'
+  crypto_compute_vHat(challenge.prefix_v, signature_.v);
   debugValue("vHat", vHat, SIZE_V_);
   
   // Compute m_i^ = m_i~ + c m_i
