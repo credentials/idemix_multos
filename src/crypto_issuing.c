@@ -63,12 +63,12 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   crypto_generate_random(vPrimeHat, LENGTH_VPRIME_);
   debugValue("vPrimeTilde", vPrimeHat, SIZE_VPRIME_);
   crypto_generate_random(mHat[0], LENGTH_S_A);
-  debugValue("mTilde[0]", mHat[0], SIZE_M_);
+  debugValue("mTilde[0]", mHat[0], SIZE_S_A);
 
   // - Compute U_ = S^vPrimeTilde R_1^m_1Tilde
   crypto_compute_SpecialModularExponentiation(SIZE_VPRIME_, vPrimeHat, U_);
   debugValue("U_ = S^vPrimeTilde", U_, SIZE_N);
-  ModularExponentiation(SIZE_M_, SIZE_N, mHat[0], issuerKey.n, issuerKey.R[0], buffer);
+  ModularExponentiation(SIZE_S_A, SIZE_N, mHat[0], issuerKey.n, issuerKey.R[0], buffer);
   debugValue("buffer = R_1^m_1Tilde", buffer, SIZE_N);
   ModularMultiplication(SIZE_N, U_, buffer, issuerKey.n);
   debugValue("U_ = UTilde * buffer", U_, SIZE_N);
@@ -91,7 +91,7 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
 
   // - Compute response s_A = mTilde_1 + c * m_1
   crypto_compute_mHat(challenge.prefix_m, 0);
-  debugValue("mHat[0]", mHat[0], SIZE_M_);
+  debugValue("mHat[0]", mHat[0], SIZE_S_A);
   
   // Generate random n_2
   crypto_generate_random(nonce, LENGTH_STATZK);
@@ -106,11 +106,10 @@ void constructSignature(ByteArray vPrimePrime) {
   debugValue("vPrimePrime", vPrimePrime, SIZE_V);
   ASSIGN_ADDN(SIZE_V - SIZE_V_ADDITION, signature.v + SIZE_V_ADDITION, 
     vPrimePrime + SIZE_V_ADDITION);
-  CFlag(&buffer[SIZE_V_ADDITION - 1]);
-  if (buffer[SIZE_V_ADDITION - 1] != 0x00) {
+  CFlag(buffer);
+  if (buffer[0] != 0x00) {
     debugMessage("Addition with carry, adding 1");
-    CLEARN(SIZE_V_ADDITION -1, buffer);
-    ASSIGN_ADDN(SIZE_V_ADDITION, signature.v, buffer);
+    INCN(SIZE_V_ADDITION, signature.v);
   }
   ASSIGN_ADDN(SIZE_V_ADDITION, signature.v, vPrimePrime);
   debugValue("vPrime + vPrimePrime", signature.v, SIZE_V);
