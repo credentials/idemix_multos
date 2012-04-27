@@ -1,0 +1,90 @@
+-----------------
+Proof Specification:
+Identifiers
+(id2 : INT : REVEALED)
+(id1 : INT : UNREVEALED)
+(id5 : INT : REVEALED)
+(id4 : INT : UNREVEALED)
+(id3 : INT : UNREVEALED)
+Predicates (1):
+CLPredicate( http://www.ngo.org/CredStructCard.xml;someRandomName)
+	(attr2 -> id2)
+	(attr1 -> id1)
+	(attr4 -> id4)
+	(attr3 -> id3)
+	(attr5 -> id5)
+
+-----------------
+
+Getting nonce.
+
+C: 00A40400066964656D697800
+ duration: 16 ms
+R: 9000
+
+C: 00200000020205
+ duration: 51 ms
+R: 9000
+
+C: 002100000A1FF143BEF46754A96CBC
+ duration: 3845 ms
+R: 474FE6E8C6BBB3BE5B5469E4B254DB9553F601085555555554000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000
+
+C: 00240000
+ duration: 10 ms
+R: 9000
+
+C: 00240100
+ duration: 12 ms
+R: 9000
+
+C: 00240200
+ duration: 9 ms
+R: 6B00
+Could not get the random signature v^'.
+
+net.sourceforge.scuba.smartcards.CardServiceException: Could not get the random signature v^'.
+	at service.IdemixService.buildProof(IdemixService.java:1037)
+	at com.ibm.zurich.idmx.tests.idmx.TestProofCard.testProve_CredCard(TestProofCard.java:151)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:597)
+	at junit.framework.TestCase.runTest(TestCase.java:168)
+	at junit.framework.TestCase.runBare(TestCase.java:134)
+	at junit.framework.TestResult$1.protect(TestResult.java:110)
+	at junit.framework.TestResult.runProtected(TestResult.java:128)
+	at junit.framework.TestResult.run(TestResult.java:113)
+	at junit.framework.TestCase.run(TestCase.java:124)
+	at junit.framework.TestSuite.runTest(TestSuite.java:243)
+	at junit.framework.TestSuite.run(TestSuite.java:238)
+	at org.junit.internal.runners.JUnit38ClassRunner.run(JUnit38ClassRunner.java:83)
+	at org.eclipse.jdt.internal.junit4.runner.JUnit4TestReference.run(JUnit4TestReference.java:50)
+	at org.eclipse.jdt.internal.junit.runner.TestExecution.run(TestExecution.java:38)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:467)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:683)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.run(RemoteTestRunner.java:390)
+	at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.main(RemoteTestRunner.java:197)
+Proof Created.
+-----------------
+Proof Specification:
+Identifiers
+(id2 : INT : REVEALED)
+(id1 : INT : UNREVEALED)
+(id5 : INT : REVEALED)
+(id4 : INT : UNREVEALED)
+(id3 : INT : UNREVEALED)
+Predicates (1):
+CLPredicate( http://www.ngo.org/CredStructCard.xml;someRandomName)
+	(attr2 -> id2)
+	(attr1 -> id1)
+	(attr4 -> id4)
+	(attr3 -> id3)
+	(attr5 -> id5)
+
+-----------------
+
+[Fatal Error] :3:1: Premature end of file.
+Apr 27, 2012 5:26:57 PM com.ibm.zurich.idmx.utils.Parser parse
+SEVERE: SAXExcepton::Error parsing element : Premature end of file.
+
