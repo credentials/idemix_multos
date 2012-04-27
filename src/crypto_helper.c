@@ -271,6 +271,8 @@ void crypto_compute_mHat(ByteArray c, int index) {
  * @param e the value to be hidden
  */
 void crypto_compute_eHat(ByteArray c, ByteArray ePrime) {
+  CLEARN(SIZE_E_ - 2*SIZE_H, buffer);
+
   // Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_E)
   MULN(SIZE_H, buffer + SIZE_E_ - 2*SIZE_H, c, ePrime);
   

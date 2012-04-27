@@ -112,7 +112,7 @@ void constructProof(void) {
   debugValue("c", challenge.c, SIZE_H);
   
   // Compute e^ = e~ + c e'
-  crypto_compute_eHat(challenge.c, signature.e + SIZE_E - SIZE_EPRIME);
+  crypto_compute_eHat(challenge.c, signature.e + SIZE_E - SIZE_H);
   debugValue("eHat", eHat, SIZE_E_);
   
   // Compute v^ = v~ + c v'
