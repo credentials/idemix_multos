@@ -61,7 +61,7 @@
 #define SIZE_BUFFER_C2 ((SIZE_H+3) + 3*(SIZE_N+4) + (SIZE_STATZK+3) + 3 + 4) // 438 bytes
 
 // Auxiliary sizes
-#define SIZE_S_EXPONENT 96
+#define SIZE_S_EXPONENT 120
 #define SIZE_V_ADDITION 80
 
 #endif // __sizes_H
