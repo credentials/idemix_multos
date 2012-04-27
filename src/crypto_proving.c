@@ -116,7 +116,7 @@ void constructProof(void) {
   debugValue("eHat", eHat, SIZE_E_);
   
   // Compute v^ = v~ + c v'
-  crypto_compute_vHat(challenge.prefix_v, signature_.v);
+  crypto_compute_vHat(challenge.prefix_v);
   debugValue("vHat", vHat, SIZE_V_);
   
   // Compute m_i^ = m_i~ + c m_i

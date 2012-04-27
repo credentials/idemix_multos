@@ -216,7 +216,7 @@ void crypto_compute_vPrime(ByteArray r_A) {
 }
 
 /**
- * Compute the response value vHat = vTilde + c*v
+ * Compute the response value vHat = vTilde + c*v'
  * 
  * Requires buffer of size SIZE_V_ + SIZE_V and vTilde to be stored in 
  * vHat.
@@ -224,15 +224,15 @@ void crypto_compute_vPrime(ByteArray r_A) {
  * @param c the challenge
  * @param v the value to be hidden
  */
-void crypto_compute_vHat(ByteArray c, ByteArray v) {
+void crypto_compute_vHat(ByteArray c) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_V_ - SIZE_V, buffer);
   
   // Multiply c with least significant half of v
-  MULN(SIZE_V/2, buffer + SIZE_V_ - SIZE_V, c, v + SIZE_V/2);
+  MULN(SIZE_V/2, buffer + SIZE_V_ - SIZE_V, c, signature_.v + SIZE_V/2);
   
   // Multiply c with most significant half of v
-  MULN(SIZE_V/2, buffer + SIZE_V_, c, v);
+  MULN(SIZE_V/2, buffer + SIZE_V_, c, signature_.v);
   
   // Combine the two multiplications into a single result
   ASSIGN_ADDN(SIZE_V/2 + SIZE_V_ - SIZE_V, buffer, 
