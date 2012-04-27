@@ -60,7 +60,6 @@ typedef struct {
 } CLSignature;
 
 typedef struct {
-  Byte prefix_v[SIZE_V/2 - SIZE_VPRIME/2];
   Byte prefix_vPrime[SIZE_VPRIME/2 - SIZE_M];
   Byte prefix_m[SIZE_M - SIZE_H];
   Hash c;

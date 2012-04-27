@@ -218,8 +218,8 @@ void crypto_compute_vPrime(ByteArray r_A) {
 /**
  * Compute the response value vHat = vTilde + c*v'
  * 
- * Requires buffer of size SIZE_V_ + SIZE_V and vTilde to be stored in 
- * vHat.
+ * Requires buffer of size SIZE_V_ + 2*SIZE_V/3 and vTilde to be stored
+ * in vHat.
  * 
  * @param c the challenge
  * @param v the value to be hidden
@@ -228,15 +228,27 @@ void crypto_compute_vHat(ByteArray c) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_V_ - SIZE_V, buffer);
   
-  // Multiply c with least significant half of v
-  MULN(SIZE_V/2, buffer + SIZE_V_ - SIZE_V, c, signature_.v + SIZE_V/2);
+  // Multiply c with least significant part of v
+  MULN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, c, 
+    signature_.v + 2*SIZE_V/3);
   
+  // Multiply c with middle significant part of v
+  MULN(SIZE_V/3, buffer + SIZE_V_, c, signature_.v + SIZE_V/3);
+  
+  // Combine the two multiplications into a partial result
+/*  ASSIGN_ADDN(2*SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_); /* works as expected */
+  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, 
+    buffer + SIZE_V_ + SIZE_V/3);
+  COPYN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_);
+    
   // Multiply c with most significant half of v
-  MULN(SIZE_V/2, buffer + SIZE_V_, c, signature_.v);
+  MULN(SIZE_V/3, buffer + SIZE_V_, c, signature_.v);
   
   // Combine the two multiplications into a single result
-  ASSIGN_ADDN(SIZE_V/2 + SIZE_V_ - SIZE_V, buffer, 
-    buffer + SIZE_V + SIZE_V/2);
+/*  ASSIGN_ADDN(SIZE_V_ - 2*SIZE_V/3, buffer, buffer + 4*SIZE_V/3); /* fails somehow :-S what am I doing wrong? */
+  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, 
+    buffer + SIZE_V_ + SIZE_V/3);
+  COPYN(SIZE_V_ - SIZE_V, buffer, buffer + 4*SIZE_V/3);
   
   // Add vTilde and store the result in vHat
   ASSIGN_ADDN(SIZE_V_, vHat, buffer);
@@ -271,6 +283,7 @@ void crypto_compute_mHat(ByteArray c, int index) {
  * @param e the value to be hidden
  */
 void crypto_compute_eHat(ByteArray c, ByteArray ePrime) {
+  // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_E_ - 2*SIZE_H, buffer);
 
   // Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_E)
