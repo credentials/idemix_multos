@@ -308,7 +308,7 @@ void main(void) {
       constructProof();
       COPYN(SIZE_H, apdu.data, challenge.c);
       debugValue("Returned c", apdu.data, SIZE_H);
-      ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_N);
+      ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_H);
       break;
     
     case INS_PROVE_SIGNATURE:
