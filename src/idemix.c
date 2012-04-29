@@ -319,7 +319,7 @@ void main(void) {
           if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_N, apdu.data, signature_.A);
           debugValue("Returned A'", apdu.data, SIZE_N);
-          ExitSW(ISO7816_SW_NO_ERROR);
+          ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_N);
           break;
 
         case P1_SIGNATURE_E:
@@ -327,7 +327,7 @@ void main(void) {
           if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_E_, apdu.data, eHat);
           debugValue("Returned e^", apdu.data, SIZE_E_);
-          ExitSW(ISO7816_SW_NO_ERROR);
+          ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_E_);
           break;
 
         case P1_SIGNATURE_V:
@@ -335,7 +335,7 @@ void main(void) {
           if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_V_, apdu.data, vHat);
           debugValue("Returned v^", apdu.data, SIZE_V_);
-          ExitSW(ISO7816_SW_NO_ERROR);
+          ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_V_);
           break;
 
         default:
@@ -352,7 +352,7 @@ void main(void) {
       if (D[P1] != 0x01) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation!
       COPYN(SIZE_M, apdu.data, messages[P1]);
       debugValue("Returned attribute", apdu.data, SIZE_M);
-      ExitSW(ISO7816_SW_NO_ERROR);
+      ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M);
       break;
       
     case INS_PROVE_RESPONSE:
@@ -362,7 +362,7 @@ void main(void) {
       if (D[P1] != 0x00) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation?
       COPYN(SIZE_M_, apdu.data, mHat[P1]);
       debugValue("Returned response", apdu.data, SIZE_M_);
-      ExitSW(ISO7816_SW_NO_ERROR);
+      ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M_);
       break;
     
     // Fetch instructions
