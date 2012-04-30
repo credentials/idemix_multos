@@ -90,7 +90,7 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   debugValue("vPrimeHat", vPrimeHat, SIZE_VPRIME_);
 
   // - Compute response s_A = mTilde_1 + c * m_1
-  crypto_compute_mHat(challenge.prefix_m, 0);
+  crypto_compute_s_A(challenge.prefix_m);
   debugValue("mHat[0]", mHat[0], SIZE_S_A);
   
   // Generate random n_2

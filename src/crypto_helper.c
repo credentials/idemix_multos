@@ -255,6 +255,26 @@ void crypto_compute_vHat(ByteArray c) {
 }
 
 /**
+ * Compute the response value s_A = mTilde + c*m
+ * 
+ * Requires buffer of size 2*SIZE_M_ + SIZE_M and mTilde[0] to be 
+ * stored in mHat[0].
+ * 
+ * @param c the challenge
+ * @param index of the message to be hidden
+ */
+void crypto_compute_s_A(ByteArray c) {
+  // Multiply c with m
+  MULN(SIZE_M, buffer, c, messages[0]);
+  
+  // Add mTilde to the result of the multiplication
+  ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
+  
+  // Store the result in mHat
+  COPYN(SIZE_S_A, mHat[0], buffer + 2*SIZE_M);
+}
+
+/**
  * Compute the response value mHat = mTilde + c*m
  * 
  * Requires buffer of size 2*SIZE_M_ + SIZE_M and mTilde[index] to be 
@@ -268,10 +288,10 @@ void crypto_compute_mHat(ByteArray c, int index) {
   MULN(SIZE_M, buffer, c, messages[index]);
   
   // Add mTilde to the result of the multiplication
-  ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[index], buffer + 2*SIZE_M - SIZE_S_A);
+  ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[index], buffer + 2*SIZE_M - SIZE_M_);
   
   // Store the result in mHat
-  COPYN(SIZE_S_A, mHat[index], buffer + 2*SIZE_M);
+  COPYN(SIZE_M_, mHat[index], buffer + 2*SIZE_M);
 }
 
 /**
