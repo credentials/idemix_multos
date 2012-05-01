@@ -101,6 +101,9 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
 }
 
 void constructSignature(ByteArray vPrimePrime) {
+  // Clear signature.v, to prevent garbage messing up the computation
+  CLEARN(SIZE_V - SIZE_VPRIME, signature.v);
+  
   // Compute v = v' + v'' using add with carry
   debugValue("vPrime", signature.v, SIZE_V);
   debugValue("vPrimePrime", vPrimePrime, SIZE_V);
