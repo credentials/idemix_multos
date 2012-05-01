@@ -66,7 +66,8 @@ void constructProof(void) {
   debugValue("v_", vHat, SIZE_V_);
   
   // Compute A' = A S^r_A
-  crypto_generate_random(rA, LENGTH_R_A);
+  // IMPORTANT: Correction to the length of r_A to prevent negative values
+  crypto_generate_random(rA, LENGTH_R_A - 7);
   debugValue("r_A", rA, SIZE_R_A);
   crypto_compute_SpecialModularExponentiation(
     SIZE_R_A, rA, signature_.A);
