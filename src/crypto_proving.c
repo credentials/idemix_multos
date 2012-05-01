@@ -120,7 +120,7 @@ void constructProof(void) {
   debugValue("vHat", vHat, SIZE_V_);
   
   // Compute m_i^ = m_i~ + c m_i
-  for (i = 1; i < SIZE_L; i++) {
+  for (i = 0; i < SIZE_L; i++) {
     if (D[i] == 0x00) {
       crypto_compute_mHat(challenge.prefix_m, i);
     }
