@@ -209,8 +209,8 @@ void crypto_compute_vPrime(ByteArray r_A) {
     signature.v + SIZE_V_ADDITION, buffer + SIZE_V_ADDITION);
   CFlag(buffer + SIZE_V + SIZE_R_A);
   if (buffer[SIZE_V + SIZE_R_A] != 0x00) {
-    debugMessage("Subtraction with carry, subtracting 1");
-    DECN(SIZE_V_ADDITION, signature_.v);
+    debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
+    INCN(SIZE_V_ADDITION, buffer);
   }
   SUBN(SIZE_V_ADDITION, signature_.v, signature.v, buffer);
 }
