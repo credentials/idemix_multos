@@ -39,7 +39,7 @@
 /********************************************************************/
 #pragma melpublic
 
-APDUData apdu;
+APDUData apdu; // 438
 
 
 /********************************************************************/
@@ -47,13 +47,14 @@ APDUData apdu;
 /********************************************************************/
 #pragma melsession
 
-Byte buffer[SIZE_BUFFER_C2]; // 438
-Hash context; // + 20 = 458
-Nonce nonce; // + 10 = 468
-Challenge challenge; // + 69 = 537
-Byte D[SIZE_L]; // + 6 = 543
-ResponseE eHat; // + 45 = 588
-ResponseV vHat; // + 231 = 819
+ByteArray buffer = apdu.buffer; // 2
+Hash context; // + 20 = 22
+Nonce nonce; // + 10 = 32
+Challenge challenge; // + 69 = 101
+Byte D[SIZE_L]; // + 6 = 107
+ResponseE eHat; // + 45 = 152
+ResponseV vHat; // + 231 = 383
+ResponseM mHat[SIZE_L]; // + 63*6 (378) = 761
 
 
 /********************************************************************/
@@ -70,7 +71,6 @@ CLMessages messages;
 CLSignature signature;
 
 // Shared protocol variables
-ResponseM mHat[SIZE_L]; // + 63*6 (378) = 
 ResponseVPRIME vPrimeHat;
 Number Q, R, s_e;
 CLSignature signature_;
@@ -155,9 +155,11 @@ void main(void) {
       debugMessage("INS_SET_ATTRIBUTES");
       if (!(CheckCase(3) && Lc == SIZE_M)) ExitSW(ISO7816_SW_WRONG_LENGTH);
       if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
-      // Do not allow NULL values
+      // TODO: Do not allow NULL values
+/*
       CLEARN(SIZE_M, buffer);
       if (memcmp(buffer, apdu.data, SIZE_M) == 0) ExitSW(ISO7816_SW_WRONG_DATA);
+*/
       COPYN(SIZE_M, messages[P1], apdu.data);
       debugCLMessageI("Initialised messages", messages, P1);
       // TODO: Implement some proper handling of the number of attributes
@@ -176,7 +178,8 @@ void main(void) {
       if (!(CheckCase(3) && Lc == SIZE_STATZK)) ExitSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_STATZK, nonce, apdu.data);
       debugValue("Initialised nonce", nonce, SIZE_STATZK);
-      constructCommitment(signature.v + SIZE_V - SIZE_VPRIME, apdu.number);
+      constructCommitment();
+      COPYN(SIZE_N, apdu.data, Q);
       debugValue("Returned U", apdu.data, SIZE_N);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_N);
       break;
@@ -244,7 +247,7 @@ void main(void) {
         case P1_SIGNATURE_V:
           debugMessage("P1_SIGNATURE_V");
           if (!(CheckCase(3) && Lc == SIZE_V)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-          constructSignature(apdu.data);          
+          constructSignature();          
           debugValue("Initialised signature.v", signature.v, SIZE_V);
           ExitSW(ISO7816_SW_NO_ERROR);
           break;
@@ -286,7 +289,7 @@ void main(void) {
         case P1_PROOF_A_VERIFY:
           debugMessage("P1_PROOF_A_VERIFY");
           if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-          verifyProof(s_e);
+          verifyProof();
           debugMessage("Verified proof");
           ExitSW(ISO7816_SW_NO_ERROR);
           break;

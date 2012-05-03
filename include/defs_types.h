@@ -66,10 +66,8 @@ typedef struct {
 } Challenge;
 
 typedef union {
-  Byte D_data[SIZE_L];
   Byte data[255];
-  Number number;
-  Nonce nonce;
+  Byte buffer[SIZE_BUFFER_C2];
 } APDUData;
 
 #endif // __defs_types_H
