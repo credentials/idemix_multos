@@ -36,7 +36,7 @@
 /* Issuing functions                                                */
 /********************************************************************/
 
-void constructCommitment(ByteArray vPrime, ByteArray U) {
+void constructCommitment(void) {
   debugMessage("Starting commitment construction...");
   debugValue(" - issuerKey.n", issuerKey.n, SIZE_N);
   debugValue(" - issuerKey.Z", issuerKey.Z, SIZE_N);
@@ -47,16 +47,16 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   debugValue(" - context", context, SIZE_H);
   
   // Generate random vPrime
-  crypto_generate_random(vPrime, LENGTH_VPRIME);
-  debugValue("vPrime", vPrime, SIZE_VPRIME);
+  crypto_generate_random(signature.v + SIZE_V - SIZE_VPRIME, LENGTH_VPRIME);
+  debugValue("vPrime", signature.v + SIZE_V - SIZE_VPRIME, SIZE_VPRIME);
 
-  // Compute U = S^vPrime * R_1^m_1
-  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME, vPrime, U);
-  debugValue("U = S^vPrime mod n", U, SIZE_N);
+  // Compute Q = S^vPrime * R_1^m_1
+  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME, signature.v + SIZE_V - SIZE_VPRIME, Q);
+  debugValue("Q = S^vPrime mod n", Q, SIZE_N);
   ModularExponentiation(SIZE_M, SIZE_N, messages[0], issuerKey.n, issuerKey.R[0], buffer);
   debugValue("buffer = capR[0]^m[0] mod n", buffer, SIZE_N);
-  ModularMultiplication(SIZE_N, U, buffer, issuerKey.n);
-  debugValue("U = U * buffer", U, SIZE_N);
+  ModularMultiplication(SIZE_N, Q, buffer, issuerKey.n);
+  debugValue("Q = Q * buffer", Q, SIZE_N);
   
   // Compute P1:
   // - Generate random vPrimeTilde, m_1Tilde
@@ -69,14 +69,14 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   crypto_compute_SpecialModularExponentiation(SIZE_VPRIME_, vPrimeHat, U_);
   debugValue("U_ = S^vPrimeTilde", U_, SIZE_N);
   ModularExponentiation(SIZE_S_A, SIZE_N, mHat[0], issuerKey.n, issuerKey.R[0], buffer);
-  debugValue("buffer = R_1^m_1Tilde", buffer, SIZE_N);
+  debugValue("buffer = R[0]^mTilde[0]", buffer, SIZE_N);
   ModularMultiplication(SIZE_N, U_, buffer, issuerKey.n);
   debugValue("U_ = UTilde * buffer", U_, SIZE_N);
 
   // - Compute challenge c = H(context | U | U_ | n_1)
   values[0].data = context;
   values[0].size = SIZE_H;
-  values[1].data = U;
+  values[1].data = Q;
   values[1].size = SIZE_N;      
   values[2].data = U_;
   values[2].size = SIZE_N;
@@ -85,36 +85,36 @@ void constructCommitment(ByteArray vPrime, ByteArray U) {
   crypto_compute_hash(values, 4, challenge.c, buffer, SIZE_BUFFER_C1);
   debugValue("c", challenge.c, SIZE_H);
 
-  // - Compute response vPrimeHat = vTilde + c * vPrime
-  crypto_compute_vPrimeHat(challenge.prefix_vPrime, vPrime);
+  // - Compute response vPrimeHat = vPrimeTilde + c * vPrime
+  crypto_compute_vPrimeHat();
   debugValue("vPrimeHat", vPrimeHat, SIZE_VPRIME_);
 
   // - Compute response s_A = mTilde_1 + c * m_1
-  crypto_compute_s_A(challenge.prefix_m);
+  crypto_compute_s_A();
   debugValue("mHat[0]", mHat[0], SIZE_S_A);
   
   // Generate random n_2
   crypto_generate_random(nonce, LENGTH_STATZK);
   debugValue("nonce", nonce, SIZE_STATZK);
   
-  // Return vPrime, U, c, vPrimeHat, mHat[0], n_2
+  // Return vPrime, Q, c, vPrimeHat, mHat[0], n_2
 }
 
-void constructSignature(ByteArray vPrimePrime) {
+void constructSignature(void) {
   // Clear signature.v, to prevent garbage messing up the computation
   CLEARN(SIZE_V - SIZE_VPRIME, signature.v);
   
   // Compute v = v' + v'' using add with carry
   debugValue("vPrime", signature.v, SIZE_V);
-  debugValue("vPrimePrime", vPrimePrime, SIZE_V);
+  debugValue("vPrimePrime", buffer, SIZE_V);
   ASSIGN_ADDN(SIZE_V - SIZE_V_ADDITION, signature.v + SIZE_V_ADDITION, 
-    vPrimePrime + SIZE_V_ADDITION);
-  CFlag(buffer);
-  if (buffer[0] != 0x00) {
+    buffer + SIZE_V_ADDITION);
+  CFlag(buffer + SIZE_V);
+  if (buffer[SIZE_V] != 0x00) {
     debugMessage("Addition with carry, adding 1");
     INCN(SIZE_V_ADDITION, signature.v);
   }
-  ASSIGN_ADDN(SIZE_V_ADDITION, signature.v, vPrimePrime);
+  ASSIGN_ADDN(SIZE_V_ADDITION, signature.v, buffer);
   debugValue("vPrime + vPrimePrime", signature.v, SIZE_V);
 }
 
@@ -161,24 +161,23 @@ void verifySignature(void) {
   }
 }
 
-void verifyProof(Number s_e) {
-  Value values[5];
-  Number A_;
-  Hash c_;
+/**
+ * (OPTIONAL) Verify the proof (round 3, part 3)
+ */
+void verifyProof(void) {
 
-  // Verification of P2:
-  // - Compute A_ = A^(c + s_e e) mod n
+  // Compute A_ = A^(c + s_e e) mod n
   ModularExponentiation(SIZE_N, SIZE_N, 
     s_e, issuerKey.n, Q, buffer); // buffer = Q^s_e
   debugValue("Q^s_e", buffer, SIZE_N);
   ModularExponentiation(SIZE_H, SIZE_N, 
-    challenge.c, issuerKey.n, signature.A, A_); // A_ = A^c
-  debugValue("A^c", A_, SIZE_N);
+    challenge.c, issuerKey.n, signature.A, U_); // A_ = A^c
+  debugValue("A^c", U_, SIZE_N);
   ModularMultiplication(SIZE_N, 
-    A_, buffer, issuerKey.n); // A_ = A_ * buffer
-  debugValue("Q^s_e * A^c", A_, SIZE_N);
+    U_, buffer, issuerKey.n); // A_ = A_ * buffer
+  debugValue("Q^s_e * A^c", U_, SIZE_N);
   
-  // - Compute challenge c' = H(context | Q | A | n_2 | A_)
+  // Compute challenge c' = H(context | Q | A | n_2 | A_)
   values[0].data = context;
   values[0].size = SIZE_H;
   debugValue("context", context, SIZE_H);
@@ -191,16 +190,16 @@ void verifyProof(Number s_e) {
   values[3].data = nonce;
   values[3].size = SIZE_STATZK;
   debugValue("n2", nonce, SIZE_STATZK);
-  values[4].data = A_;
+  values[4].data = U_;
   values[4].size = SIZE_N;
-  debugValue("A_", A_, SIZE_N);
-  crypto_compute_hash(values, 5, c_, buffer, SIZE_BUFFER_C2);
-  debugValue("c_", c_, SIZE_H);
+  debugValue("A_", U_, SIZE_N);
+  crypto_compute_hash(values, 5, challenge.prefix_vPrime, buffer, SIZE_BUFFER_C2);
+  debugValue("c_", challenge.prefix_vPrime, SIZE_H);
 
-  // - Verify c =?= c'
+  // Verify c =?= c'
   debugValue("c ", challenge.c, SIZE_H);
-  debugValue("c_", c_, SIZE_H);
-  if (memcmp(challenge.c, c_, SIZE_H) != 0) {
+  debugValue("c_", challenge.prefix_vPrime, SIZE_H);
+  if (memcmp(challenge.c, challenge.prefix_vPrime, SIZE_H) != 0) {
     // FAIL, TODO: clear already stored things 
     debugError("verifyProof(): verification of P2 failed");
     ExitSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);

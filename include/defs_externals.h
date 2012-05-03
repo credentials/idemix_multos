@@ -39,7 +39,7 @@ extern ResponseV vHat;
 extern ResponseVPRIME vPrimeHat;
 extern CLSignature signature_;
 
-extern Number Q, R, U_;
+extern Number Q, R, U_, s_e;
 extern Value values[5];
 
 #ifdef TEST

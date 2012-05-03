@@ -25,22 +25,22 @@
 /**
  * Construct a commitment (round 1)
  */
-void constructCommitment(ByteArray vPrime, Number U);
+void constructCommitment(void);
 
 /**
  * Construct the signature (round 3, part 1)
  */
-void constructSignature(ByteArray vPrimePrime);
+void constructSignature(void);
 
 /**
- * Verify the signature (round 3, part 2)
+ * (OPTIONAL) Verify the signature (round 3, part 2)
  */
 void verifySignature(void);
 
 /**
- * Verify the proof (round 3, part 3)
+ * (OPTIONAL) Verify the proof (round 3, part 3)
  */
-void verifyProof(Number s_e);
+void verifyProof(void);
 
 #endif // __crypto_issuing_H
 
