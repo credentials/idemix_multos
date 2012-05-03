@@ -36,6 +36,10 @@
 /* Cryptographic helper functions                                   */
 /********************************************************************/
 
+//////////////////////////////////////////////////////////////////////
+// Shared functions                                                 //
+//////////////////////////////////////////////////////////////////////
+
 /**
  * Compute a cryptographic hash of the given input values
  * 
@@ -152,24 +156,72 @@ void crypto_generate_random(ByteArray buffer, int length) {
 }
 
 /**
- * Compute the response value vPrimeHat = vTilde + c*vPrime
+ * Compute the helper value S' = S^(2_l) where l = SIZE_S_EXPONENT*8
  * 
- * Requires buffer of size SIZE_VPRIME_ + SIZE_VPRIME and vPrimeTilde 
- * to be stored in vPrimeHat.
- * 
- * @param c the challenge
- * @param vPrime the value to be hidden
+ * This value is required for exponentiations with base S and an 
+ * exponent which is larger than SIZE_N bytes.
  */
-void crypto_compute_vPrimeHat(ByteArray c, ByteArray vPrime) {
+void crypto_compute_S_(void) {
+  // Store the value l = SIZE_S_EXPONENT*8 in the buffer
+  CLEARN(SIZE_S_EXPONENT + 1, buffer);
+  buffer[0] = 0x01;
+  
+  // Compute S_ = S^(2_l)
+  ModularExponentiation(SIZE_S_EXPONENT + 1, SIZE_N, 
+    buffer, issuerKey.n, issuerKey.S, issuerKey.S_);
+}
+
+/**
+ * Compute the modular exponentiation: result = S^exponent mod n
+ * 
+ * This function will use the helper value S' to compute exponentiations 
+ * with exponents larger than SIZE_N bytes.
+ * 
+ * @param size of the exponent
+ * @param exponent the power to which the base S should be raised
+ * @param result of the computation
+ */
+void crypto_compute_SpecialModularExponentiation(int size, 
+    ByteArray exponent, ByteArray result) {
+  
+  if (size > SIZE_N) {
+    // Compute result = S^(exponent_bottom) * S_^(exponent_top)
+    ModularExponentiation(SIZE_S_EXPONENT, SIZE_N, 
+      exponent + size - SIZE_S_EXPONENT, issuerKey.n, issuerKey.S, result);
+    ModularExponentiation(size - SIZE_S_EXPONENT, SIZE_N, 
+      exponent, issuerKey.n, issuerKey.S_, buffer);
+    ModularMultiplication(SIZE_N, result, buffer, issuerKey.n);
+  } else {
+    // Compute result = S^exponent
+    ModularExponentiation(size, SIZE_N, 
+      exponent, issuerKey.n, issuerKey.S, result);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////
+// Issuing functions                                                //
+//////////////////////////////////////////////////////////////////////
+
+/**
+ * Compute the response value vPrimeHat = vPrimeTilde + c*vPrime
+ * 
+ * @param buffer of size SIZE_VPRIME_ + SIZE_VPRIME
+ * @param c in challenge.prefix_vPrime
+ * @param vPrime signature.v + SIZE_V - SIZE_VPRIME
+ * @param vTilde in vPrimeHat
+ * @return vPrimeHat
+ */
+void crypto_compute_vPrimeHat(void) {  
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_VPRIME_ - SIZE_VPRIME, buffer);
   
   // Multiply c with least significant half of vPrime
-  MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_ - SIZE_VPRIME, c, 
-    vPrime + (SIZE_VPRIME/2));
+  MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_ - SIZE_VPRIME, 
+    challenge.prefix_vPrime, signature.v + SIZE_V - SIZE_VPRIME/2);
   
   // Multiply c with most significant half of vPrime
-  MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_, c, vPrime);
+  MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_, challenge.prefix_vPrime, 
+    signature.v + SIZE_V - SIZE_VPRIME);
   
   // Combine the two multiplications into a single result
   ASSIGN_ADDN(SIZE_VPRIME_ - SIZE_VPRIME/2, buffer,
@@ -178,6 +230,30 @@ void crypto_compute_vPrimeHat(ByteArray c, ByteArray vPrime) {
   // Add vPrimeTilde and store the result in vPrimeHat
   ASSIGN_ADDN(SIZE_VPRIME_, vPrimeHat, buffer);
 }
+
+/**
+ * Compute the response value s_A = mTilde[0] + c*m[0]
+ * 
+ * @param buffer of size 2*SIZE_M_ + SIZE_M
+ * @param c in challenge.prefix_m
+ * @param m[0] in messages[0]
+ * @param mTilde[0] in mHat[0]
+ * @return s_A in mHat[0]
+ */
+void crypto_compute_s_A(void) {
+  // Multiply c with m
+  MULN(SIZE_M, buffer, challenge.prefix_m, messages[0]);
+  
+  // Add mTilde to the result of the multiplication
+  ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
+  
+  // Store the result in mHat
+  COPYN(SIZE_S_A, mHat[0], buffer + 2*SIZE_M);
+}
+
+//////////////////////////////////////////////////////////////////////
+// Proving functions                                                //
+//////////////////////////////////////////////////////////////////////
 
 /**
  * Compute the value v' = v - e*r_A
@@ -255,26 +331,6 @@ void crypto_compute_vHat(ByteArray c) {
 }
 
 /**
- * Compute the response value s_A = mTilde + c*m
- * 
- * Requires buffer of size 2*SIZE_M_ + SIZE_M and mTilde[0] to be 
- * stored in mHat[0].
- * 
- * @param c the challenge
- * @param index of the message to be hidden
- */
-void crypto_compute_s_A(ByteArray c) {
-  // Multiply c with m
-  MULN(SIZE_M, buffer, c, messages[0]);
-  
-  // Add mTilde to the result of the multiplication
-  ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
-  
-  // Store the result in mHat
-  COPYN(SIZE_S_A, mHat[0], buffer + 2*SIZE_M);
-}
-
-/**
  * Compute the response value mHat = mTilde + c*m
  * 
  * Requires buffer of size 2*SIZE_M_ + SIZE_M and mTilde[index] to be 
@@ -311,47 +367,4 @@ void crypto_compute_eHat(ByteArray c, ByteArray ePrime) {
   
   // Add eTilde and store the result in eHat
   ASSIGN_ADDN(SIZE_E_, eHat, buffer);
-}
-
-/**
- * Compute the helper value S' = S^(2_l) where l = SIZE_S_EXPONENT*8
- * 
- * This value is required for exponentiations with base S and an 
- * exponent which is larger than SIZE_N bytes.
- */
-void crypto_compute_S_(void) {
-  // Store the value l = SIZE_S_EXPONENT*8 in the buffer
-  CLEARN(SIZE_S_EXPONENT + 1, buffer);
-  buffer[0] = 0x01;
-  
-  // Compute S_ = S^(2_l)
-  ModularExponentiation(SIZE_S_EXPONENT + 1, SIZE_N, 
-    buffer, issuerKey.n, issuerKey.S, issuerKey.S_);
-}
-
-/**
- * Compute the modular exponentiation: result = S^exponent mod n
- * 
- * This function will use the helper value S' to compute exponentiations 
- * with exponents larger than SIZE_N bytes.
- * 
- * @param size of the exponent
- * @param exponent the power to which the base S should be raised
- * @param result of the computation
- */
-void crypto_compute_SpecialModularExponentiation(int size, 
-    ByteArray exponent, ByteArray result) {
-  
-  if (size > SIZE_N) {
-    // Compute result = S^(exponent_bottom) * S_^(exponent_top)
-    ModularExponentiation(SIZE_S_EXPONENT, SIZE_N, 
-      exponent + size - SIZE_S_EXPONENT, issuerKey.n, issuerKey.S, result);
-    ModularExponentiation(size - SIZE_S_EXPONENT, SIZE_N, 
-      exponent, issuerKey.n, issuerKey.S_, buffer);
-    ModularMultiplication(SIZE_N, result, buffer, issuerKey.n);
-  } else {
-    // Compute result = S^exponent
-    ModularExponentiation(size, SIZE_N, 
-      exponent, issuerKey.n, issuerKey.S, result);
-  }
 }

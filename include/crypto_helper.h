@@ -22,6 +22,10 @@
 
 #include "defs_types.h"
 
+//////////////////////////////////////////////////////////////////////
+// Shared functions                                                 //
+//////////////////////////////////////////////////////////////////////
+
 /**
  * Compute a cryptographic hash of the given input values
  * 
@@ -42,6 +46,36 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
  */
 void crypto_generate_random(ByteArray buffer, int length);
 
+//////////////////////////////////////////////////////////////////////
+// Issuing functions                                                //
+//////////////////////////////////////////////////////////////////////
+
+/**
+ * Compute the response value vPrimeHat = vPrimeTilde + c*vPrime
+ * 
+ * @param buffer of size SIZE_VPRIME_ + SIZE_VPRIME
+ * @param c in challenge.prefix_vPrime
+ * @param vPrime signature.v + SIZE_V - SIZE_VPRIME
+ * @param vTilde in vPrimeHat
+ * @return vPrimeHat
+ */
+void crypto_compute_vPrimeHat(void);
+
+/**
+ * Compute the response value s_A = mTilde[0] + c*m[0]
+ * 
+ * @param buffer of size 2*SIZE_M_ + SIZE_M
+ * @param c in challenge.prefix_m
+ * @param m[0] in messages[0]
+ * @param mTilde[0] in mHat[0]
+ * @return s_A in mHat[0]
+ */
+void crypto_compute_s_A(void);
+
+//////////////////////////////////////////////////////////////////////
+// Proving functions                                                //
+//////////////////////////////////////////////////////////////////////
+
 /**
  * Compute the response value v' = v - e*r_A
  *
@@ -52,17 +86,6 @@ void crypto_generate_random(ByteArray buffer, int length);
 void crypto_compute_vPrime(ByteArray r_A);
 
 /**
- * Compute the response value vHat = vTilde + c*vPrime
- * 
- * Requires buffer of size SIZE_VPRIME_ + SIZE_VPRIME and vTilde to be 
- * stored in vHat.
- * 
- * @param c the challenge
- * @param vPrime the value to be hidden
- */
-void crypto_compute_vPrimeHat(ByteArray c, ByteArray vPrime);
-
-/**
  * Compute the response value vHat = vTilde + c*v'
  * 
  * Requires buffer of size SIZE_V_ + SIZE_V and vTilde to be stored in 
@@ -71,17 +94,6 @@ void crypto_compute_vPrimeHat(ByteArray c, ByteArray vPrime);
  * @param c the challenge
  */
 void crypto_compute_vHat(ByteArray c);
-
-/**
- * Compute the response value s_A = mTilde + c*m
- * 
- * Requires buffer of size 2*SIZE_M_ + SIZE_M and mTilde[0] to be 
- * stored in mHat[0].
- * 
- * @param c the challenge
- * @param index of the message to be hidden
- */
-void crypto_compute_s_A(ByteArray c);
 
 /**
  * Compute the response value mHat = mTilde + c*m
