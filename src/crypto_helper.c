@@ -208,7 +208,7 @@ void crypto_compute_SpecialModularExponentiation(int size,
  * Compute the response value vPrimeHat = vPrimeTilde + c*vPrime
  * 
  * @param buffer of size SIZE_VPRIME_ + SIZE_VPRIME
- * @param c in challenge.prefix_vPrime
+ * @param c in challenge.prefix_vPrimeHat
  * @param vPrime signature.v + SIZE_V - SIZE_VPRIME
  * @param vPrimeTilde in vHat
  * @return vPrimeHat in vHat
@@ -219,10 +219,10 @@ void crypto_compute_vPrimeHat(void) {
   
   // Multiply c with least significant half of vPrime
   MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_ - SIZE_VPRIME, 
-    challenge.prefix_vPrime, signature.v + SIZE_V - SIZE_VPRIME/2);
+    challenge.prefix_vPrimeHat, signature.v + SIZE_V - SIZE_VPRIME/2);
   
   // Multiply c with most significant half of vPrime
-  MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_, challenge.prefix_vPrime, 
+  MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
     signature.v + SIZE_V - SIZE_VPRIME);
   
   // Combine the two multiplications into a single result
@@ -244,7 +244,7 @@ void crypto_compute_vPrimeHat(void) {
  */
 void crypto_compute_s_A(void) {
   // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.prefix_m, messages[0]);
+  MULN(SIZE_M, buffer, challenge.prefix_mHat, messages[0]);
   
   // Add mTilde to the result of the multiplication
   ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
@@ -258,13 +258,16 @@ void crypto_compute_s_A(void) {
 //////////////////////////////////////////////////////////////////////
 
 /**
- * Compute the value v' = v - e*r_A
+ * Compute the value vPrime = v - e*r_A
  *
- * Requires buffer of size SIZE_V + 2*SIZE_R_A.
- *
- * @param r_A the randomisation value
+ * @param buffer of size SIZE_V + 2*SIZE_R_A
+ * @param e in signature.e
+ * @param r_A in vHat
+ * @param v in signature.v
+ * @return vPrime in signature_.v
  */
-void crypto_compute_vPrime(ByteArray r_A) {
+#define r_A vHat
+void crypto_compute_vPrime(void) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_V - SIZE_R_A, buffer);
 
@@ -294,24 +297,25 @@ void crypto_compute_vPrime(ByteArray r_A) {
 }
 
 /**
- * Compute the response value vHat = vTilde + c*v'
+ * Compute the response value vHat = vTilde + c*vPrime
  * 
- * Requires buffer of size SIZE_V_ + 2*SIZE_V/3 and vTilde to be stored
- * in vHat.
- * 
- * @param c the challenge
- * @param v the value to be hidden
+ * @param buffer of size SIZE_V_ + 2*SIZE_V/3
+ * @param c in challenge.prefix_vHat
+ * @param vPrime in signature_.v
+ * @param vTilde in vHat
+ * @return vHat
  */
-void crypto_compute_vHat(ByteArray c) {
+void crypto_compute_vHat(void) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_V_ - SIZE_V, buffer);
   
   // Multiply c with least significant part of v
-  MULN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, c, 
+  MULN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, challenge.prefix_vHat, 
     signature_.v + 2*SIZE_V/3);
   
   // Multiply c with middle significant part of v
-  MULN(SIZE_V/3, buffer + SIZE_V_, c, signature_.v + SIZE_V/3);
+  MULN(SIZE_V/3, buffer + SIZE_V_, challenge.prefix_vHat, 
+    signature_.v + SIZE_V/3);
   
   // Combine the two multiplications into a partial result
 /*  ASSIGN_ADDN(2*SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_); /* works as expected */
@@ -320,7 +324,7 @@ void crypto_compute_vHat(ByteArray c) {
   COPYN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_);
     
   // Multiply c with most significant half of v
-  MULN(SIZE_V/3, buffer + SIZE_V_, c, signature_.v);
+  MULN(SIZE_V/3, buffer + SIZE_V_, challenge.prefix_vHat, signature_.v);
   
   // Combine the two multiplications into a single result
 /*  ASSIGN_ADDN(SIZE_V_ - 2*SIZE_V/3, buffer, buffer + 4*SIZE_V/3); /* fails somehow :-S what am I doing wrong? */
@@ -333,23 +337,23 @@ void crypto_compute_vHat(ByteArray c) {
 }
 
 /**
- * Compute the response value mHat = mTilde + c*m
+ * Compute the response value mHat[i] = mTilde[i] + c*m[i]
  * 
- * Requires buffer of size 2*SIZE_M_ + SIZE_M and mTilde[index] to be 
- * stored in mHat[index].
- * 
+ * @param buffer of size 2*SIZE_M_ + SIZE_M
  * @param c the challenge
- * @param index of the message to be hidden
+ * @param m[i] in messages[i]
+ * @param mTilde[index] in mHat[index]
+ * @return mHat[i]
  */
-void crypto_compute_mHat(ByteArray c, int index) {
+void crypto_compute_mHat(int i) {
   // Multiply c with m
-  MULN(SIZE_M, buffer, c, messages[index]);
+  MULN(SIZE_M, buffer, challenge.prefix_mHat, messages[i]);
   
   // Add mTilde to the result of the multiplication
-  ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[index], buffer + 2*SIZE_M - SIZE_M_);
+  ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[i], buffer + 2*SIZE_M - SIZE_M_);
   
   // Store the result in mHat
-  COPYN(SIZE_M_, mHat[index], buffer + 2*SIZE_M);
+  COPYN(SIZE_M_, mHat[i], buffer + 2*SIZE_M);
 }
 
 /**
@@ -357,15 +361,18 @@ void crypto_compute_mHat(ByteArray c, int index) {
  * 
  * Requires buffer of size 2*SIZE_EPRIME and eTilde to be stored in eHat.
  * 
- * @param c the challenge
+ * @param 
+ * @param c in challenge.c
+ * @param ePrime in signature.e + SIZE_E - SIZE_H
  * @param e the value to be hidden
  */
-void crypto_compute_eHat(ByteArray c, ByteArray ePrime) {
+#define ePrime (signature.e + SIZE_E - SIZE_H)
+void crypto_compute_eHat(void) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_E_ - 2*SIZE_H, buffer);
 
   // Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_E)
-  MULN(SIZE_H, buffer + SIZE_E_ - 2*SIZE_H, c, ePrime);
+  MULN(SIZE_H, buffer + SIZE_E_ - 2*SIZE_H, challenge.c, ePrime);
   
   // Add eTilde and store the result in eHat
   ASSIGN_ADDN(SIZE_E_, eHat, buffer);

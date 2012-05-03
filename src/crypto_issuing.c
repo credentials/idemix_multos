@@ -35,7 +35,7 @@
 #define buffer apdu.temp.data
 #define values apdu.temp.list
 
-#define vPrime signature.v + SIZE_V - SIZE_VPRIME
+#define vPrime (signature.v + SIZE_V - SIZE_VPRIME)
 #define U Q
 #define UTilde R
 #define ZPrime s_e
@@ -189,13 +189,13 @@ void verifyProof(void) {
   values[4].data = AHat;
   values[4].size = SIZE_N;
   debugValue("A_", AHat, SIZE_N);
-  crypto_compute_hash(values, 5, challenge.prefix_vPrime, buffer, SIZE_BUFFER_C2);
-  debugValue("c_", challenge.prefix_vPrime, SIZE_H);
+  crypto_compute_hash(values, 5, challenge.prefix_vPrimeHat, buffer, SIZE_BUFFER_C2);
+  debugValue("c_", challenge.prefix_vPrimeHat, SIZE_H);
 
   // Verify c =?= c'
   debugValue("c ", challenge.c, SIZE_H);
-  debugValue("c_", challenge.prefix_vPrime, SIZE_H);
-  if (memcmp(challenge.c, challenge.prefix_vPrime, SIZE_H) != 0) {
+  debugValue("c_", challenge.prefix_vPrimeHat, SIZE_H);
+  if (memcmp(challenge.c, challenge.prefix_vPrimeHat, SIZE_H) != 0) {
     // FAIL, TODO: clear already stored things 
     debugError("verifyProof(): verification of P2 failed");
     ExitSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);

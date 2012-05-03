@@ -46,6 +46,28 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
  */
 void crypto_generate_random(ByteArray buffer, int length);
 
+/**
+ * Compute the helper value S' = S^(2_l) where l = SIZE_S_EXPONENT*8
+ * 
+ * This value is required for exponentiations with base S and an 
+ * exponent which is larger than SIZE_N bytes.
+ */
+void crypto_compute_S_(void);
+
+/**
+ * Compute the modular exponentiation: result = S^exponent mod n
+ * 
+ * This function will use the helper value S' to compute exponentiations 
+ * with exponents larger than SIZE_N bytes.
+ * 
+ * @param size of the exponent
+ * @param exponent the power to which the base S should be raised
+ * @param result of the computation
+ */
+void crypto_compute_SpecialModularExponentiation(int size, 
+                                                 ByteArray exponent, 
+                                                 ByteArray result);
+
 //////////////////////////////////////////////////////////////////////
 // Issuing functions                                                //
 //////////////////////////////////////////////////////////////////////
@@ -83,7 +105,7 @@ void crypto_compute_s_A(void);
  *
  * @param r_A the randomisation value
  */
-void crypto_compute_vPrime(ByteArray r_A);
+void crypto_compute_vPrime(void);
 
 /**
  * Compute the response value vHat = vTilde + c*v'
@@ -93,7 +115,7 @@ void crypto_compute_vPrime(ByteArray r_A);
  * 
  * @param c the challenge
  */
-void crypto_compute_vHat(ByteArray c);
+void crypto_compute_vHat(void);
 
 /**
  * Compute the response value mHat = mTilde + c*m
@@ -104,7 +126,7 @@ void crypto_compute_vHat(ByteArray c);
  * @param c the challenge
  * @param index of the message to be hidden
  */
-void crypto_compute_mHat(ByteArray c, int index);
+void crypto_compute_mHat(int index);
 
 /**
  * Compute the response value eHat = eTilde + c*e
@@ -114,29 +136,7 @@ void crypto_compute_mHat(ByteArray c, int index);
  * @param c the challenge
  * @param e the value to be hidden
  */
-void crypto_compute_eHat(ByteArray c, ByteArray e);
-
-/**
- * Compute the helper value S' = S^(2_l) where l = SIZE_S_EXPONENT*8
- * 
- * This value is required for exponentiations with base S and an 
- * exponent which is larger than SIZE_N bytes.
- */
-void crypto_compute_S_(void);
-
-/**
- * Compute the modular exponentiation: result = S^exponent mod n
- * 
- * This function will use the helper value S' to compute exponentiations 
- * with exponents larger than SIZE_N bytes.
- * 
- * @param size of the exponent
- * @param exponent the power to which the base S should be raised
- * @param result of the computation
- */
-void crypto_compute_SpecialModularExponentiation(int size, 
-                                                 ByteArray exponent, 
-                                                 ByteArray result);
+void crypto_compute_eHat(void);
 
 /**
  * Determine whether an attribute is to be disclosed or not.

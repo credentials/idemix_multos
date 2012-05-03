@@ -34,7 +34,7 @@
 #define values apdu.temp.list
 
 #define ZTilde Q
-#define rA vHat
+#define r_A vHat
 
 /********************************************************************/
 /* Proving functions                                                */
@@ -61,17 +61,17 @@ void constructProof(void) {
   
   // Compute A' = A S^r_A
   // IMPORTANT: Correction to the length of r_A to prevent negative values
-  crypto_generate_random(rA, LENGTH_R_A - 7);
-  debugValue("r_A", rA, SIZE_R_A);
+  crypto_generate_random(r_A, LENGTH_R_A - 7);
+  debugValue("r_A", r_A, SIZE_R_A);
   crypto_compute_SpecialModularExponentiation(
-    SIZE_R_A, rA, signature_.A);
+    SIZE_R_A, r_A, signature_.A);
   debugValue("A' = S^r_A mod n", signature_.A, SIZE_N);
   ModularMultiplication(SIZE_N, signature_.A, signature.A, issuerKey.n);
   debugValue("A' = A' * A mod n", signature_.A, SIZE_N);
   
   // Compute v' = v - e r_A
-  crypto_compute_vPrime(rA);
-  debugValue("v_ = v - e*rA", signature_.v, SIZE_V);
+  crypto_compute_vPrime();
+  debugValue("v_ = v - e*r_A", signature_.v, SIZE_V);
 
   // Compute e' = e - 2^(l_e' - 1) (just ignore the first bit of e)
   debugValue("e_ = e - 2^(l_e' - 1)", signature.e + SIZE_E - SIZE_EPRIME,
@@ -119,17 +119,17 @@ void constructProof(void) {
   debugValue("c", challenge.c, SIZE_H);
   
   // Compute e^ = e~ + c e'
-  crypto_compute_eHat(challenge.c, signature.e + SIZE_E - SIZE_H);
+  crypto_compute_eHat();
   debugValue("eHat", eHat, SIZE_E_);
   
   // Compute v^ = v~ + c v'
-  crypto_compute_vHat(challenge.prefix_vPrime + SIZE_VPRIME/2 - SIZE_V/3);
+  crypto_compute_vHat();
   debugValue("vHat", vHat, SIZE_V_);
   
   // Compute m_i^ = m_i~ + c m_i
   for (i = 0; i < SIZE_L; i++) {
     if (disclosed(i) == 0) {
-      crypto_compute_mHat(challenge.prefix_m, i);
+      crypto_compute_mHat(i);
     }
   }
   debugValues("mHat", (ByteArray) mHat, SIZE_M_, SIZE_L);
