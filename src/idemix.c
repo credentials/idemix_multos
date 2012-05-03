@@ -51,6 +51,9 @@ Byte buffer[SIZE_BUFFER_C2]; // 438
 Hash context; // + 20 = 458
 Nonce nonce; // + 10 = 468
 Challenge challenge; // + 69 = 537
+Byte D[SIZE_L]; // + 6 = 543
+ResponseE eHat; // + 45 = 588
+ResponseV vHat; // + 231 = 819
 
 
 /********************************************************************/
@@ -67,13 +70,10 @@ CLMessages messages;
 CLSignature signature;
 
 // Shared protocol variables
-ResponseE eHat;
-ResponseM mHat[SIZE_L];
-ResponseV vHat;
+ResponseM mHat[SIZE_L]; // + 63*6 (378) = 
 ResponseVPRIME vPrimeHat;
 Number Q, R, s_e;
 CLSignature signature_;
-Byte D[SIZE_L];
 Byte rA[SIZE_R_A];
 
 Value values[5];
@@ -95,7 +95,11 @@ void main(void) {
   }
   
   switch (INS) {
-    // Initialisation instructions
+    
+    //////////////////////////////////////////////////////////////////
+    // Initialisation instructions                                  //
+    //////////////////////////////////////////////////////////////////
+    
     case INS_SET_PUBLIC_KEY_N:
       debugMessage("INS_SET_PUBLIC_KEY_N");
       if (!(CheckCase(3) && Lc == SIZE_N)) ExitSW(ISO7816_SW_WRONG_LENGTH);
@@ -163,7 +167,10 @@ void main(void) {
       ExitSW(ISO7816_SW_NO_ERROR);
       break;
     
-    // Personalisation / Issuance instructions
+    //////////////////////////////////////////////////////////////////
+    // Personalisation / Issuance instructions                      //
+    //////////////////////////////////////////////////////////////////
+    
     case INS_ISSUE_NONCE_1:
       debugMessage("INS_ISSUE_NONCE_1");
       if (!(CheckCase(3) && Lc == SIZE_STATZK)) ExitSW(ISO7816_SW_WRONG_LENGTH);
@@ -291,7 +298,10 @@ void main(void) {
       }
       break;
     
-    // Disclosure / Proving instructions
+    ////////////////////////////////////////////////////////////////// 
+    // Disclosure / Proving instructions                            //
+    //////////////////////////////////////////////////////////////////
+    
     case INS_PROVE_SELECTION:
       debugMessage("INS_PROVE_SELECTION");
       if (!(CheckCase(3) && Lc < SIZE_L)) ExitSW(ISO7816_SW_WRONG_LENGTH);
@@ -364,7 +374,10 @@ void main(void) {
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M_);
       break;
     
-    // Fetch instructions
+    //////////////////////////////////////////////////////////////////
+    // Fetch instructions                                           //
+    //////////////////////////////////////////////////////////////////
+    
     case INS_GET_PUBLIC_KEY_N:
       debugMessage("INS_GET_PUBLIC_KEY_N");
       COPYN(SIZE_N, apdu.data, issuerKey.n);
@@ -398,7 +411,7 @@ void main(void) {
       debugNumberI("Fetched isserKey.R", issuerKey.R, P1);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_N);
       break;
-    
+/*    
     case INS_GET_CONTEXT:
       debugMessage("INS_GET_CONTEXT");
       COPYN(SIZE_H, apdu.data, context);
@@ -413,7 +426,7 @@ void main(void) {
       debugCLMessageI("Fetched messages", messages, 0);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M);
       break;
-    
+
     case INS_GET_ATTRIBUTES:
       debugMessage("INS_GET_ATTRIBUTES");
       if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
@@ -421,7 +434,7 @@ void main(void) {
       debugCLMessageI("Fetched messages", messages, P1);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M);
       break;
-    
+*/    
     // Unknown instruction
     default:
       debugWarning("Unknown instruction");
