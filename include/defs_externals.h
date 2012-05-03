@@ -22,25 +22,23 @@
 
 #include "defs_types.h"
 
+extern APDUData apdu;
+
 extern CLPublicKey issuerKey;
 extern CLSignature signature;
 extern CLMessages messages;
-extern Hash context;
 extern int attributes;
 
-extern Byte buffer[3*SIZE_VPRIME];//SIZE_BUFFER_C1 + SIZE_H];
-extern Byte D[SIZE_L];
-extern Byte rA[SIZE_R_A];
+extern int D;
+extern Hash context;
 extern Nonce nonce;
 extern Challenge challenge;
 extern ResponseE eHat;
 extern ResponseM mHat[SIZE_L];
 extern ResponseV vHat;
-extern ResponseVPRIME vPrimeHat;
-extern CLSignature signature_;
 
-extern Number Q, R, U_, s_e;
-extern Value values[5];
+extern CLSignature signature_;
+extern Number Q, R, s_e;
 
 #ifdef TEST
 extern int m_count;

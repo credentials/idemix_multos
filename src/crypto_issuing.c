@@ -32,53 +32,56 @@
 #include "funcs_debug.h"
 #include "crypto_helper.h"
 
+#define buffer apdu.temp.data
+#define values apdu.temp.list
+
+#define vPrime signature.v + SIZE_V - SIZE_VPRIME
+#define U Q
+#define UTilde R
+#define ZPrime s_e
+#define AHat R
+
 /********************************************************************/
 /* Issuing functions                                                */
 /********************************************************************/
 
 void constructCommitment(void) {
-  debugMessage("Starting commitment construction...");
-  debugValue(" - issuerKey.n", issuerKey.n, SIZE_N);
-  debugValue(" - issuerKey.Z", issuerKey.Z, SIZE_N);
-  debugValue(" - issuerKey.S", issuerKey.S, SIZE_N);
-  debugNumbers(" - issuerKey.R", issuerKey.R, SIZE_L);
-  debugValue(" - secret", messages[0], SIZE_M);
-  debugValue(" - nonce", nonce, SIZE_STATZK);
-  debugValue(" - context", context, SIZE_H);
   
   // Generate random vPrime
-  crypto_generate_random(signature.v + SIZE_V - SIZE_VPRIME, LENGTH_VPRIME);
-  debugValue("vPrime", signature.v + SIZE_V - SIZE_VPRIME, SIZE_VPRIME);
+  crypto_generate_random(vPrime, LENGTH_VPRIME);
+  debugValue("vPrime", vPrime, SIZE_VPRIME);
 
-  // Compute Q = S^vPrime * R_1^m_1
-  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME, signature.v + SIZE_V - SIZE_VPRIME, Q);
-  debugValue("Q = S^vPrime mod n", Q, SIZE_N);
-  ModularExponentiation(SIZE_M, SIZE_N, messages[0], issuerKey.n, issuerKey.R[0], buffer);
-  debugValue("buffer = capR[0]^m[0] mod n", buffer, SIZE_N);
-  ModularMultiplication(SIZE_N, Q, buffer, issuerKey.n);
-  debugValue("Q = Q * buffer", Q, SIZE_N);
+  // Compute U = S^vPrime * R[0]^m[0] mod n
+  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME, vPrime, U);
+  debugValue("U = S^vPrime mod n", U, SIZE_N);
+  ModularExponentiation(SIZE_M, SIZE_N, 
+    messages[0], issuerKey.n, issuerKey.R[0], buffer);
+  debugValue("buffer = R[0]^m[0] mod n", buffer, SIZE_N);
+  ModularMultiplication(SIZE_N, U, buffer, issuerKey.n);
+  debugValue("U = U * buffer mod n", U, SIZE_N);
   
   // Compute P1:
-  // - Generate random vPrimeTilde, m_1Tilde
-  crypto_generate_random(vPrimeHat, LENGTH_VPRIME_);
-  debugValue("vPrimeTilde", vPrimeHat, SIZE_VPRIME_);
+  // - Generate random vPrimeTilde, mTilde[0]
+  crypto_generate_random(vHat, LENGTH_VPRIME_);
+  debugValue("vPrimeTilde", vHat, SIZE_VPRIME_);
   crypto_generate_random(mHat[0], LENGTH_S_A);
   debugValue("mTilde[0]", mHat[0], SIZE_S_A);
 
-  // - Compute U_ = S^vPrimeTilde R_1^m_1Tilde
-  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME_, vPrimeHat, U_);
-  debugValue("U_ = S^vPrimeTilde", U_, SIZE_N);
-  ModularExponentiation(SIZE_S_A, SIZE_N, mHat[0], issuerKey.n, issuerKey.R[0], buffer);
-  debugValue("buffer = R[0]^mTilde[0]", buffer, SIZE_N);
-  ModularMultiplication(SIZE_N, U_, buffer, issuerKey.n);
-  debugValue("U_ = UTilde * buffer", U_, SIZE_N);
+  // - Compute UTilde = S^vPrimeTilde * R[0]^mTilde[0] mod n
+  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME_, vHat, UTilde);
+  debugValue("UTilde = S^vPrimeTilde mod n", UTilde, SIZE_N);
+  ModularExponentiation(SIZE_S_A, SIZE_N, 
+    mHat[0], issuerKey.n, issuerKey.R[0], buffer);
+  debugValue("buffer = R[0]^mTilde[0] mod n", buffer, SIZE_N);
+  ModularMultiplication(SIZE_N, UTilde, buffer, issuerKey.n);
+  debugValue("UTilde = UTilde * buffer mod n", UTilde, SIZE_N);
 
-  // - Compute challenge c = H(context | U | U_ | n_1)
+  // - Compute challenge c = H(context | U | UTilde | nonce)
   values[0].data = context;
   values[0].size = SIZE_H;
-  values[1].data = Q;
+  values[1].data = U;
   values[1].size = SIZE_N;      
-  values[2].data = U_;
+  values[2].data = UTilde;
   values[2].size = SIZE_N;
   values[3].data = nonce;
   values[3].size = SIZE_STATZK;
@@ -87,17 +90,15 @@ void constructCommitment(void) {
 
   // - Compute response vPrimeHat = vPrimeTilde + c * vPrime
   crypto_compute_vPrimeHat();
-  debugValue("vPrimeHat", vPrimeHat, SIZE_VPRIME_);
+  debugValue("vPrimeHat", vHat, SIZE_VPRIME_);
 
-  // - Compute response s_A = mTilde_1 + c * m_1
+  // - Compute response s_A = mTilde[0] + c * m[0]
   crypto_compute_s_A();
-  debugValue("mHat[0]", mHat[0], SIZE_S_A);
+  debugValue("s_A", mHat[0], SIZE_S_A);
   
   // Generate random n_2
   crypto_generate_random(nonce, LENGTH_STATZK);
   debugValue("nonce", nonce, SIZE_STATZK);
-  
-  // Return vPrime, Q, c, vPrimeHat, mHat[0], n_2
 }
 
 void constructSignature(void) {
@@ -142,19 +143,17 @@ void verifySignature(void) {
   
   // - Compute Z' = Q * S^v * R
   crypto_compute_SpecialModularExponentiation(SIZE_V,
-    signature.v, U_); // U_ = S^v
-  debugValue("S^v", U_, SIZE_N);    
-  ModularMultiplication(SIZE_N, 
-    U_, R, issuerKey.n); // U_ = U_ * R
-  debugValue("S^v * R", U_, SIZE_N);
-  ModularMultiplication(SIZE_N, 
-    U_, Q, issuerKey.n); // U_ = U_ * R
-  debugValue("S^v * R * Q", U_, SIZE_N);
+    signature.v, ZPrime); // ZPrime = S^v
+  debugValue("S^v", ZPrime, SIZE_N);    
+  ModularMultiplication(SIZE_N, ZPrime, R, issuerKey.n); // U_ = U_ * R
+  debugValue("S^v * R", ZPrime, SIZE_N);
+  ModularMultiplication(SIZE_N, ZPrime, Q, issuerKey.n); // U_ = U_ * Q
+  debugValue("S^v * R * Q", ZPrime, SIZE_N);
   
   // - Verify Z =?= Z'
-  debugValue("Z ", issuerKey.Z, SIZE_N);    
-  debugValue("U_", U_, SIZE_N);    
-  if (memcmp(issuerKey.Z, U_, SIZE_N) != 0) {
+  debugValue("Z", issuerKey.Z, SIZE_N);    
+  debugValue("ZPrime", ZPrime, SIZE_N);    
+  if (memcmp(issuerKey.Z, ZPrime, SIZE_N) != 0) {
     // FAIL, TODO: clear already stored things 
     debugError("verifySignature(): verification of signature failed");
     ExitSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
@@ -166,18 +165,15 @@ void verifySignature(void) {
  */
 void verifyProof(void) {
 
-  // Compute A_ = A^(c + s_e e) mod n
-  ModularExponentiation(SIZE_N, SIZE_N, 
-    s_e, issuerKey.n, Q, buffer); // buffer = Q^s_e
-  debugValue("Q^s_e", buffer, SIZE_N);
-  ModularExponentiation(SIZE_H, SIZE_N, 
-    challenge.c, issuerKey.n, signature.A, U_); // A_ = A^c
-  debugValue("A^c", U_, SIZE_N);
-  ModularMultiplication(SIZE_N, 
-    U_, buffer, issuerKey.n); // A_ = A_ * buffer
-  debugValue("Q^s_e * A^c", U_, SIZE_N);
+  // Compute AHat = A^(c + s_e e) mod n
+  ModularExponentiation(SIZE_N, SIZE_N, s_e, issuerKey.n, Q, buffer);
+  debugValue("buffer = Q^s_e mod n", buffer, SIZE_N);
+  ModularExponentiation(SIZE_H, SIZE_N, challenge.c, issuerKey.n, signature.A, AHat);
+  debugValue("AHat = A^c mod n", AHat, SIZE_N);
+  ModularMultiplication(SIZE_N, AHat, buffer, issuerKey.n);
+  debugValue("AHat = AHat * buffer", AHat, SIZE_N);
   
-  // Compute challenge c' = H(context | Q | A | n_2 | A_)
+  // Compute challenge c' = H(context | Q | A | n_2 | AHat)
   values[0].data = context;
   values[0].size = SIZE_H;
   debugValue("context", context, SIZE_H);
@@ -190,9 +186,9 @@ void verifyProof(void) {
   values[3].data = nonce;
   values[3].size = SIZE_STATZK;
   debugValue("n2", nonce, SIZE_STATZK);
-  values[4].data = U_;
+  values[4].data = AHat;
   values[4].size = SIZE_N;
-  debugValue("A_", U_, SIZE_N);
+  debugValue("A_", AHat, SIZE_N);
   crypto_compute_hash(values, 5, challenge.prefix_vPrime, buffer, SIZE_BUFFER_C2);
   debugValue("c_", challenge.prefix_vPrime, SIZE_H);
 

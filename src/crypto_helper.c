@@ -155,6 +155,8 @@ void crypto_generate_random(ByteArray buffer, int length) {
 #endif // TEST
 }
 
+#define buffer apdu.temp.data
+
 /**
  * Compute the helper value S' = S^(2_l) where l = SIZE_S_EXPONENT*8
  * 
@@ -208,8 +210,8 @@ void crypto_compute_SpecialModularExponentiation(int size,
  * @param buffer of size SIZE_VPRIME_ + SIZE_VPRIME
  * @param c in challenge.prefix_vPrime
  * @param vPrime signature.v + SIZE_V - SIZE_VPRIME
- * @param vTilde in vPrimeHat
- * @return vPrimeHat
+ * @param vPrimeTilde in vHat
+ * @return vPrimeHat in vHat
  */
 void crypto_compute_vPrimeHat(void) {  
   // Clear the buffer, to prevent garbage messing up the computation
@@ -228,7 +230,7 @@ void crypto_compute_vPrimeHat(void) {
     buffer + SIZE_VPRIME + SIZE_VPRIME/2);
   
   // Add vPrimeTilde and store the result in vPrimeHat
-  ASSIGN_ADDN(SIZE_VPRIME_, vPrimeHat, buffer);
+  ASSIGN_ADDN(SIZE_VPRIME_, vHat, buffer);
 }
 
 /**

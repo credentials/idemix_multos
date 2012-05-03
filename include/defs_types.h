@@ -67,7 +67,10 @@ typedef struct {
 
 typedef union {
   Byte data[255];
-  Byte buffer[SIZE_BUFFER_C2];
+  struct {
+    Byte data[SIZE_BUFFER_C2];
+    Value list[5];
+  } temp;
 } APDUData;
 
 #endif // __defs_types_H

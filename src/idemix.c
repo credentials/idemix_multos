@@ -34,12 +34,15 @@
 #include "crypto_issuing.h"
 #include "crypto_proving.h"
 
+#define buffer apdu.temp.data
+#define U Q
+
 /********************************************************************/
 /* APDU buffer variable declaration                                 */
 /********************************************************************/
 #pragma melpublic
 
-APDUData apdu; // 438
+APDUData apdu; // 458
 
 
 /********************************************************************/
@@ -47,14 +50,13 @@ APDUData apdu; // 438
 /********************************************************************/
 #pragma melsession
 
-ByteArray buffer = apdu.buffer; // 2
-Hash context; // + 20 = 22
-Nonce nonce; // + 10 = 32
+Nonce nonce; // 10 = 10
+Hash context; // + 20 = 30
+int D; // + 2 = 32
 Challenge challenge; // + 69 = 101
-Byte D[SIZE_L]; // + 6 = 107
-ResponseE eHat; // + 45 = 152
-ResponseV vHat; // + 231 = 383
-ResponseM mHat[SIZE_L]; // + 63*6 (378) = 761
+ResponseE eHat; // + 45 = 146
+ResponseV vHat; // + 231 = 377
+ResponseM mHat[SIZE_L]; // + 63*6 (378) = 755
 
 
 /********************************************************************/
@@ -71,13 +73,8 @@ CLMessages messages;
 CLSignature signature;
 
 // Shared protocol variables
-ResponseVPRIME vPrimeHat;
 Number Q, R, s_e;
 CLSignature signature_;
-Byte rA[SIZE_R_A];
-
-Value values[5];
-Number U_; 
 
 #ifdef TEST
 int m_count = 0;
@@ -179,7 +176,7 @@ void main(void) {
       COPYN(SIZE_STATZK, nonce, apdu.data);
       debugValue("Initialised nonce", nonce, SIZE_STATZK);
       constructCommitment();
-      COPYN(SIZE_N, apdu.data, Q);
+      COPYN(SIZE_N, apdu.data, U);
       debugValue("Returned U", apdu.data, SIZE_N);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_N);
       break;
@@ -198,7 +195,7 @@ void main(void) {
         case P1_PROOF_U_VPRIMEHAT:
           debugMessage("P1_PROOF_U_VPRIMEHAT");
           if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-          COPYN(SIZE_VPRIME_, apdu.data, vPrimeHat);
+          COPYN(SIZE_VPRIME_, apdu.data, vHat);
           debugValue("Returned vPrimeHat", apdu.data, SIZE_VPRIME_);
           ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_VPRIME_);
           break;
@@ -361,7 +358,7 @@ void main(void) {
       debugMessage("INS_PROVE_ATTRIBUTE");
       if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
       if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
-      if (D[P1] != 0x01) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation!
+      if (disclosed(P1) != 1) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation!
       COPYN(SIZE_M, apdu.data, messages[P1]);
       debugValue("Returned attribute", apdu.data, SIZE_M);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M);
@@ -371,7 +368,7 @@ void main(void) {
       debugMessage("INS_PROVE_RESPONSE");
       if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
       if (P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
-      if (D[P1] != 0x00) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation?
+      if (disclosed(P1) != 0) ExitSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation?
       COPYN(SIZE_M_, apdu.data, mHat[P1]);
       debugValue("Returned response", apdu.data, SIZE_M_);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M_);
