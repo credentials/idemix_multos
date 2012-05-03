@@ -21,7 +21,7 @@
 #define __sizes_H
 
 // Attribute definitions
-#define MAX_ATTR      9
+#define MAX_ATTR      5
 
 // System parameter lengths
 #define LENGTH_N      1024
