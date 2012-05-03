@@ -47,6 +47,10 @@ APDUData apdu;
 /********************************************************************/
 #pragma melsession
 
+Byte buffer[SIZE_BUFFER_C2]; // 438
+Hash context; // + 20 = 458
+Nonce nonce; // + 10 = 468
+Challenge challenge; // + 69 = 537
 
 
 /********************************************************************/
@@ -63,7 +67,6 @@ CLMessages messages;
 CLSignature signature;
 
 // Shared protocol variables
-Hash context;
 ResponseE eHat;
 ResponseM mHat[SIZE_L];
 ResponseV vHat;
@@ -72,10 +75,6 @@ Number Q, R, s_e;
 CLSignature signature_;
 Byte D[SIZE_L];
 Byte rA[SIZE_R_A];
-
-Byte buffer[SIZE_BUFFER_C2];
-Nonce nonce;
-Challenge challenge;
 
 Value values[5];
 Number U_; 
