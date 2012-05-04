@@ -214,7 +214,7 @@ void verifyProof(void) {
   debugValue("Q = A^e mod n", Q, SIZE_N);
 
   // Compute AHat = A^(c + s_e * e) = Q^s_e * A^c mod n
-  ModularExponentiation(SIZE_N, SIZE_N, proof.s_e, issuerKey.n, Q, buffer);
+  ModularExponentiation(SIZE_N, SIZE_N, s_e, issuerKey.n, Q, buffer);
   debugValue("buffer = Q^s_e mod n", buffer, SIZE_N);
   ModularExponentiation(SIZE_H, SIZE_N, proof.challenge, issuerKey.n, signature.A, AHat);
   debugValue("AHat = A^c mod n", AHat, SIZE_N);
