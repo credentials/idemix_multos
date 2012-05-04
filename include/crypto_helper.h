@@ -144,6 +144,6 @@ void crypto_compute_eHat(void);
  * @param index of the attribute
  * @return 1 if disclosed, 0 if not
  */
-#define disclosed(index) ((D >> index) & 0x0001)
+#define disclosed(index) ((D >> (index)) & 0x0001)
 
 #endif // __crypto_helper_H
