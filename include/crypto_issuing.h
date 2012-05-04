@@ -20,8 +20,6 @@
 #ifndef __crypto_issuing_H
 #define __crypto_issuing_H
 
-#include "defs_types.h"
-
 /**
  * Construct a commitment (round 1)
  */
@@ -43,4 +41,3 @@ void verifySignature(void);
 void verifyProof(void);
 
 #endif // __crypto_issuing_H
-
