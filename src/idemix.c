@@ -35,7 +35,7 @@
 #include "crypto_proving.h"
 
 #define buffer apdu.temp.data
-#define U Q
+#define U numa
 
 /********************************************************************/
 /* APDU buffer variable declaration                                 */
@@ -71,9 +71,10 @@ CLPublicKey issuerKey;
 int attributes;
 CLMessages messages;
 CLSignature signature;
+CLProof proof; // For postponed signature/proof verification
 
 // Shared protocol variables
-Number Q, R, s_e;
+Number numa, numb;
 CLSignature signature_;
 
 #ifdef TEST
@@ -214,7 +215,7 @@ void main(void) {
       
     case INS_ISSUE_NONCE_2:
       debugMessage("INS_ISSUE_NONCE_2");
-      COPYN(SIZE_STATZK, apdu.data, nonce);
+      COPYN(SIZE_STATZK, apdu.data, proof.nonce);
       debugValue("Returned nonce", apdu.data, SIZE_STATZK);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_STATZK);
       break;
@@ -267,16 +268,16 @@ void main(void) {
         case P1_PROOF_A_C:
           debugMessage("P1_PROOF_A_C");
           if (!(CheckCase(3) && Lc == SIZE_H)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-          COPYN(SIZE_H, challenge.c, apdu.data);
-          debugValue("Initialised c", challenge.c, SIZE_H);
+          COPYN(SIZE_H, proof.challenge, apdu.data);
+          debugValue("Initialised c", proof.challenge, SIZE_H);
           ExitSW(ISO7816_SW_NO_ERROR);
           break;
 
         case P1_PROOF_A_S_E:
           debugMessage("P1_PROOF_A_S_E");
           if (!(CheckCase(3) && Lc == SIZE_N)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-          COPYN(SIZE_N, s_e, apdu.data);
-          debugValue("Initialised s_e", s_e, SIZE_N);
+          COPYN(SIZE_N, proof.response, apdu.data);
+          debugValue("Initialised s_e", proof.response, SIZE_N);
           ExitSW(ISO7816_SW_NO_ERROR);
           break;
         

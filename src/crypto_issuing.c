@@ -35,16 +35,30 @@
 #define buffer apdu.temp.data
 #define values apdu.temp.list
 
-#define vPrime (signature.v + SIZE_V - SIZE_VPRIME)
-#define U Q
-#define UTilde R
-#define ZPrime s_e
-#define AHat R
-
 /********************************************************************/
 /* Issuing functions                                                */
 /********************************************************************/
 
+/**
+ * Construct a commitment (round 1)
+ * 
+ * @param issuerKey (S, R, n)
+ * @param proof (nonce, context)
+ * @param messages[0]
+ * @param number for U
+ * @param number for UTilde
+ * @param vPrime in signature.v + SIZE_V - SIZE_VPRIME
+ * @param vPrimeTilde in vHat
+ * @param vPrimeHat in vHat
+ * @param mTilde[0] in mHat[0]
+ * @param s_A in mHat[0]
+ * @param nonce
+ * @param buffer for hash of SIZE_BUFFER_C1
+ * @param (buffer for SpecialModularExponentiation of SIZE_N)
+ */
+#define vPrime (signature.v + SIZE_V - SIZE_VPRIME)
+#define U numa
+#define UTilde numb
 void constructCommitment(void) {
   
   // Generate random vPrime
@@ -77,7 +91,7 @@ void constructCommitment(void) {
   debugValue("UTilde = UTilde * buffer mod n", UTilde, SIZE_N);
 
   // - Compute challenge c = H(context | U | UTilde | nonce)
-  values[0].data = context;
+  values[0].data = proof.context;
   values[0].size = SIZE_H;
   values[1].data = U;
   values[1].size = SIZE_N;      
@@ -97,107 +111,142 @@ void constructCommitment(void) {
   debugValue("s_A", mHat[0], SIZE_S_A);
   
   // Generate random n_2
-  crypto_generate_random(nonce, LENGTH_STATZK);
-  debugValue("nonce", nonce, SIZE_STATZK);
+  crypto_generate_random(proof.nonce, LENGTH_STATZK);
+  debugValue("nonce", proof.nonce, SIZE_STATZK);
 }
+#undef vPrime
+#undef U
+#undef UTilde
 
+/**
+ * Construct the signature (round 3, part 1)
+ * 
+ *   A, e, v = v' + v''
+ * 
+ * @param vPrime in signature.v
+ * @param vPrimePrime in buffer
+ * @param signature (v)
+ */
 void constructSignature(void) {
-  // Clear signature.v, to prevent garbage messing up the computation
+  
+  // Clear v, to prevent garbage messing up the computation
   CLEARN(SIZE_V - SIZE_VPRIME, signature.v);
   
   // Compute v = v' + v'' using add with carry
-  debugValue("vPrime", signature.v, SIZE_V);
-  debugValue("vPrimePrime", buffer, SIZE_V);
-  ASSIGN_ADDN(SIZE_V - SIZE_V_ADDITION, signature.v + SIZE_V_ADDITION, 
-    buffer + SIZE_V_ADDITION);
+  ASSIGN_ADDN(SIZE_V - SIZE_V_ADDITION, signature.v + SIZE_V_ADDITION, buffer + SIZE_V_ADDITION);
   CFlag(buffer + SIZE_V);
   if (buffer[SIZE_V] != 0x00) {
     debugMessage("Addition with carry, adding 1");
     INCN(SIZE_V_ADDITION, signature.v);
   }
   ASSIGN_ADDN(SIZE_V_ADDITION, signature.v, buffer);
-  debugValue("vPrime + vPrimePrime", signature.v, SIZE_V);
-}
-
-void verifySignature(void) {
-  int i;
-  
-  // Verification of signature (A, e, v)
-  // - Compute R = R_i^(m_i) mod n for i=1..l-1
-  ModularExponentiation(SIZE_M, SIZE_N, 
-    messages[0], issuerKey.n, issuerKey.R[0], R); // R = R_1^m_1
-  debugValue("R", R, SIZE_N);
-  for (i = 1; i <= attributes; i++) {
-    ModularExponentiation(SIZE_M, SIZE_N, 
-      messages[i], issuerKey.n, issuerKey.R[i], buffer); // buffer = R_i^m_i
-    debugValue("Ri^mi", buffer, SIZE_N);
-    ModularMultiplication(SIZE_N, 
-      R, buffer, issuerKey.n); // R = R * buffer
-    debugValue("R", R, SIZE_N);
-  }
-  
-  // - Compute Q = A^e mod n
-  ModularExponentiation(SIZE_E, SIZE_N, 
-    signature.e, issuerKey.n, signature.A, Q); // Q = A^e
-  debugValue("Q", Q, SIZE_N);
-  
-  // - Compute Z' = Q * S^v * R
-  crypto_compute_SpecialModularExponentiation(SIZE_V,
-    signature.v, ZPrime); // ZPrime = S^v
-  debugValue("S^v", ZPrime, SIZE_N);    
-  ModularMultiplication(SIZE_N, ZPrime, R, issuerKey.n); // U_ = U_ * R
-  debugValue("S^v * R", ZPrime, SIZE_N);
-  ModularMultiplication(SIZE_N, ZPrime, Q, issuerKey.n); // U_ = U_ * Q
-  debugValue("S^v * R * Q", ZPrime, SIZE_N);
-  
-  // - Verify Z =?= Z'
-  debugValue("Z", issuerKey.Z, SIZE_N);    
-  debugValue("ZPrime", ZPrime, SIZE_N);    
-  if (memcmp(issuerKey.Z, ZPrime, SIZE_N) != 0) {
-    // FAIL, TODO: clear already stored things 
-    debugError("verifySignature(): verification of signature failed");
-    ExitSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
-  }
+  debugValue("v = vPrime + vPrimePrime", signature.v, SIZE_V);
 }
 
 /**
- * (OPTIONAL) Verify the proof (round 3, part 3)
+ * (OPTIONAL) Verify the signature (round 3, part 2)
+ * 
+ *   Z =?= A^e * S^v * R where R = R[i]^m[i] forall i
+ * 
+ * @param signature (A, e, v)
+ * @param issuerKey (Z, S, R, n)
+ * @param messages
+ * @param buffer for SpecialModularExponentiation of SIZE_N 
+ * @param (buffer for computations of SIZE_N)
+ * @param buffer for ZPrime of SIZE_N
+ * @param buffer for Ri of SIZE_N
  */
+#define ZPrime (buffer + SIZE_N)
+#define Ri (buffer + 2*SIZE_N)
+void verifySignature(void) {
+  int i;
+  
+  // Compute Ri = R[i]^m[i] mod n forall i
+  ModularExponentiation(SIZE_M, SIZE_N, messages[0], issuerKey.n, issuerKey.R[0], Ri);
+  debugValue("Ri = R[0]^m[0] mod n", Ri, SIZE_N);
+  for (i = 1; i <= attributes; i++) {
+    ModularExponentiation(SIZE_M, SIZE_N, messages[i], issuerKey.n, issuerKey.R[i], buffer);
+    debugValue("buffer = R[i]^m[i] mod n", buffer, SIZE_N);    
+    ModularMultiplication(SIZE_N, Ri, buffer, issuerKey.n);
+    debugValue("Ri = Ri * buffer mod n", Ri, SIZE_N);
+  }
+  
+  // Compute Z' = A^e * S^v * Ri mod n
+  crypto_compute_SpecialModularExponentiation(SIZE_V, signature.v, ZPrime);
+  debugValue("Z' = S^v mod n", ZPrime, SIZE_N);    
+  ModularMultiplication(SIZE_N, ZPrime, Ri, issuerKey.n);
+  debugValue("Z' = Z' * Ri mod n", ZPrime, SIZE_N);
+  ModularExponentiation(SIZE_E, SIZE_N, signature.e, issuerKey.n, signature.A, Ri);
+  debugValue("Ri = A^e mod n", Ri, SIZE_N);
+  ModularMultiplication(SIZE_N, ZPrime, Ri, issuerKey.n);
+  debugValue("Z' = Z' * R mod n", ZPrime, SIZE_N);
+  
+  // - Verify Z =?= Z'
+  if (memcmp(issuerKey.Z, ZPrime, SIZE_N) != 0) {
+    // TODO: clear already stored things?
+    debugError("verifySignature(): verification of signature failed");
+    ExitSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
+  }
+}
+#undef ZPrime
+#undef R
+
+/**
+ * (OPTIONAL) Verify the proof (round 3, part 3)
+ * 
+ *   c =?= H(context, A^e, A, nonce, A^(c + s_e * e))
+ * 
+ * @param signature (A, e)
+ * @param issuerKey (n)
+ * @param proof (nonce, context, challenge, response)
+ * @param number for Q (cannot be in buffer)
+ * @param buffer for hash of SIZE_BUFFER_C2
+ * @param (buffer for computations of SIZE_N)
+ * @param (buffer for AHat of SIZE_N)
+ */
+#define AHat (buffer + SIZE_N)
+#define Q numa
+#define s_e proof.response
 void verifyProof(void) {
 
-  // Compute AHat = A^(c + s_e e) mod n
-  ModularExponentiation(SIZE_N, SIZE_N, s_e, issuerKey.n, Q, buffer);
+  // Compute Q = A^e mod n
+  ModularExponentiation(SIZE_E, SIZE_N, signature.e, issuerKey.n, signature.A, Q);
+  debugValue("Q = A^e mod n", Q, SIZE_N);
+
+  // Compute AHat = A^(c + s_e * e) = Q^s_e * A^c mod n
+  ModularExponentiation(SIZE_N, SIZE_N, proof.s_e, issuerKey.n, Q, buffer);
   debugValue("buffer = Q^s_e mod n", buffer, SIZE_N);
-  ModularExponentiation(SIZE_H, SIZE_N, challenge.c, issuerKey.n, signature.A, AHat);
+  ModularExponentiation(SIZE_H, SIZE_N, proof.challenge, issuerKey.n, signature.A, AHat);
   debugValue("AHat = A^c mod n", AHat, SIZE_N);
   ModularMultiplication(SIZE_N, AHat, buffer, issuerKey.n);
   debugValue("AHat = AHat * buffer", AHat, SIZE_N);
   
-  // Compute challenge c' = H(context | Q | A | n_2 | AHat)
-  values[0].data = context;
+  // Compute challenge c' = H(context | Q | A | nonce | AHat)
+  values[0].data = proof.context;
   values[0].size = SIZE_H;
-  debugValue("context", context, SIZE_H);
+  debugValue("context", proof.context, SIZE_H);
   values[1].data = Q;
   values[1].size = SIZE_N;
   debugValue("Q", Q, SIZE_N);
   values[2].data = signature.A;
   values[2].size = SIZE_N;
   debugValue("A", signature.A, SIZE_N);
-  values[3].data = nonce;
+  values[3].data = proof.nonce;
   values[3].size = SIZE_STATZK;
-  debugValue("n2", nonce, SIZE_STATZK);
+  debugValue("nonce", proof.nonce, SIZE_STATZK);
   values[4].data = AHat;
   values[4].size = SIZE_N;
-  debugValue("A_", AHat, SIZE_N);
-  crypto_compute_hash(values, 5, challenge.prefix_vPrimeHat, buffer, SIZE_BUFFER_C2);
-  debugValue("c_", challenge.prefix_vPrimeHat, SIZE_H);
+  debugValue("AHat", AHat, SIZE_N);
+  crypto_compute_hash(values, 5, challenge.c, buffer, SIZE_BUFFER_C2);
+  debugValue("c'", challenge.c, SIZE_H);
 
   // Verify c =?= c'
-  debugValue("c ", challenge.c, SIZE_H);
-  debugValue("c_", challenge.prefix_vPrimeHat, SIZE_H);
-  if (memcmp(challenge.c, challenge.prefix_vPrimeHat, SIZE_H) != 0) {
-    // FAIL, TODO: clear already stored things 
+  if (memcmp(proof.challenge, challenge.c, SIZE_H) != 0) {
+    // TODO: clear already stored things?
     debugError("verifyProof(): verification of P2 failed");
-    ExitSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+    ExitSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
   }
 }
+#undef AHat
+#undef Q
+#undef s_e

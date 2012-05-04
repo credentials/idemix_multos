@@ -33,7 +33,7 @@
 #define buffer apdu.temp.data
 #define values apdu.temp.list
 
-#define ZTilde Q
+#define ZTilde numa
 #define r_A vHat
 
 /********************************************************************/

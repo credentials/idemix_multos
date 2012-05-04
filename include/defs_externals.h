@@ -27,6 +27,7 @@ extern APDUData apdu;
 extern CLPublicKey issuerKey;
 extern CLSignature signature;
 extern CLMessages messages;
+extern CLProof proof;
 extern int attributes;
 
 extern int D;
@@ -38,7 +39,7 @@ extern ResponseM mHat[SIZE_L];
 extern ResponseV vHat;
 
 extern CLSignature signature_;
-extern Number Q, R, s_e;
+extern Number numa, numb;
 
 #ifdef TEST
 extern int m_count;
@@ -46,4 +47,3 @@ extern int r_count;
 #endif // TEST
 
 #endif // __defs_externals_H
-
