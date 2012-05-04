@@ -27,7 +27,6 @@
 #define INS_SET_PUBLIC_KEY_Z    0x01
 #define INS_SET_PUBLIC_KEY_S    0x02
 #define INS_SET_PUBLIC_KEY_R    0x03
-#define INS_SET_CONTEXT         0x04
 #define INS_SET_MASTER_SECRET   0x05
 #define INS_SET_ATTRIBUTES      0x06
     
@@ -35,17 +34,15 @@
 #define INS_GET_PUBLIC_KEY_Z    0x31
 #define INS_GET_PUBLIC_KEY_S    0x32
 #define INS_GET_PUBLIC_KEY_R    0x33
-#define INS_GET_CONTEXT         0x34
-#define INS_GET_MASTER_SECRET   0x35
-#define INS_GET_ATTRIBUTES      0x36
-#define INS_GET_VPRIME_COMPUTATION 0x37
 
+#define INS_ISSUE_CONTEXT       0x1F
 #define INS_ISSUE_NONCE_1       0x10
 #define INS_ISSUE_PROOF_U       0x11
 #define INS_ISSUE_NONCE_2       0x12
 #define INS_ISSUE_SIGNATURE     0x13
 #define INS_ISSUE_PROOF_A       0x14
 
+#define INS_PROVE_CONTEXT       0x2F
 #define INS_PROVE_SELECTION     0x20
 #define INS_PROVE_NONCE         0x21
 #define INS_PROVE_SIGNATURE     0x22

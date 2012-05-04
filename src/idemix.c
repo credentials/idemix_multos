@@ -132,14 +132,6 @@ void main(void) {
       ExitSW(ISO7816_SW_NO_ERROR);
       break;
     
-    case INS_SET_CONTEXT:
-      debugMessage("INS_SET_CONTEXT");
-      if (!(CheckCase(3) && Lc == SIZE_H)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-      COPYN(SIZE_H, context, apdu.data);
-      debugValue("Initialised context", context, SIZE_H);
-      ExitSW(ISO7816_SW_NO_ERROR);
-      break;
-    
     case INS_SET_MASTER_SECRET:
       debugMessage("INS_SET_MASTER_SECRET");
       if (!(CheckCase(3) && Lc == SIZE_M)) ExitSW(ISO7816_SW_WRONG_LENGTH);
@@ -170,6 +162,14 @@ void main(void) {
     // Personalisation / Issuance instructions                      //
     //////////////////////////////////////////////////////////////////
     
+    case INS_ISSUE_CONTEXT:
+      debugMessage("INS_ISSUE_CONTEXT");
+      if (!(CheckCase(3) && Lc == SIZE_H)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+      COPYN(SIZE_H, proof.context, apdu.data);
+      debugValue("Initialised context", proof.context, SIZE_H);
+      ExitSW(ISO7816_SW_NO_ERROR);
+      break;
+
     case INS_ISSUE_NONCE_1:
       debugMessage("INS_ISSUE_NONCE_1");
       if (!(CheckCase(3) && Lc == SIZE_STATZK)) ExitSW(ISO7816_SW_WRONG_LENGTH);
@@ -302,6 +302,14 @@ void main(void) {
     // Disclosure / Proving instructions                            //
     //////////////////////////////////////////////////////////////////
     
+    case INS_PROVE_CONTEXT:
+      debugMessage("INS_SET_CONTEXT");
+      if (!(CheckCase(3) && Lc == SIZE_H)) ExitSW(ISO7816_SW_WRONG_LENGTH);
+      COPYN(SIZE_H, context, apdu.data);
+      debugValue("Initialised context", context, SIZE_H);
+      ExitSW(ISO7816_SW_NO_ERROR);
+      break;
+
     case INS_PROVE_SELECTION:
       debugMessage("INS_PROVE_SELECTION");
       if (!(CheckCase(3) && Lc < SIZE_L)) ExitSW(ISO7816_SW_WRONG_LENGTH);
@@ -411,30 +419,7 @@ void main(void) {
       debugNumberI("Fetched isserKey.R", issuerKey.R, P1);
       ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_N);
       break;
-/*    
-    case INS_GET_CONTEXT:
-      debugMessage("INS_GET_CONTEXT");
-      COPYN(SIZE_H, apdu.data, context);
-      debugValue("Fetched context", context, SIZE_H);
-      ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_H);
-      break;
-    
-    case INS_GET_MASTER_SECRET:
-      debugMessage("INS_GET_MASTER_SECRET");
-      // FIXME: disable this instruction
-      COPYN(SIZE_M, apdu.data, messages[0]);
-      debugCLMessageI("Fetched messages", messages, 0);
-      ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M);
-      break;
 
-    case INS_GET_ATTRIBUTES:
-      debugMessage("INS_GET_ATTRIBUTES");
-      if (P1 == 0 || P1 > MAX_ATTR) ExitSW(ISO7816_SW_WRONG_P1P2);
-      COPYN(SIZE_M, apdu.data, messages[P1]);
-      debugCLMessageI("Fetched messages", messages, P1);
-      ExitSWLa(ISO7816_SW_NO_ERROR, SIZE_M);
-      break;
-*/    
     // Unknown instruction
     default:
       debugWarning("Unknown instruction");
