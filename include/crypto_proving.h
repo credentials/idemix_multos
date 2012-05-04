@@ -33,4 +33,3 @@ void selectAttributes(ByteArray list, int length);
 void constructProof(void);
 
 #endif // __crypto_proving_H
-
