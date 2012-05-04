@@ -288,7 +288,7 @@ void crypto_compute_vPrime(void) {
   // Subtract (with carry) from v and store the result in v'
   SUBN(SIZE_V - SIZE_V_ADDITION, signature_.v + SIZE_V_ADDITION,
     signature.v + SIZE_V_ADDITION, buffer + SIZE_V_ADDITION);
-  CFlag(buffer + SIZE_V + SIZE_R_A);
+  CFlag(buffer + SIZE_V + SIZE_R_A); // TODO: FAILS, probably to big offset
   if (buffer[SIZE_V + SIZE_R_A] != 0x00) {
     debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
     INCN(SIZE_V_ADDITION, buffer);
