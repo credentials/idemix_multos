@@ -37,6 +37,9 @@
 /* Proving functions                                                */
 /********************************************************************/
 
+/**
+ * Select the attributes to be disclosed
+ */
 void selectAttributes(ByteArray list, int length) {
   int i = 0;
 
@@ -53,27 +56,34 @@ void selectAttributes(ByteArray list, int length) {
   debugInteger("Disclosure selection", D);
 }
 
-#define ZTilde numa
+/**
+ * Construct a proof
+ */
+#define ZTilde (buffer + SIZE_N)
+#define APrime (buffer + 2*SIZE_N)
+#define ePrime (signature.e + SIZE_E - SIZE_EPRIME)
 #define r_A vHat
 void constructProof(void) {
   int i;
   
-  // Compute A' = A S^r_A
+  // Generate random r_A
   // IMPORTANT: Correction to the length of r_A to prevent negative values
   crypto_generate_random(r_A, LENGTH_R_A - 7);
   debugValue("r_A", r_A, SIZE_R_A);
-  crypto_compute_SpecialModularExponentiation(SIZE_R_A, r_A, signature_.A);
-  debugValue("A' = S^r_A mod n", signature_.A, SIZE_N);
-  ModularMultiplication(SIZE_N, signature_.A, signature.A, issuerKey.n);
-  debugValue("A' = A' * A mod n", signature_.A, SIZE_N);
   
   // Compute v' = v - e r_A
   crypto_compute_vPrime();
-  debugValue("v_ = v - e*r_A", signature_.v, SIZE_V);
+  debugValue("v' = v - e*r_A", signature_.v, SIZE_V);
 
   // Compute e' = e - 2^(l_e' - 1) (just ignore the first bit of e)
-  debugValue("e_ = e - 2^(l_e' - 1)", signature.e + SIZE_E - SIZE_EPRIME,
-      SIZE_EPRIME);
+  debugValue("e' = e - 2^(l_e' - 1)", ePrime, SIZE_EPRIME);
+  
+  // Compute A' = A S^r_A
+  crypto_compute_SpecialModularExponentiation(SIZE_R_A, r_A, APrime);
+  debugValue("A' = S^r_A mod n", APrime, SIZE_N);
+  ModularMultiplication(SIZE_N, APrime, signature.A, issuerKey.n);
+  debugValue("A' = A' * A mod n", APrime, SIZE_N);
+  COPYN(SIZE_N, signature_.A, APrime);
   
   // Generate random values for m~[i], e~, v~ and r_A
   for (i = 0; i <= attributes; i++) {
@@ -90,8 +100,7 @@ void constructProof(void) {
   // Compute ZTilde = A'^eTilde * S^vTilde * (R[i]^mHat[i] foreach i not in D)
   crypto_compute_SpecialModularExponentiation(SIZE_V_, vHat, ZTilde);
   debugValue("ZTilde = S^v_", ZTilde, SIZE_N);
-  ModularExponentiation(SIZE_E_, SIZE_N, eHat, issuerKey.n, signature_.A,
-    buffer);
+  ModularExponentiation(SIZE_E_, SIZE_N, eHat, issuerKey.n, APrime, buffer);
   debugValue("buffer = A'^eTilde", buffer, SIZE_N);
   ModularMultiplication(SIZE_N, ZTilde, buffer, issuerKey.n);
   debugValue("ZTilde = ZTilde * buffer", ZTilde, SIZE_N);
@@ -113,7 +122,7 @@ void constructProof(void) {
   values[2].size = SIZE_N;
   values[3].data = nonce;
   values[3].size = SIZE_STATZK;
-  crypto_compute_hash(values, 4, challenge.c, buffer, SIZE_BUFFER_C1);
+  crypto_compute_hash(values, 4, challenge.c, buffer, SIZE_BUFFER_C2);
   debugValue("c", challenge.c, SIZE_H);
   
   // Compute e^ = e~ + c e'
@@ -135,4 +144,6 @@ void constructProof(void) {
   // return eHat, vHat, mHat[i], c, A'
 }
 #undef ZTilde
+#undef APrime
+#undef ePrime
 #undef r_A
