@@ -43,7 +43,6 @@ extern Number numa, numb;
 
 #ifdef TEST
 extern int m_count;
-extern int r_count;
 #endif // TEST
 
 #endif // __defs_externals_H
