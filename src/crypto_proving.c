@@ -33,9 +33,6 @@
 #define buffer apdu.temp.data
 #define values apdu.temp.list
 
-#define ZTilde numa
-#define r_A vHat
-
 /********************************************************************/
 /* Proving functions                                                */
 /********************************************************************/
@@ -56,6 +53,8 @@ void selectAttributes(ByteArray list, int length) {
   debugInteger("Disclosure selection", D);
 }
 
+#define ZTilde numa
+#define r_A vHat
 void constructProof(void) {
   int i;
   
@@ -63,8 +62,7 @@ void constructProof(void) {
   // IMPORTANT: Correction to the length of r_A to prevent negative values
   crypto_generate_random(r_A, LENGTH_R_A - 7);
   debugValue("r_A", r_A, SIZE_R_A);
-  crypto_compute_SpecialModularExponentiation(
-    SIZE_R_A, r_A, signature_.A);
+  crypto_compute_SpecialModularExponentiation(SIZE_R_A, r_A, signature_.A);
   debugValue("A' = S^r_A mod n", signature_.A, SIZE_N);
   ModularMultiplication(SIZE_N, signature_.A, signature.A, issuerKey.n);
   debugValue("A' = A' * A mod n", signature_.A, SIZE_N);
@@ -136,3 +134,5 @@ void constructProof(void) {
   
   // return eHat, vHat, mHat[i], c, A'
 }
+#undef ZTilde
+#undef r_A
