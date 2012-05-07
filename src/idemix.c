@@ -139,7 +139,6 @@ void main(void) {
       COPYN(SIZE_M, messages[0], apdu.data);
 #else // TEST
       if (!CheckCase(1)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-      if (memcmp(buffer, messages[0], SIZE_M) != 0) ExitSW(ISO7816_SW_COMMAND_NOT_ALLOWED_AGAIN);
       crypto_generate_random(messages[0], LENGTH_M);
 #endif // TEST
       debugCLMessageI("Initialised messages", messages, 0);
