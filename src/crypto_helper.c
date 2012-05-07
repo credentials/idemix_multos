@@ -261,6 +261,7 @@ void crypto_compute_s_A(void) {
  */
 #define r_A vHat
 #define e_prefix_rA (buffer + SIZE_V + SIZE_R_A)
+#define vPrime (buffer + SIZE_V)
 void crypto_compute_vPrime(void) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_V - SIZE_R_A, buffer);
@@ -279,23 +280,24 @@ void crypto_compute_vPrime(void) {
   ASSIGN_ADDN(SIZE_V - SIZE_R_A/2, buffer, buffer + SIZE_R_A + SIZE_R_A/2);
 
   // Subtract (with carry) from v and store the result in v'
-  SUBN(SIZE_V/3, signature_.v + 2*SIZE_V/3, signature.v + 2*SIZE_V/3, buffer + 2*SIZE_V/3);
-  CFlag(buffer + SIZE_V);
-  if (buffer[SIZE_V] != 0x00) {
+  SUBN(SIZE_V/3, vPrime + 2*SIZE_V/3, signature.v + 2*SIZE_V/3, buffer + 2*SIZE_V/3);
+  CFlag(buffer + 2*SIZE_V);
+  if (buffer[2*SIZE_V] != 0x00) {
     debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
-    INCN(SIZE_V_ADDITION, buffer + SIZE_V/3);
+    INCN(SIZE_V/3, buffer + SIZE_V/3);
   }
-  SUBN(SIZE_V/3, signature_.v + SIZE_V/3, signature.v + SIZE_V/3, buffer + SIZE_V/3);
-  CFlag(buffer + SIZE_V);
-  if (buffer[SIZE_V] != 0x00) {
+  SUBN(SIZE_V/3, vPrime + SIZE_V/3, signature.v + SIZE_V/3, buffer + SIZE_V/3);
+  CFlag(buffer + 2*SIZE_V);
+  if (buffer[2*SIZE_V] != 0x00) {
     debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
-    INCN(SIZE_V_ADDITION, buffer + SIZE_V/3);
+    INCN(SIZE_V/3, buffer);
   }
-
-  SUBN(SIZE_V_ADDITION, signature_.v, signature.v, buffer);
+  SUBN(SIZE_V/3, vPrime, signature.v, buffer);
+  COPYN(SIZE_V, signature_.v, vPrime);
 }
 #undef r_A
-#undef ePrime
+#undef e_prefix_rA
+#undef vPrime
 
 /**
  * Compute the response value vHat = vTilde + c*vPrime
@@ -320,8 +322,7 @@ void crypto_compute_vHat(void) {
   
   // Combine the two multiplications into a partial result
 /*  ASSIGN_ADDN(2*SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_); /* works as expected */
-  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, 
-    buffer + SIZE_V_ + SIZE_V/3);
+  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, buffer + SIZE_V_ + SIZE_V/3);
   COPYN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_);
     
   // Multiply c with most significant half of v
@@ -329,8 +330,7 @@ void crypto_compute_vHat(void) {
   
   // Combine the two multiplications into a single result
 /*  ASSIGN_ADDN(SIZE_V_ - 2*SIZE_V/3, buffer, buffer + 4*SIZE_V/3); /* fails somehow :-S what am I doing wrong? */
-  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, 
-    buffer + SIZE_V_ + SIZE_V/3);
+  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_ + SIZE_V/3);
   COPYN(SIZE_V_ - SIZE_V, buffer, buffer + 4*SIZE_V/3);
   
   // Add (with carry) vTilde and store the result in vHat
@@ -384,9 +384,10 @@ void crypto_compute_eHat(void) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_E_ - 2*SIZE_H, buffer);
 
-  // Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_E)
+  // Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_EPRIME)
   MULN(SIZE_H, buffer + SIZE_E_ - 2*SIZE_H, challenge.c, ePrime);
   
   // Add eTilde and store the result in eHat
   ASSIGN_ADDN(SIZE_E_, eHat, buffer);
 }
+#undef ePrime
