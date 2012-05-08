@@ -68,14 +68,16 @@
 
 #define SW_INTERNAL_ERROR       0x6D66
 
+#define wrapped (CLA & 0x0C == 0x0C)
+
 #define ReturnSW(sw) \
   SetSW(sw); SetLa(0); \
-  if (CLA & 0x80 == 0x80) crypto_wrap(); \
+  if (wrapped) crypto_wrap(); \
   Exit();
 
 #define ReturnLa(sw,len) \
   SetSW(sw); SetLa(len); \
-  if (CLA & 0x80 == 0x80) crypto_wrap(); \
+  if (wrapped) crypto_wrap(); \
   Exit();
 
 #endif // __defs_apdu_H

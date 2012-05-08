@@ -97,8 +97,8 @@ void main(void) {
     ReturnSW(ISO7816_SW_CLA_NOT_SUPPORTED);
   }
   
-  // Check for secure messaging
-  if (CLA & 0x80 == 0x80) {
+  // Check whether the APDU has been wrapped for secure messaging
+  if (wrapped) {
     crypto_unwrap();
   }
   
