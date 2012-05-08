@@ -64,4 +64,6 @@
 #define SIZE_S_EXPONENT 120
 #define SIZE_V_ADDITION 80
 
+#define SIZE_SSC 8
+
 #endif // __sizes_H

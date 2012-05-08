@@ -41,6 +41,8 @@ extern ResponseV vHat;
 extern CLSignature signature_;
 extern Number numa, numb;
 
+extern ByteArray ssc;
+
 #ifdef TEST
 extern int m_count;
 #endif // TEST

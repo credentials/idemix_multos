@@ -77,6 +77,8 @@ CLProof proof; // For postponed signature/proof verification
 Number numa, numb;
 CLSignature signature_;
 
+// Secure Messaging
+Byte[SIZE_SSC] ssc;
 #ifdef TEST
 int m_count = 0;
 #endif // TEST
