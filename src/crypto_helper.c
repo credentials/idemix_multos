@@ -391,3 +391,24 @@ void crypto_compute_eHat(void) {
   ASSIGN_ADDN(SIZE_E_, eHat, buffer);
 }
 #undef ePrime
+
+//////////////////////////////////////////////////////////////////////
+// Secure Messaging functions                                       //
+//////////////////////////////////////////////////////////////////////
+
+uint pad(ByteArray in, int length) {
+  in[length++] = 0x80;
+  while (length % 8 != 0) {
+    in[length++] = 0x00;
+  }
+  return length;
+}
+
+uint unpad(ByteArray in, int length) {
+  while (length > 0 && in[--length] == 0x00);
+  if (in[length] != 0x80) {
+    debugError("Invalid padding");
+    return INVALID_PADDING;
+  }
+  return --length;
+}

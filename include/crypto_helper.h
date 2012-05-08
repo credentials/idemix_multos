@@ -146,4 +146,14 @@ void crypto_compute_eHat(void);
  */
 #define disclosed(index) ((D >> (index)) & 0x0001)
 
+//////////////////////////////////////////////////////////////////////
+// Secure Messaging functions                                       //
+//////////////////////////////////////////////////////////////////////
+
+uint pad(ByteArray in, int length);
+
+uint unpad(ByteArray in, int length);
+
+#define INVALID_PADDING 0xffff;
+
 #endif // __crypto_helper_H
