@@ -99,7 +99,9 @@ void main(void) {
   
   // Check whether the APDU has been wrapped for secure messaging
   if (wrapped) {
+    debugMessage("Unwrapping APDU");
     crypto_unwrap();
+    debugValue("Unwrapped APDU", apdu.data, Lc);
   }
   
   switch (INS) {

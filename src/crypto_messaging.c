@@ -28,6 +28,7 @@
 #include "defs_apdu.h"
 #include "defs_externals.h"
 #include "crypto_helper.h"
+#include "funcs_debug.h"
 
 /********************************************************************/
 /* Secure Messaging functions                                       */
@@ -95,9 +96,13 @@ void crypto_unwrap(void) {
   // Padding
   i = pad(tmp, i);
   
-  // Cryptogram
-  memcpy(tmp + i, buffer, offset); 
+  // Cryptogram (do87 and do97)
+  memcpy(tmp + i, buffer, offset);
+  do87Data_p = i;
   i += offset;
+  
+  // Padding
+  i = pad(tmp, i);
 
   // Verify the MAC
   GenerateTripleDESCBCSignature(i, iv, key_mac, mac, tmp);
@@ -107,7 +112,10 @@ void crypto_unwrap(void) {
 
   // Decrypt data if available
   if (do87DataLen != 0) {
-    TripleDES2KeyCBCDecipherMessageNoPad(do87DataLen, tmp + i - do87DataLen, iv, key_enc, buffer);
+    debugValue("cipher", tmp + i - do87DataLen, do87DataLen);
+    debugInteger("length", do87DataLen);
+    TripleDES2KeyCBCDecipherMessageNoPad(do87DataLen, tmp + do87Data_p, iv, key_enc, buffer);
+    debugValue("plain", buffer, do87DataLen);
     Lc = unpad(buffer, do87DataLen);
     if (Lc > do87DataLen) {
       ExitSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
