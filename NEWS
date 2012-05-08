@@ -1,8 +1,15 @@
-*idemix-0.1-r3b7568 (1 May 2012)
+*idemix-0.2-bd0e59d (7 May 2012)
+
+Optimised implementation which now uses RAM for all of the computations.
+Current running times for 4 attributes:
+ - issuing protocol: 3,3 seconds
+ - proving protocol: 1,9 seconds
+
+*idemix-0.1-3b7568 (1 May 2012)
 
 Functionally correct implementation of the Recipient and Prover parts of the 
 Identity Mixer specification. This implementation only uses the slow EEPROM 
 memory of the card. Current running times for 4 attributes: 
- - issuing protocol: 4,5 second
+ - issuing protocol: 4,5 seconds
  - proving protocol: 3 seconds
 
