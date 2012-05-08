@@ -410,5 +410,5 @@ uint unpad(ByteArray in, int length) {
     debugError("Invalid padding");
     return INVALID_PADDING;
   }
-  return --length;
+  return length;
 }
