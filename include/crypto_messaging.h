@@ -20,23 +20,14 @@
 #ifndef __crypto_messaging_H
 #define __crypto_messaging_H
 
-#include "defs_types.h"
-
-#define SW_INTERNAL_ERROR 0x6D66
-#define TMP_SIZE 256
-#define MAC_SIZE 8
-#define KEY_SIZE 16
-
-Byte[] PAD_DATA = { 0x80, 0, 0, 0, 0, 0, 0, 0 };
+/**
+ * Unwrap an incomming command APDU from secure messaging
+ */
+void crypto_unwrap(void);
 
 /**
- * Wrap a response APDU for secure messaging
+ * Wrap an outgoing response APDU for secure messaging
  */
-int crypto_wrap(void);
-
-/**
- * Unwrap a command APDU from secure messaging
- */
-int crypto_unwrap(void);
+void crypto_wrap(void);
 
 #endif // __crypto_messaging_H
