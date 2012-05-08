@@ -22,9 +22,8 @@
 #include <DES.h>
 #include <ISO7816.h>
 #include <multosarith.h>
-#include <multoscomms.h>
 #include <multoscrypto.h>
-#include <string.h> // for memcpy()
+#include <string.h>
 
 #include "defs_apdu.h"
 #include "defs_externals.h"
@@ -155,8 +154,8 @@ void crypto_wrap(void) {
   // build do99
   tmp[offset++] = 0x99;
   tmp[offset++] = 0x02;
-  tmp[offset++] = status >> 8;
-  tmp[offset++] = status;
+  tmp[offset++] = SW1;
+  tmp[offset++] = SW2;
 
   // calculate and write mac
   COPYN(SIZE_SSC, tmp - SIZE_SSC, ssc);

@@ -22,6 +22,7 @@
 
 #include "defs_sizes.h"
 
+typedef unsigned int uint;
 typedef const char *String;
 
 typedef unsigned char Byte;
@@ -75,6 +76,7 @@ typedef struct {
 
 typedef union {
   Byte data[255];
+  Byte public[530];
   struct {
     Byte data[SIZE_BUFFER_C2];
     Value list[5];

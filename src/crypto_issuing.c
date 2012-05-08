@@ -22,10 +22,10 @@
 #include <ISO7816.h>
 #include <multosarith.h>
 #include <multosccr.h>
-#include <multoscomms.h>
 #include <multoscrypto.h>
 #include <string.h> // for memcmp()
 
+#include "defs_apdu.h"
 #include "defs_externals.h"
 #include "defs_sizes.h"
 #include "defs_types.h"
@@ -185,7 +185,7 @@ void verifySignature(void) {
   if (memcmp(issuerKey.Z, ZPrime, SIZE_N) != 0) {
     // TODO: clear already stored things?
     debugError("verifySignature(): verification of signature failed");
-    ExitSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
+    ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
   }
 }
 #undef ZPrime
@@ -244,7 +244,7 @@ void verifyProof(void) {
   if (memcmp(proof.challenge, challenge.c, SIZE_H) != 0) {
     // TODO: clear already stored things?
     debugError("verifyProof(): verification of P2 failed");
-    ExitSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
+    ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
   }
 }
 #undef AHat

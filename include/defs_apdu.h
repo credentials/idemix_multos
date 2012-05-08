@@ -20,6 +20,10 @@
 #ifndef __defs_apdu_H
 #define __defs_apdu_H
 
+#include <multoscomms.h>
+
+#include "crypto_messaging.h"
+
 // Command APDU definitions
 #define CLA_IDEMIX              0x00
 
@@ -61,5 +65,17 @@
 #define P1_PROOF_A_C            0x00
 #define P1_PROOF_A_S_E          0x01
 #define P1_PROOF_A_VERIFY       0x02
+
+#define SW_INTERNAL_ERROR       0x6D66
+
+#define ReturnSW(sw) \
+  SetSW(sw); SetLa(0); \
+  if (CLA & 0x80 == 0x80) crypto_wrap(); \
+  Exit();
+
+#define ReturnLa(sw,len) \
+  SetSW(sw); SetLa(len); \
+  if (CLA & 0x80 == 0x80) crypto_wrap(); \
+  Exit();
 
 #endif // __defs_apdu_H

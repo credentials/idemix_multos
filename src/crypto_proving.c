@@ -21,9 +21,9 @@
 
 #include <ISO7816.h>
 #include <multosarith.h>
-#include <multoscomms.h>
 #include <multoscrypto.h>
 
+#include "defs_apdu.h"
 #include "defs_externals.h"
 #include "defs_sizes.h"
 #include "defs_types.h"
@@ -49,7 +49,7 @@ void selectAttributes(ByteArray list, int length) {
     if (list[i] == 0 || list[i] > MAX_ATTR) {
       // FAIL, TODO: clear already stored things
       debugError("selectAttributes(): invalid attribute index");
-      ExitSW(ISO7816_SW_WRONG_DATA);
+      ReturnSW(ISO7816_SW_WRONG_DATA);
     }
     D |= 1 << list[i];
   }
