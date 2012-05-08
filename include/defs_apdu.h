@@ -68,7 +68,7 @@
 
 #define SW_INTERNAL_ERROR       0x6D66
 
-#define wrapped (CLA & 0x0C == 0x0C)
+#define wrapped ((CLA & 0x0C) != 0)
 
 #define ReturnSW(sw) \
   SetSW(sw); SetLa(0); \
