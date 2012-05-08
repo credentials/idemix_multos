@@ -76,8 +76,7 @@ void crypto_unwrap(void) {
   }
 
   // do8e
-  if (buffer[offset] != 0x8e) ExitSW(SW_INTERNAL_ERROR);
-  
+  if (buffer[offset] != 0x8e) ExitSW(SW_INTERNAL_ERROR);  
   if (buffer[offset + 1] != 8) ExitSW(ISO7816_SW_DATA_INVALID);
 
   // verify mac
@@ -98,7 +97,7 @@ void crypto_unwrap(void) {
   
   // Cryptogram (do87 and do97)
   memcpy(tmp + i, buffer, offset);
-  do87Data_p = i;
+  do87Data_p += i;
   i += offset;
   
   // Padding
@@ -112,10 +111,7 @@ void crypto_unwrap(void) {
 
   // Decrypt data if available
   if (do87DataLen != 0) {
-    debugValue("cipher", tmp + i - do87DataLen, do87DataLen);
-    debugInteger("length", do87DataLen);
     TripleDES2KeyCBCDecipherMessageNoPad(do87DataLen, tmp + do87Data_p, iv, key_enc, buffer);
-    debugValue("plain", buffer, do87DataLen);
     Lc = unpad(buffer, do87DataLen);
     if (Lc > do87DataLen) {
       ExitSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
