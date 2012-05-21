@@ -57,6 +57,7 @@ Challenge challenge; // + 69 = 101
 ResponseE eHat; // + 45 = 146
 ResponseV vHat; // + 231 = 377
 ResponseM mHat[SIZE_L]; // + 63*6 (378) = 755
+Byte ssc[SIZE_SSC]; // + 8 = 763
 
 
 /********************************************************************/
@@ -79,7 +80,6 @@ CLSignature signature_;
 
 // Secure Messaging
 Byte iv[SIZE_IV];
-Byte ssc[SIZE_SSC];
 Byte key_enc[SIZE_KEY];
 Byte key_mac[SIZE_KEY];
 
