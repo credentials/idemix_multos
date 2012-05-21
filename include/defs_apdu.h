@@ -70,14 +70,16 @@
 
 #define wrapped ((CLA & 0x0C) != 0)
 
-#define ReturnSW(sw) \
-  SetSW(sw); SetLa(0); \
-  if (wrapped) crypto_wrap(); \
-  Exit();
+#define ReturnSW(sw) {\
+  SetSWLa((sw), 0); \
+  if (wrapped) { crypto_wrap(); } \
+  Exit(); \
+}
 
-#define ReturnLa(sw,len) \
-  SetSW(sw); SetLa(len); \
-  if (wrapped) crypto_wrap(); \
-  Exit();
+#define ReturnLa(sw,len) {\
+  SetSWLa((sw), (len)); \
+  if (wrapped) { crypto_wrap(); } \
+  Exit(); \
+}
 
 #endif // __defs_apdu_H
