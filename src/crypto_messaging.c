@@ -160,18 +160,21 @@ void crypto_wrap(void) {
   tmp[offset++] = 0x02;
   tmp[offset++] = SW1;
   tmp[offset++] = SW2;
+  
+  // padding
+  i = pad(tmp, offset);
 
   // calculate and write mac
   COPYN(SIZE_SSC, tmp - SIZE_SSC, ssc);
-  GenerateTripleDESCBCSignature(offset + SIZE_SSC, iv, key_mac, tmp + offset + 2, tmp - SIZE_SSC);
+  GenerateTripleDESCBCSignature(i + SIZE_SSC, iv, key_mac, buffer + offset + 2, tmp - SIZE_SSC);
   
   // write do8e
   tmp[offset++] = 0x8e;
   tmp[offset++] = 0x08;
   La = offset + 8; // for mac written earlier
   
-  // Put it all in the buffer
-  memcpy(buffer, tmp, La);
+  // Put it all in the buffer (the mac is already there)
+  memcpy(buffer, tmp, offset);
 }
 #undef buffer
 #undef tmp
