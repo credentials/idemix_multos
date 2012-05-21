@@ -99,6 +99,7 @@ void main(void) {
   
   // Check whether the APDU has been wrapped for secure messaging
   if (wrapped) {
+    if (!CheckCase(3)) ExitSW(ISO7816_SW_WRONG_LENGTH);
     debugMessage("Unwrapping APDU");
     debugInteger("Lc", Lc);
     crypto_unwrap();
@@ -114,7 +115,7 @@ void main(void) {
     
     case INS_SET_PUBLIC_KEY_N:
       debugMessage("INS_SET_PUBLIC_KEY_N");
-      if (Lc != SIZE_N) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_N)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_N, issuerKey.n, apdu.data);
       debugValue("Initialised isserKey.n", issuerKey.n, SIZE_N);
       ReturnSW(ISO7816_SW_NO_ERROR);
@@ -122,7 +123,7 @@ void main(void) {
     
     case INS_SET_PUBLIC_KEY_Z:
       debugMessage("INS_SET_PUBLIC_KEY_Z");
-      if (Lc != SIZE_N) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_N)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_N, issuerKey.Z, apdu.data);
       debugValue("Initialised isserKey.Z", issuerKey.Z, SIZE_N);
       ReturnSW(ISO7816_SW_NO_ERROR);
@@ -130,7 +131,7 @@ void main(void) {
     
     case INS_SET_PUBLIC_KEY_S:
       debugMessage("INS_SET_PUBLIC_KEY_S");
-      if (Lc != SIZE_N) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_N)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_N, issuerKey.S, apdu.data);
       debugValue("Initialised isserKey.S", issuerKey.S, SIZE_N);
       crypto_compute_S_();
@@ -140,7 +141,7 @@ void main(void) {
     
     case INS_SET_PUBLIC_KEY_R:
       debugMessage("INS_SET_PUBLIC_KEY_R");
-      if (Lc != SIZE_N) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_N)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       if (P1 > MAX_ATTR) ReturnSW(ISO7816_SW_WRONG_P1P2);
       COPYN(SIZE_N, issuerKey.R[P1], apdu.data);
       debugNumberI("Initialised isserKey.R", issuerKey.R, P1);
@@ -150,10 +151,10 @@ void main(void) {
     case INS_SET_MASTER_SECRET:
       debugMessage("INS_SET_MASTER_SECRET");
 #ifdef TEST
-      if (Lc != SIZE_M) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_M)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_M, messages[0], apdu.data);
 #else // TEST
-      if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       crypto_generate_random(messages[0], LENGTH_M);
 #endif // TEST
       debugCLMessageI("Initialised messages", messages, 0);
@@ -162,7 +163,7 @@ void main(void) {
     
     case INS_SET_ATTRIBUTES:
       debugMessage("INS_SET_ATTRIBUTES");
-      if (Lc != SIZE_M) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_M)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       if (P1 == 0 || P1 > MAX_ATTR) ReturnSW(ISO7816_SW_WRONG_P1P2);
       CLEARN(SIZE_M, buffer + SIZE_M);
       if (memcmp(buffer + SIZE_M, apdu.data, SIZE_M) == 0) ReturnSW(ISO7816_SW_WRONG_DATA);
@@ -181,7 +182,7 @@ void main(void) {
     
     case INS_ISSUE_CONTEXT:
       debugMessage("INS_ISSUE_CONTEXT");
-      if (Lc != SIZE_H) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_H)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_H, proof.context, apdu.data);
       debugValue("Initialised context", proof.context, SIZE_H);
       ReturnSW(ISO7816_SW_NO_ERROR);
@@ -189,7 +190,7 @@ void main(void) {
 
     case INS_ISSUE_NONCE_1:
       debugMessage("INS_ISSUE_NONCE_1");
-      if (Lc != SIZE_STATZK) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_STATZK)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_STATZK, nonce, apdu.data);
       debugValue("Initialised nonce", nonce, SIZE_STATZK);
       constructCommitment();
@@ -203,7 +204,7 @@ void main(void) {
       switch (P1) {
         case P1_PROOF_U_C:
           debugMessage("P1_PROOF_U_C");
-          if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_H, apdu.data, challenge.c);
           debugValue("Returned c", apdu.data, SIZE_H);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_H);
@@ -211,7 +212,7 @@ void main(void) {
           
         case P1_PROOF_U_VPRIMEHAT:
           debugMessage("P1_PROOF_U_VPRIMEHAT");
-          if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_VPRIME_, apdu.data, vHat);
           debugValue("Returned vPrimeHat", apdu.data, SIZE_VPRIME_);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_VPRIME_);
@@ -219,7 +220,7 @@ void main(void) {
           
         case P1_PROOF_U_S_A:
           debugMessage("P1_PROOF_U_S_A");
-          if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_S_A, apdu.data, mHat[0]);
           debugValue("Returned s_A", apdu.data, SIZE_S_A);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_S_A);
@@ -245,7 +246,7 @@ void main(void) {
       switch(P1) {
         case P1_SIGNATURE_A:
           debugMessage("P1_SIGNATURE_A");
-          if (Lc != SIZE_N) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!(CheckCase(3) && Lc == SIZE_N)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_N, signature.A, apdu.data);
           debugValue("Initialised signature.A", signature.A, SIZE_N);
           ReturnSW(ISO7816_SW_NO_ERROR);
@@ -253,7 +254,7 @@ void main(void) {
 
         case P1_SIGNATURE_E:
           debugMessage("P1_SIGNATURE_E");
-          if (Lc != SIZE_E) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!(CheckCase(3) && Lc == SIZE_E)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_E, signature.e, apdu.data);
           debugValue("Initialised signature.e", signature.e, SIZE_E);
           ReturnSW(ISO7816_SW_NO_ERROR);
@@ -261,7 +262,7 @@ void main(void) {
         
         case P1_SIGNATURE_V:
           debugMessage("P1_SIGNATURE_V");
-          if (Lc != SIZE_V) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!(CheckCase(3) && Lc == SIZE_V)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           constructSignature();          
           debugValue("Initialised signature.v", signature.v, SIZE_V);
           ReturnSW(ISO7816_SW_NO_ERROR);
@@ -269,7 +270,7 @@ void main(void) {
         
         case P1_SIGNATURE_VERIFY:
           debugMessage("P1_SIGNATURE_VERIFY");
-          if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           verifySignature();
           debugMessage("Verified signature");
           ReturnSW(ISO7816_SW_NO_ERROR);
@@ -287,7 +288,7 @@ void main(void) {
       switch(P1) {
         case P1_PROOF_A_C:
           debugMessage("P1_PROOF_A_C");
-          if (Lc != SIZE_H) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!(CheckCase(3) && Lc == SIZE_H)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_H, proof.challenge, apdu.data);
           debugValue("Initialised c", proof.challenge, SIZE_H);
           ReturnSW(ISO7816_SW_NO_ERROR);
@@ -295,7 +296,7 @@ void main(void) {
 
         case P1_PROOF_A_S_E:
           debugMessage("P1_PROOF_A_S_E");
-          if (Lc != SIZE_N) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!(CheckCase(3) && Lc == SIZE_N)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_N, proof.response, apdu.data);
           debugValue("Initialised s_e", proof.response, SIZE_N);
           ReturnSW(ISO7816_SW_NO_ERROR);
@@ -303,7 +304,7 @@ void main(void) {
         
         case P1_PROOF_A_VERIFY:
           debugMessage("P1_PROOF_A_VERIFY");
-          if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           verifyProof();
           debugMessage("Verified proof");
           ReturnSW(ISO7816_SW_NO_ERROR);
@@ -322,7 +323,7 @@ void main(void) {
     
     case INS_PROVE_CONTEXT:
       debugMessage("INS_SET_CONTEXT");
-      if (Lc != SIZE_H) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_H)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_H, context, apdu.data);
       debugValue("Initialised context", context, SIZE_H);
       ReturnSW(ISO7816_SW_NO_ERROR);
@@ -330,14 +331,14 @@ void main(void) {
 
     case INS_PROVE_SELECTION:
       debugMessage("INS_PROVE_SELECTION");
-      if (Lc > MAX_ATTR) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc < SIZE_L)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       selectAttributes(apdu.data, Lc);
       ReturnSW(ISO7816_SW_NO_ERROR);
       break;
       
     case INS_PROVE_NONCE:
       debugMessage("INS_PROVE_NONCE");
-      if (Lc != SIZE_STATZK) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!(CheckCase(3) && Lc == SIZE_STATZK)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_STATZK, nonce, apdu.data);
       debugValue("Initialised nonce", nonce, SIZE_STATZK);
       constructProof();
@@ -351,7 +352,7 @@ void main(void) {
       switch(P1) {
         case P1_SIGNATURE_A:
           debugMessage("P1_SIGNATURE_A");
-          if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_N, apdu.data, signature_.A);
           debugValue("Returned A'", apdu.data, SIZE_N);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
@@ -359,7 +360,7 @@ void main(void) {
 
         case P1_SIGNATURE_E:
           debugMessage("P1_SIGNATURE_E");
-          if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_E_, apdu.data, eHat);
           debugValue("Returned e^", apdu.data, SIZE_E_);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_E_);
@@ -367,7 +368,7 @@ void main(void) {
 
         case P1_SIGNATURE_V:
           debugMessage("P1_SIGNATURE_V");
-          if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
           COPYN(SIZE_V_, apdu.data, vHat);
           debugValue("Returned v^", apdu.data, SIZE_V_);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_V_);
@@ -382,7 +383,7 @@ void main(void) {
     
     case INS_PROVE_ATTRIBUTE:
       debugMessage("INS_PROVE_ATTRIBUTE");
-      if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       if (P1 == 0 || P1 > MAX_ATTR) ReturnSW(ISO7816_SW_WRONG_P1P2);
       if (disclosed(P1) != 1) ReturnSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation!
       COPYN(SIZE_M, apdu.data, messages[P1]);
@@ -392,7 +393,7 @@ void main(void) {
       
     case INS_PROVE_RESPONSE:
       debugMessage("INS_PROVE_RESPONSE");
-      if (Lc != 0) ReturnSW(ISO7816_SW_WRONG_LENGTH);
+      if (!CheckCase(1)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       if (P1 > MAX_ATTR) ReturnSW(ISO7816_SW_WRONG_P1P2);
       if (disclosed(P1) != 0) ReturnSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation?
       COPYN(SIZE_M_, apdu.data, mHat[P1]);
