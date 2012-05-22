@@ -56,8 +56,8 @@ int D; // + 2 = 32
 Challenge challenge; // + 69 = 101
 ResponseE eHat; // + 45 = 146
 ResponseV vHat; // + 231 = 377
-ResponseM mHat[SIZE_L]; // + 63*6 (378) = 755
-Byte ssc[SIZE_SSC]; // + 8 = 763
+ResponseM mHat[SIZE_L]; // + 51*6 (306) = 683
+Byte ssc[SIZE_SSC]; // + 8 = 691
 
 
 /********************************************************************/

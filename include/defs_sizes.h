@@ -25,7 +25,7 @@
 
 // System parameter lengths
 #define LENGTH_N      1024
-#define LENGTH_M       256
+#define LENGTH_M       160
 #define LENGTH_STATZK   80
 #define LENGTH_H       160 // SHA-1
 #define LENGTH_V      1604
@@ -42,7 +42,7 @@
 // Variable byte size definitions
 #define SIZE_L      MAX_ATTR + 1
 #define SIZE_N      128 // 1024 bits
-#define SIZE_M       32 //  256 bits
+#define SIZE_M       20 //  160 bits
 #define SIZE_STATZK  10 //   80 bits
 #define SIZE_H       20 //  160 bits
 #define SIZE_V      201 // 1604 bits
@@ -52,7 +52,7 @@
 #define SIZE_VPRIME  (SIZE_N + SIZE_STATZK) // 138 bytes
 #define SIZE_VPRIME_ (SIZE_N + 2*SIZE_STATZK + SIZE_H) // 168 bytes
 #define SIZE_M_      (SIZE_M + SIZE_STATZK + SIZE_H) // 62 bytes
-#define SIZE_S_A     (SIZE_M + SIZE_STATZK + SIZE_H + 1) // 63 bytes
+#define SIZE_S_A     (SIZE_M + SIZE_STATZK + SIZE_H + 1) // 51 bytes
 #define SIZE_R_A     (SIZE_N + SIZE_STATZK) // 138 bytes
 #define SIZE_V_      (SIZE_V + SIZE_STATZK + SIZE_H) // 231 bytes
 #define SIZE_E_      (SIZE_EPRIME + SIZE_STATZK + SIZE_H) // 45 bytes
