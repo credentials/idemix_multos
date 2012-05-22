@@ -222,8 +222,14 @@ void crypto_compute_vPrimeHat(void) {
   ASSIGN_ADDN(SIZE_VPRIME_ - SIZE_VPRIME/2, buffer,
     buffer + SIZE_VPRIME + SIZE_VPRIME/2);
   
-  // Add vPrimeTilde and store the result in vPrimeHat
-  ASSIGN_ADDN(SIZE_VPRIME_, vHat, buffer);
+  // Add (with carry) vPrimeTilde and store the result in vPrimeHat
+  ASSIGN_ADDN(SIZE_VPRIME_/2, vHat + SIZE_VPRIME_/2, buffer + SIZE_VPRIME_/2);
+  CFlag(buffer + SIZE_VPRIME_);
+  if (buffer[SIZE_VPRIME_] != 0x00) {
+    debugMessage("Addition with carry, adding 1");
+    INCN(SIZE_VPRIME_/2, vHat);
+  }
+  ASSIGN_ADDN(SIZE_VPRIME_/2, vHat, buffer);
 }
 
 /**
