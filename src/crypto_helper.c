@@ -237,7 +237,7 @@ void crypto_compute_vPrimeHat(void) {
  */
 void crypto_compute_s_A(void) {
   // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.prefix_mHat, messages[0]);
+  MULN(SIZE_M, buffer, challenge.c, messages[0]);
   
   // Add mTilde to the result of the multiplication
   ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
@@ -360,7 +360,7 @@ void crypto_compute_vHat(void) {
  */
 void crypto_compute_mHat(int i) {
   // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.prefix_mHat, messages[i]);
+  MULN(SIZE_M, buffer, challenge.c, messages[i]);
   
   // Add mTilde to the result of the multiplication
   ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[i], buffer + 2*SIZE_M - SIZE_M_);
