@@ -210,20 +210,36 @@ void crypto_compute_vPrimeHat(void) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_VPRIME_ - SIZE_VPRIME, buffer);
   
-  // Multiply c with least significant half of vPrime
-  MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_ - SIZE_VPRIME, 
-    challenge.prefix_vPrimeHat, signature.v + SIZE_V - SIZE_VPRIME/2);
+  // Multiply c with least significant part of vPrime
+  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 
+    challenge.prefix_vPrimeHat, signature.v + SIZE_V - SIZE_VPRIME/3);
   
-  // Multiply c with most significant half of vPrime
-  MULN(SIZE_VPRIME/2, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
+  // Multiply c with middle significant part of vPrime
+  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
+    signature.v + SIZE_V - 2*SIZE_VPRIME/3);
+  
+  // Combine the two multiplications into a partial result
+  /*  ASSIGN_ADDN(2*SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_); /* fails somehow :-S what am I doing wrong? */
+  ASSIGN_ADDN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, buffer + SIZE_VPRIME_ + SIZE_VPRIME/3);
+  COPYN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_);
+
+  // Multiply c with most significant part of vPrime
+  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
     signature.v + SIZE_V - SIZE_VPRIME);
   
   // Combine the two multiplications into a single result
-  ASSIGN_ADDN(SIZE_VPRIME_ - SIZE_VPRIME/2, buffer,
-    buffer + SIZE_VPRIME + SIZE_VPRIME/2);
+/*  ASSIGN_ADDN(SIZE_VPRIME_ - 2*SIZE_VPRIME/3, buffer, buffer + 4*SIZE_VPRIME/3); /* fails somehow :-S what am I doing wrong? */
+  ASSIGN_ADDN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_ + SIZE_VPRIME/3);
+  COPYN(SIZE_VPRIME_ - SIZE_VPRIME, buffer, buffer + 4*SIZE_VPRIME/3);
   
-  // Add vPrimeTilde and store the result in vPrimeHat
-  ASSIGN_ADDN(SIZE_VPRIME_, vHat, buffer);
+  // Add (with carry) vPrimeTilde and store the result in vPrimeHat
+  ASSIGN_ADDN(SIZE_VPRIME_/2, vHat + SIZE_VPRIME_/2, buffer + SIZE_VPRIME_/2);
+  CFlag(buffer + SIZE_VPRIME_);
+  if (buffer[SIZE_VPRIME_] != 0x00) {
+    debugMessage("Addition with carry, adding 1");
+    INCN(SIZE_VPRIME_/2, vHat);
+  }
+  ASSIGN_ADDN(SIZE_VPRIME_/2, vHat, buffer);
 }
 
 /**
@@ -325,7 +341,7 @@ void crypto_compute_vHat(void) {
   ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, buffer + SIZE_V_ + SIZE_V/3);
   COPYN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_);
     
-  // Multiply c with most significant half of v
+  // Multiply c with most significant part of v
   MULN(SIZE_V/3, buffer + SIZE_V_, challenge.prefix_vHat, signature_.v);
   
   // Combine the two multiplications into a single result
