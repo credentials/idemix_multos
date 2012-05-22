@@ -72,13 +72,13 @@
 
 #define ReturnSW(sw) {\
   SetSWLa((sw), 0); \
-  /*if (wrapped) { crypto_wrap(); }*/ \
+  if (wrapped) { crypto_wrap(); } \
   Exit(); \
 }
 
 #define ReturnLa(sw,len) {\
   SetSWLa((sw), (len)); \
-  /*if (wrapped) { crypto_wrap(); }*/ \
+  if (wrapped) { crypto_wrap(); } \
   Exit(); \
 }
 
