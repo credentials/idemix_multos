@@ -68,8 +68,8 @@ typedef struct {
 } CLProof;
 
 typedef struct {
-  Byte prefix_vPrimeHat[SIZE_VPRIME/2 - SIZE_V/3];
-  Byte prefix_vHat[SIZE_V/3 - SIZE_M];
+  Byte prefix_vHat[SIZE_V/3 - SIZE_VPRIME/3];
+  Byte prefix_vPrimeHat[SIZE_VPRIME/3 - SIZE_M];
   Byte prefix_mHat[SIZE_M - SIZE_H];
   Hash c;
 } Challenge;

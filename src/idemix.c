@@ -53,11 +53,11 @@ APDUData apdu; // 458
 Nonce nonce; // 10 = 10
 Hash context; // + 20 = 30
 int D; // + 2 = 32
-Challenge challenge; // + 69 = 101
-ResponseE eHat; // + 45 = 146
-ResponseV vHat; // + 231 = 377
-ResponseM mHat[SIZE_L]; // + 63*6 (378) = 755
-Byte ssc[SIZE_SSC]; // + 8 = 763
+Challenge challenge; // + 67 = 99
+ResponseE eHat; // + 45 = 144
+ResponseV vHat; // + 231 = 375
+ResponseM mHat[SIZE_L]; // + 63*6 (378) = 753
+Byte ssc[SIZE_SSC]; // + 8 = 761
 
 
 /********************************************************************/
