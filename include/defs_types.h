@@ -35,6 +35,7 @@ typedef Byte ResponseM[SIZE_S_A];
 typedef Byte ResponseV[SIZE_V_];
 typedef Byte ResponseVPRIME[SIZE_VPRIME_];
 typedef Byte Number[SIZE_N];
+typedef Byte Counter[SIZE_SSC];
 typedef Number Numbers[];
 
 typedef struct {

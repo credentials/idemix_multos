@@ -29,7 +29,9 @@
 #include "funcs_helper.h"
 
 #ifdef TEST
-#include "defs_test.h"
+  #include "defs_test.h"
+  
+  int m_count = 0;
 #endif // TEST
 
 /********************************************************************/

@@ -34,9 +34,6 @@
 #include "crypto_proving.h"
 #include "crypto_messaging.h"
 
-#define buffer apdu.temp.data
-#define U numa
-
 /********************************************************************/
 /* APDU buffer variable declaration                                 */
 /********************************************************************/
@@ -50,14 +47,14 @@ APDUData apdu; // 458
 /********************************************************************/
 #pragma melsession
 
-Nonce nonce; // 10 = 10
-Hash context; // + 20 = 30
-int D; // + 2 = 32
-Challenge challenge; // + 67 = 99
-ResponseE eHat; // + 45 = 144
-ResponseV vHat; // + 231 = 375
-ResponseM mHat[SIZE_L]; // + 63*6 (378) = 753
-Byte ssc[SIZE_SSC]; // + 8 = 761
+Counter ssc; // 8 = 8
+Nonce nonce; // + 10 = 18
+Hash context; // + 20 = 38
+Byte disclose; // + 1 = 39
+Challenge challenge; // + 67 = 106
+ResponseE eHat; // + 45 = 151
+ResponseV vHat; // + 231 = 382
+ResponseM mHat[SIZE_L]; // + 63*6 (378) = 760
 
 
 /********************************************************************/
@@ -69,7 +66,7 @@ Byte ssc[SIZE_SSC]; // + 8 = 761
 CLPublicKey issuerKey;
 
 // Credential storage
-int attributes;
+Byte attributes;
 CLMessages messages;
 CLSignature signature;
 CLProof proof; // For postponed signature/proof verification
@@ -83,15 +80,13 @@ Byte iv[SIZE_IV];
 Byte key_enc[SIZE_KEY];
 Byte key_mac[SIZE_KEY];
 
-#ifdef TEST
-int m_count = 0;
-#endif // TEST
-
 
 /********************************************************************/
 /* APDU handling                                                    */
 /********************************************************************/
 
+#define buffer apdu.temp.data
+#define U numa
 void main(void) {
   if ((CLA & 0xF3) != CLA_IDEMIX) {
     ReturnSW(ISO7816_SW_CLA_NOT_SUPPORTED);
@@ -101,10 +96,8 @@ void main(void) {
   if (wrapped) {
     debugMessage("Unwrapping APDU");
     if (!CheckCase(4)) ExitSW(ISO7816_SW_WRONG_LENGTH);
-    debugInteger("Lc", Lc);
     crypto_unwrap();
     debugValue("Unwrapped APDU", apdu.data, Lc);
-    debugInteger("Lc", Lc);
   }
   
   switch (INS) {
@@ -157,7 +150,7 @@ void main(void) {
       if (!(wrapped || CheckCase(1))) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       crypto_generate_random(messages[0], LENGTH_M);
 #endif // TEST
-      debugCLMessageI("Initialised messages", messages, 0);
+      debugValue("Initialised master secret", messages[0], SIZE_M);
       ReturnSW(ISO7816_SW_NO_ERROR);
       break;
     
@@ -322,7 +315,7 @@ void main(void) {
     //////////////////////////////////////////////////////////////////
     
     case INS_PROVE_CONTEXT:
-      debugMessage("INS_SET_CONTEXT");
+      debugMessage("INS_PROVE_CONTEXT");
       if (!((wrapped || CheckCase(3)) && Lc == SIZE_H)) ReturnSW(ISO7816_SW_WRONG_LENGTH);
       COPYN(SIZE_H, context, apdu.data);
       debugValue("Initialised context", context, SIZE_H);
@@ -456,3 +449,5 @@ void main(void) {
       break;
   }
 }
+#undef buffer
+#undef U

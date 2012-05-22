@@ -44,16 +44,16 @@ void selectAttributes(ByteArray list, int length) {
   int i = 0;
 
   debugValue("Disclosure list", list, length);
-  D = 0;
+  disclose = 0x00;
   for (i = 0; i < length; i++) {
     if (list[i] == 0 || list[i] > MAX_ATTR) {
       // FAIL, TODO: clear already stored things
       debugError("selectAttributes(): invalid attribute index");
       ReturnSW(ISO7816_SW_WRONG_DATA);
     }
-    D |= 1 << list[i];
+    disclose |= 1 << list[i];
   }
-  debugInteger("Disclosure selection", D);
+  debugInteger("Disclosure selection", disclose);
 }
 
 /**
