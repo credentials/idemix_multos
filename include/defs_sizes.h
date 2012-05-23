@@ -20,8 +20,9 @@
 #ifndef __sizes_H
 #define __sizes_H
 
-// Attribute definitions
+// Attribute and credential definitions
 #define MAX_ATTR      5
+#define MAX_CRED      5
 
 // System parameter lengths
 #define LENGTH_N      1024

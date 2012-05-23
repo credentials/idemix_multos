@@ -164,8 +164,8 @@ void crypto_compute_S_(void) {
   buffer[0] = 0x01;
   
   // Compute S_ = S^(2_l)
-  ModularExponentiation(SIZE_S_EXPONENT + 1, SIZE_N, 
-    buffer, issuerKey.n, issuerKey.S, issuerKey.S_);
+  ModularExponentiation(SIZE_S_EXPONENT + 1, SIZE_N, buffer, 
+    credential->issuerKey.n, credential->issuerKey.S, credential->issuerKey.S_);
 }
 
 /**
@@ -184,14 +184,14 @@ void crypto_compute_SpecialModularExponentiation(int size,
   if (size > SIZE_N) {
     // Compute result = S^(exponent_bottom) * S_^(exponent_top)
     ModularExponentiation(SIZE_S_EXPONENT, SIZE_N, 
-      exponent + size - SIZE_S_EXPONENT, issuerKey.n, issuerKey.S, result);
+      exponent + size - SIZE_S_EXPONENT, credential->issuerKey.n, credential->issuerKey.S, result);
     ModularExponentiation(size - SIZE_S_EXPONENT, SIZE_N, 
-      exponent, issuerKey.n, issuerKey.S_, buffer);
-    ModularMultiplication(SIZE_N, result, buffer, issuerKey.n);
+      exponent, credential->issuerKey.n, credential->issuerKey.S_, buffer);
+    ModularMultiplication(SIZE_N, result, buffer, credential->issuerKey.n);
   } else {
     // Compute result = S^exponent
     ModularExponentiation(size, SIZE_N, 
-      exponent, issuerKey.n, issuerKey.S, result);
+      exponent, credential->issuerKey.n, credential->issuerKey.S, result);
   }
 }
 
@@ -214,11 +214,11 @@ void crypto_compute_vPrimeHat(void) {
   
   // Multiply c with least significant part of vPrime
   MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 
-    challenge.prefix_vPrimeHat, signature.v + SIZE_V - SIZE_VPRIME/3);
+    challenge.prefix_vPrimeHat, credential->signature.v + SIZE_V - SIZE_VPRIME/3);
   
   // Multiply c with middle significant part of vPrime
   MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
-    signature.v + SIZE_V - 2*SIZE_VPRIME/3);
+    credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3);
   
   // Combine the two multiplications into a partial result
   /*  ASSIGN_ADDN(2*SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_); /* fails somehow :-S what am I doing wrong? */
@@ -227,7 +227,7 @@ void crypto_compute_vPrimeHat(void) {
 
   // Multiply c with most significant part of vPrime
   MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
-    signature.v + SIZE_V - SIZE_VPRIME);
+    credential->signature.v + SIZE_V - SIZE_VPRIME);
   
   // Combine the two multiplications into a single result
 /*  ASSIGN_ADDN(SIZE_VPRIME_ - 2*SIZE_VPRIME/3, buffer, buffer + 4*SIZE_VPRIME/3); /* fails somehow :-S what am I doing wrong? */
@@ -255,7 +255,7 @@ void crypto_compute_vPrimeHat(void) {
  */
 void crypto_compute_s_A(void) {
   // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.prefix_mHat, messages[0]);
+  MULN(SIZE_M, buffer, challenge.prefix_mHat, masterSecret);
   
   // Add mTilde to the result of the multiplication
   ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
@@ -286,7 +286,7 @@ void crypto_compute_vPrime(void) {
 
   // Prepare e for computations
   CLEARN(SIZE_R_A/2 - SIZE_E, e_prefix_rA);
-  COPYN(SIZE_E, e_prefix_rA + SIZE_R_A/2 - SIZE_E, signature.e);
+  COPYN(SIZE_E, e_prefix_rA + SIZE_R_A/2 - SIZE_E, credential->signature.e);
 
   // Multiply e with least significant half of r_A
   MULN(SIZE_R_A/2, buffer + SIZE_V - SIZE_R_A, e_prefix_rA, r_A + SIZE_R_A/2);
@@ -298,19 +298,19 @@ void crypto_compute_vPrime(void) {
   ASSIGN_ADDN(SIZE_V - SIZE_R_A/2, buffer, buffer + SIZE_R_A + SIZE_R_A/2);
 
   // Subtract (with carry) from v and store the result in v'
-  SUBN(SIZE_V/3, vPrime + 2*SIZE_V/3, signature.v + 2*SIZE_V/3, buffer + 2*SIZE_V/3);
+  SUBN(SIZE_V/3, vPrime + 2*SIZE_V/3, credential->signature.v + 2*SIZE_V/3, buffer + 2*SIZE_V/3);
   CFlag(buffer + 2*SIZE_V);
   if (buffer[2*SIZE_V] != 0x00) {
     debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
     INCN(SIZE_V/3, buffer + SIZE_V/3);
   }
-  SUBN(SIZE_V/3, vPrime + SIZE_V/3, signature.v + SIZE_V/3, buffer + SIZE_V/3);
+  SUBN(SIZE_V/3, vPrime + SIZE_V/3, credential->signature.v + SIZE_V/3, buffer + SIZE_V/3);
   CFlag(buffer + 2*SIZE_V);
   if (buffer[2*SIZE_V] != 0x00) {
     debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
     INCN(SIZE_V/3, buffer);
   }
-  SUBN(SIZE_V/3, vPrime, signature.v, buffer);
+  SUBN(SIZE_V/3, vPrime, credential->signature.v, buffer);
   COPYN(SIZE_V, signature_.v, vPrime);
 }
 #undef r_A
@@ -378,7 +378,7 @@ void crypto_compute_vHat(void) {
  */
 void crypto_compute_mHat(int i) {
   // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.prefix_mHat, messages[i]);
+  MULN(SIZE_M, buffer, challenge.prefix_mHat, credential->messages[i]);
   
   // Add mTilde to the result of the multiplication
   ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[i], buffer + 2*SIZE_M - SIZE_M_);
@@ -397,7 +397,7 @@ void crypto_compute_mHat(int i) {
  * @param ePrime in signature.e + SIZE_E - SIZE_H
  * @param e the value to be hidden
  */
-#define ePrime (signature.e + SIZE_E - SIZE_H)
+#define ePrime (credential->signature.e + SIZE_E - SIZE_H)
 void crypto_compute_eHat(void) {
   // Clear the buffer, to prevent garbage messing up the computation
   CLEARN(SIZE_E_ - 2*SIZE_H, buffer);

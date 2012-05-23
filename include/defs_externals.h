@@ -24,11 +24,8 @@
 
 extern APDUData apdu;
 
-extern CLPublicKey issuerKey;
-extern CLSignature signature;
-extern CLMessages messages;
-extern CLProof proof;
-extern Byte attributes;
+extern CLMessage masterSecret;
+extern Credential *credential;
 
 extern Byte disclose;
 extern Hash context;
