@@ -1,3 +1,7 @@
+*idemix-0.3-8997a1f (23 May 2012)
+
+Added support for secure messaging.
+
 *idemix-0.2-bd0e59d (7 May 2012)
 
 Optimised implementation which now uses RAM for all of the computations.
