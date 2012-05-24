@@ -378,7 +378,11 @@ void crypto_compute_vHat(void) {
  */
 void crypto_compute_mHat(int i) {
   // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.prefix_mHat, credential->attribute[i]);
+  if (i = 0) {
+    MULN(SIZE_M, buffer, challenge.prefix_mHat, masterSecret);
+  } else {
+    MULN(SIZE_M, buffer, challenge.prefix_mHat, credential->attribute[i-1]);
+  }
   
   // Add mTilde to the result of the multiplication
   ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[i], buffer + 2*SIZE_M - SIZE_M_);
