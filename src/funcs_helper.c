@@ -19,8 +19,12 @@
 
 #include "funcs_helper.h"
 
+#include <ISO7816.h>
+#include <multosarith.h>
 #include <string.h> // for memcpy()
 
+#include "defs_apdu.h"
+#include "defs_externals.h"
 #include "funcs_debug.h"
 
 /********************************************************************/
@@ -124,4 +128,39 @@ int asn1_encode_seq(int length, int size, ByteArray buffer, int offset) {
   buffer[--offset] = 0x30; // ASN.1 SEQUENCE
 
   return offset;
+}
+
+/**
+ * Verify a PIN code
+ * 
+ * @param buffer which contains the code to verify
+ */
+void pin_verify(ByteArray buffer) {
+  // Verify if the PIN has not been blocked
+  if (pinCount == 0) {
+    ReturnSW(ISO7816_SW_COUNTER_PROVIDED_BY_X(0));
+  }
+  
+  // Compare the PIN with the stored code
+  if (memcmp(buffer, pinCode, SIZE_PIN) != 0) {
+    debugWarning("PIN verification failed");
+    debugInteger("Tries left", pinCount - 1);
+    ReturnSW(ISO7816_SW_COUNTER_PROVIDED_BY_X(0) | --pinCount);
+  } else {
+    debugMessage("PIN verified ");
+    pinCount = PIN_COUNT;
+    pinOK = 0xFF;
+  }
+}
+
+/**
+ * Update a PIN code
+ *
+ * @param buffer which contains the new code
+ */
+void pin_update(ByteArray buffer) {
+  if (!pinOK) {
+    ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+  }
+  COPYN(SIZE_PIN, pinCode, apdu.data);
 }

@@ -30,6 +30,7 @@
 #include "defs_sizes.h"
 #include "defs_types.h"
 #include "funcs_debug.h"
+#include "funcs_helper.h"
 #include "crypto_helper.h"
 #include "crypto_issuing.h"
 #include "crypto_proving.h"
@@ -57,6 +58,7 @@ ResponseE eHat; // + 45 = 151
 ResponseV vHat; // + 231 = 382
 ResponseM mHat[SIZE_L]; // + 63*6 (378) = 760
 Credential *credential; // + 2 = 762
+Byte pinOK; // + 1 = 763
 
 
 /********************************************************************/
@@ -79,6 +81,9 @@ Byte iv[SIZE_IV];
 Byte key_enc[SIZE_KEY];
 Byte key_mac[SIZE_KEY];
 
+// Card holder verification
+Byte pinCode[SIZE_PIN];
+Byte pinCount = PIN_COUNT;
 
 /********************************************************************/
 /* APDU handling                                                    */
@@ -111,6 +116,28 @@ void main(void) {
           // Perform terminal authentication
           break;
         
+        //////////////////////////////////////////////////////////////
+        // Card holder verification                                 //
+        //////////////////////////////////////////////////////////////
+        
+        case ISO7816_INS_VERIFY:
+          // Perform card holder verification
+          if (!((wrapped || CheckCase(3)) && Lc == SIZE_PIN)) {
+            ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          }
+          pin_verify(apdu.data);
+          ReturnSW(ISO7816_SW_NO_ERROR);
+          break;
+          
+        case ISO7816_INS_CHANGE_REFERENCE_DATA:
+          // Update card holder verification
+          if (!((wrapped || CheckCase(3)) && Lc == SIZE_PIN)) {
+            ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          }
+          pin_update(apdu.data);
+          ReturnSW(ISO7816_SW_NO_ERROR);
+          break;
+
         //////////////////////////////////////////////////////////////
         // Unknown instruction                                      //
         //////////////////////////////////////////////////////////////

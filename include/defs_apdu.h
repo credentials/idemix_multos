@@ -26,6 +26,7 @@
 
 // Incorrect constant name in ISO7816.h, so just define it here
 #define ISO7816_INS_GET_CHALLENGE 0x84
+#define ISO7816_INS_CHANGE_REFERENCE_DATA 0x24
 
 // Command APDU definitions
 #define CLA_IDEMIX              0x80
@@ -71,7 +72,7 @@
 #define wrapped ((CLA & 0x0C) != 0)
 
 #define ReturnSW(sw) {\
-  SetSWLa((sw), 0); \
+  SetSW((sw)); \
   if (wrapped) { crypto_wrap(); } \
   Exit(); \
 }

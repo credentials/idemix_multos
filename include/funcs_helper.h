@@ -52,4 +52,18 @@ int asn1_encode_int(ByteArray number, int length, ByteArray buffer, int offset);
  */
 int asn1_encode_seq(int length, int size, ByteArray buffer, int offset);
 
+/**
+ * Verify a PIN code
+ * 
+ * @param buffer which contains the code to verify
+ */
+void pin_verify(ByteArray buffer);
+
+/**
+ * Update a PIN code
+ *
+ * @param buffer which contains the new code
+ */
+void pin_update(ByteArray buffer);
+
 #endif // __funcs_helper_H

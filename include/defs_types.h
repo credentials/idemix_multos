@@ -73,6 +73,7 @@ typedef struct {
   CLSignature signature;
   CLMessages attribute;
   CLProof proof;
+  Byte flags;
   Byte size;
   int id;
 } Credential;
