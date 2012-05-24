@@ -134,7 +134,7 @@ void constructProof(void) {
   debugValue("vHat", vHat, SIZE_V_);
   
   // Compute m_i^ = m_i~ + c m_i
-  for (i = 0; i < SIZE_L; i++) {
+  for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
       crypto_compute_mHat(i);
     }
