@@ -159,7 +159,7 @@ void constructSignature(void) {
  * 
  * @param signature (A, e, v)
  * @param issuerKey (Z, S, R, n)
- * @param messages
+ * @param attribute
  * @param buffer for SpecialModularExponentiation of SIZE_N 
  * @param (buffer for computations of SIZE_N)
  * @param buffer for ZPrime of SIZE_N
@@ -175,7 +175,7 @@ void verifySignature(void) {
     credential->issuerKey.n, credential->issuerKey.R[0], Ri);
   debugValue("Ri = R[0]^ms mod n", Ri, SIZE_N);
   for (i = 1; i <= credential->size; i++) {
-    ModularExponentiation(SIZE_M, SIZE_N, credential->messages[i - 1], 
+    ModularExponentiation(SIZE_M, SIZE_N, credential->attribute[i - 1], 
       credential->issuerKey.n, credential->issuerKey.R[i], buffer);
     debugValue("buffer = R[i]^m[i] mod n", buffer, SIZE_N);    
     ModularMultiplication(SIZE_N, Ri, buffer, credential->issuerKey.n);

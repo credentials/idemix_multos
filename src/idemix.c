@@ -165,6 +165,7 @@ void main(void) {
               ReturnSW(ISO7816_SW_NO_ERROR);
             }
           }
+          debugWarning("Unknown credential");
           ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
           break;
           
@@ -179,6 +180,7 @@ void main(void) {
           TESTN(SIZE_M, masterSecret);
           ZFlag(buffer);
           if (buffer[0] == 0) {
+            debugWarning("Master secret is already generated");
             ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED_AGAIN);
           }
           
@@ -212,6 +214,7 @@ void main(void) {
           // Prevent reissuance of a credential
           for (i = 0; i < MAX_CRED; i++) {
             if (credentials[i].id == P1P2) {
+              debugWarning("Credential is already issued");
               ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED_AGAIN);
             }
           }
@@ -228,6 +231,7 @@ void main(void) {
           }
           
           // Out of space
+          debugWarning("Cannot issue another credential");
           ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED);
           break;
         
@@ -291,11 +295,12 @@ void main(void) {
           TESTN(SIZE_M, apdu.data);
           ZFlag(buffer + SIZE_M);
           if (buffer[SIZE_M] != 0) {
+            debugWarning("Attribute cannot be empty");
             ReturnSW(ISO7816_SW_WRONG_DATA);
           }
           
-          COPYN(SIZE_M, credential->messages[P1 - 1], apdu.data);
-          debugCLMessageI("Initialised messages", credential->messages, P1);
+          COPYN(SIZE_M, credential->attribute[P1 - 1], apdu.data);
+          debugCLMessageI("Initialised attribute", credential->attribute, P1 - 1);
           // TODO: Implement some proper handling of the number of attributes
           if (P1 > credential->size) {
             credential->size = P1;
@@ -572,7 +577,7 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation!
           }
           
-          COPYN(SIZE_M, apdu.data, credential->messages[P1 - 1]);
+          COPYN(SIZE_M, apdu.data, credential->attribute[P1 - 1]);
           debugValue("Returned attribute", apdu.data, SIZE_M);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_M);
           break;

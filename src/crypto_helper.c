@@ -249,7 +249,7 @@ void crypto_compute_vPrimeHat(void) {
  * 
  * @param buffer of size 2*SIZE_M_ + SIZE_M
  * @param c in challenge.prefix_m
- * @param m[0] in messages[0]
+ * @param m[0] in masterSecret
  * @param mTilde[0] in mHat[0]
  * @return s_A in mHat[0]
  */
@@ -372,13 +372,13 @@ void crypto_compute_vHat(void) {
  * 
  * @param buffer of size 2*SIZE_M_ + SIZE_M
  * @param c the challenge
- * @param m[i] in messages[i]
+ * @param m[i] in attribute[i]
  * @param mTilde[index] in mHat[index]
  * @return mHat[i]
  */
 void crypto_compute_mHat(int i) {
   // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.prefix_mHat, credential->messages[i]);
+  MULN(SIZE_M, buffer, challenge.prefix_mHat, credential->attribute[i]);
   
   // Add mTilde to the result of the multiplication
   ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[i], buffer + 2*SIZE_M - SIZE_M_);

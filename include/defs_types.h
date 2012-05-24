@@ -71,7 +71,7 @@ typedef struct {
 typedef struct {
   CLPublicKey issuerKey;
   CLSignature signature;
-  CLMessages messages;
+  CLMessages attribute;
   CLProof proof;
   Byte size;
   int id;
