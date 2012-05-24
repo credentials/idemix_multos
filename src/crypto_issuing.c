@@ -44,7 +44,7 @@
  * 
  * @param issuerKey (S, R, n)
  * @param proof (nonce, context)
- * @param messages[0]
+ * @param masterSecret
  * @param number for U
  * @param number for UTilde
  * @param vPrime in signature.v + SIZE_V - SIZE_VPRIME
@@ -133,14 +133,21 @@ void constructSignature(void) {
   memset(credential->signature.v, 0x00, SIZE_V - SIZE_VPRIME);
   
   // Compute v = v' + v'' using add with carry
-  ASSIGN_ADDN(SIZE_V - SIZE_V_ADDITION, buffer + SIZE_V_ADDITION, 
-    credential->signature.v + SIZE_V_ADDITION);
+  ASSIGN_ADDN(SIZE_V/3, buffer + 2*SIZE_V/3, 
+    credential->signature.v + 2*SIZE_V/3);
   CFlag(buffer + SIZE_V);
   if (buffer[SIZE_V] != 0x00) {
     debugMessage("Addition with carry, adding 1");
-    INCN(SIZE_V_ADDITION, buffer);
+    INCN(2*SIZE_V/3, buffer);
   }
-  ASSIGN_ADDN(SIZE_V_ADDITION, buffer, credential->signature.v);
+  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V/3, 
+    credential->signature.v + SIZE_V/3);
+  CFlag(buffer + SIZE_V);
+  if (buffer[SIZE_V] != 0x00) {
+    debugMessage("Addition with carry, adding 1");
+    INCN(SIZE_V/3, buffer);
+  }
+  ASSIGN_ADDN(SIZE_V/3, buffer, credential->signature.v);
   COPYN(SIZE_V, credential->signature.v, buffer);
   debugValue("v = vPrime + vPrimePrime", credential->signature.v, SIZE_V);
 }
