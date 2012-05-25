@@ -247,21 +247,24 @@ void crypto_compute_vPrimeHat(void) {
 /**
  * Compute the response value s_A = mTilde[0] + c*m[0]
  * 
- * @param buffer of size 2*SIZE_M_ + SIZE_M
+ * @param buffer of size 2*SIZE_S_A
  * @param c in challenge.prefix_m
  * @param m[0] in masterSecret
  * @param mTilde[0] in mHat[0]
  * @return s_A in mHat[0]
  */
 void crypto_compute_s_A(void) {
+  // Clear buffer
+  CLEARN(SIZE_S_A - 2*SIZE_M, buffer);
+
   // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.c, masterSecret);
-  
+  MULN(SIZE_M, buffer + SIZE_S_A - 2*SIZE_M, challenge.c, masterSecret);
+
   // Add mTilde to the result of the multiplication
-  ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
-  
+  ADDN(SIZE_S_A, buffer + SIZE_S_A, mHat[0], buffer);
+
   // Store the result in mHat
-  COPYN(SIZE_S_A, mHat[0], buffer + 2*SIZE_M);
+  COPYN(SIZE_S_A, mHat[0], buffer + SIZE_S_A);
 }
 
 //////////////////////////////////////////////////////////////////////

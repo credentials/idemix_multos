@@ -52,7 +52,7 @@
 
 #define SIZE_VPRIME  (SIZE_N + SIZE_STATZK) // 138 bytes
 #define SIZE_VPRIME_ (SIZE_N + 2*SIZE_STATZK + SIZE_H) // 168 bytes
-#define SIZE_M_      (SIZE_M + SIZE_STATZK + SIZE_H) // 62 bytes
+#define SIZE_M_      (SIZE_M + SIZE_STATZK + SIZE_H) // 50 bytes
 #define SIZE_S_A     (SIZE_M + SIZE_STATZK + SIZE_H + 1) // 51 bytes
 #define SIZE_R_A     (SIZE_N + SIZE_STATZK) // 138 bytes
 #define SIZE_V_      (SIZE_V + SIZE_STATZK + SIZE_H) // 231 bytes
