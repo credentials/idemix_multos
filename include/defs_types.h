@@ -35,6 +35,7 @@ typedef Byte ResponseM[SIZE_S_A];
 typedef Byte ResponseV[SIZE_V_];
 typedef Byte ResponseVPRIME[SIZE_VPRIME_];
 typedef Byte Number[SIZE_N];
+typedef Byte Counter[SIZE_SSC];
 typedef Number Numbers[];
 
 typedef struct {
@@ -52,7 +53,7 @@ typedef struct {
 } CLPublicKey;
 
 typedef Byte CLMessage[SIZE_M];
-typedef CLMessage CLMessages[SIZE_L];
+typedef CLMessage CLMessages[MAX_ATTR];
 
 typedef struct {
   Number A;
@@ -66,6 +67,15 @@ typedef struct {
   Hash challenge;
   Number response;
 } CLProof;
+
+typedef struct {
+  CLPublicKey issuerKey;
+  CLSignature signature;
+  CLMessages attribute;
+  CLProof proof;
+  Byte size;
+  int id;
+} Credential;
 
 typedef struct {
   Byte prefix_vHat[SIZE_V/3 - SIZE_VPRIME/3];

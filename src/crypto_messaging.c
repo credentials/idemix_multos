@@ -61,7 +61,7 @@ void crypto_unwrap(void) {
     }
     offset += do87LenBytes;
 
-    if (buffer[offset++] != 0x01) ExitSW(SW_INTERNAL_ERROR);
+    if (buffer[offset++] != 0x01) ExitSW(ISO7816_SW_WRONG_DATA);
     do87DataLen--; // compensate for 0x01 marker
     
     // store pointer to data and defer decrypt to after mac check (do8e)
@@ -70,13 +70,13 @@ void crypto_unwrap(void) {
   }
 
   if (buffer[offset] == 0x97) { // do97
-    if (buffer[++offset] != 0x01) ExitSW(SW_INTERNAL_ERROR);    
+    if (buffer[++offset] != 0x01) ExitSW(ISO7816_SW_WRONG_DATA);
     Le = buffer[++offset];
     offset++;
   }
 
   // do8e
-  if (buffer[offset] != 0x8e) ExitSW(SW_INTERNAL_ERROR);  
+  if (buffer[offset] != 0x8e) ExitSW(ISO7816_SW_WRONG_DATA);
   if (buffer[offset + 1] != 8) ExitSW(ISO7816_SW_DATA_INVALID);
 
   // verify mac

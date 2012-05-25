@@ -44,16 +44,16 @@ void selectAttributes(ByteArray list, int length) {
   int i = 0;
 
   debugValue("Disclosure list", list, length);
-  D = 0;
+  disclose = 0x00;
   for (i = 0; i < length; i++) {
     if (list[i] == 0 || list[i] > MAX_ATTR) {
       // FAIL, TODO: clear already stored things
       debugError("selectAttributes(): invalid attribute index");
       ReturnSW(ISO7816_SW_WRONG_DATA);
     }
-    D |= 1 << list[i];
+    disclose |= 1 << list[i];
   }
-  debugInteger("Disclosure selection", D);
+  debugInteger("Disclosure selection", disclose);
 }
 
 /**
@@ -61,7 +61,7 @@ void selectAttributes(ByteArray list, int length) {
  */
 #define ZTilde (buffer + SIZE_N)
 #define APrime (buffer + 2*SIZE_N)
-#define ePrime (signature.e + SIZE_E - SIZE_EPRIME)
+#define ePrime (credential->signature.e + SIZE_E - SIZE_EPRIME)
 #define r_A vHat
 void constructProof(void) {
   int i;
@@ -81,12 +81,12 @@ void constructProof(void) {
   // Compute A' = A S^r_A
   crypto_compute_SpecialModularExponentiation(SIZE_R_A, r_A, APrime);
   debugValue("A' = S^r_A mod n", APrime, SIZE_N);
-  ModularMultiplication(SIZE_N, APrime, signature.A, issuerKey.n);
+  ModularMultiplication(SIZE_N, APrime, credential->signature.A, credential->issuerKey.n);
   debugValue("A' = A' * A mod n", APrime, SIZE_N);
   COPYN(SIZE_N, signature_.A, APrime);
   
   // Generate random values for m~[i], e~, v~ and r_A
-  for (i = 0; i <= attributes; i++) {
+  for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
       crypto_generate_random(mHat[i], LENGTH_M_);
     }
@@ -100,15 +100,15 @@ void constructProof(void) {
   // Compute ZTilde = A'^eTilde * S^vTilde * (R[i]^mHat[i] foreach i not in D)
   crypto_compute_SpecialModularExponentiation(SIZE_V_, vHat, ZTilde);
   debugValue("ZTilde = S^v_", ZTilde, SIZE_N);
-  ModularExponentiation(SIZE_E_, SIZE_N, eHat, issuerKey.n, APrime, buffer);
+  ModularExponentiation(SIZE_E_, SIZE_N, eHat, credential->issuerKey.n, APrime, buffer);
   debugValue("buffer = A'^eTilde", buffer, SIZE_N);
-  ModularMultiplication(SIZE_N, ZTilde, buffer, issuerKey.n);
+  ModularMultiplication(SIZE_N, ZTilde, buffer, credential->issuerKey.n);
   debugValue("ZTilde = ZTilde * buffer", ZTilde, SIZE_N);
-  for (i = 0; i <= attributes; i++) {
+  for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
-      ModularExponentiation(SIZE_M_, SIZE_N, mHat[i], issuerKey.n, issuerKey.R[i], buffer);
+      ModularExponentiation(SIZE_M_, SIZE_N, mHat[i], credential->issuerKey.n, credential->issuerKey.R[i], buffer);
       debugValue("R_i^m_i", buffer, SIZE_N);
-      ModularMultiplication(SIZE_N, ZTilde, buffer, issuerKey.n);
+      ModularMultiplication(SIZE_N, ZTilde, buffer, credential->issuerKey.n);
       debugValue("ZTilde = ZTilde * buffer", ZTilde, SIZE_N);
     }
   }
@@ -134,7 +134,7 @@ void constructProof(void) {
   debugValue("vHat", vHat, SIZE_V_);
   
   // Compute m_i^ = m_i~ + c m_i
-  for (i = 0; i < SIZE_L; i++) {
+  for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
       crypto_compute_mHat(i);
     }

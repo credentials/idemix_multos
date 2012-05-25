@@ -24,13 +24,10 @@
 
 extern APDUData apdu;
 
-extern CLPublicKey issuerKey;
-extern CLSignature signature;
-extern CLMessages messages;
-extern CLProof proof;
-extern int attributes;
+extern CLMessage masterSecret;
+extern Credential *credential;
 
-extern int D;
+extern Byte disclose;
 extern Hash context;
 extern Nonce nonce;
 extern Challenge challenge;
@@ -46,9 +43,5 @@ extern Byte key_mac[SIZE_KEY];
 
 extern Byte iv[SIZE_IV];
 extern Byte ssc[SIZE_SSC];
-
-#ifdef TEST
-extern int m_count;
-#endif // TEST
 
 #endif // __defs_externals_H
