@@ -373,25 +373,28 @@ void crypto_compute_vHat(void) {
 /**
  * Compute the response value mHat[i] = mTilde[i] + c*m[i]
  * 
- * @param buffer of size 2*SIZE_M_ + SIZE_M
+ * @param buffer of size 2*SIZE_M_
  * @param c the challenge
  * @param m[i] in attribute[i]
  * @param mTilde[index] in mHat[index]
  * @return mHat[i]
  */
 void crypto_compute_mHat(int i) {
+  // Clear buffer
+  CLEARN(SIZE_M_ - 2*SIZE_M, buffer);
+
   // Multiply c with m
   if (i == 0) {
-    MULN(SIZE_M, buffer, challenge.c, masterSecret);
+    MULN(SIZE_M, buffer + SIZE_M_ - 2*SIZE_M, challenge.c, masterSecret);
   } else {
-    MULN(SIZE_M, buffer, challenge.c, credential->attribute[i - 1]);
+    MULN(SIZE_M, buffer + SIZE_M_ - 2*SIZE_M, challenge.c, credential->attribute[i - 1]);
   }
   
   // Add mTilde to the result of the multiplication
-  ADDN(SIZE_M_, buffer + 2*SIZE_M, mHat[i], buffer + 2*SIZE_M - SIZE_M_);
+  ADDN(SIZE_M_, buffer + SIZE_M_, mHat[i], buffer);
   
   // Store the result in mHat
-  COPYN(SIZE_M_, mHat[i], buffer + 2*SIZE_M);
+  COPYN(SIZE_M_, mHat[i], buffer + SIZE_M_);
 }
 
 /**
