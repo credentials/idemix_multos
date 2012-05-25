@@ -76,10 +76,6 @@ Credential credentials[MAX_CRED];
 Number numa, numb;
 CLSignature signature_;
 
-// Secure Messaging
-Byte iv[SIZE_IV];
-Byte key_enc[SIZE_KEY];
-Byte key_mac[SIZE_KEY];
 
 /********************************************************************/
 /* APDU handling                                                    */

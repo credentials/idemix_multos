@@ -27,8 +27,12 @@
 
 #include "defs_apdu.h"
 #include "defs_externals.h"
-#include "crypto_helper.h"
 #include "funcs_debug.h"
+
+// Secure Messaging
+Byte iv[SIZE_IV];
+Byte key_enc[SIZE_KEY];
+Byte key_mac[SIZE_KEY];
 
 /********************************************************************/
 /* Secure Messaging functions                                       */
@@ -181,3 +185,34 @@ void crypto_wrap(void) {
 #undef hadDo87
 #undef do87DataLenBytes
 #undef do87DataLen
+
+/**
+ * Add padding to the input data according to ISO7816-4
+ * 
+ * @param data that needs to be padded
+ * @param size of the data that needs to be padded
+ * @return the new size of the data including padding  
+ */
+uint pad(ByteArray in, int length) {
+  in[length++] = 0x80;
+  while (length % 8 != 0) {
+    in[length++] = 0x00;
+  }
+  return length;
+}
+
+/**
+ * Remove padding from the input data according to ISO7816-4
+ * 
+ * @param data that contains padding
+ * @param size of the data including padding
+ * @return the new size of the data excluding padding  
+ */
+uint unpad(ByteArray in, int length) {
+  while (length > 0 && in[--length] == 0x00);
+  if (in[length] != 0x80) {
+    debugError("Invalid padding");
+    return INVALID_PADDING;
+  }
+  return length;
+}
