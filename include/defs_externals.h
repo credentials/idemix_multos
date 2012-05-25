@@ -44,8 +44,6 @@ extern Byte key_mac[SIZE_KEY];
 extern Byte iv[SIZE_IV];
 extern Byte ssc[SIZE_SSC];
 
-extern Byte pinCode[SIZE_PIN];
-extern Byte pinOK;
-extern Byte pinCount;
+extern Byte flags;
 
 #endif // __defs_externals_H

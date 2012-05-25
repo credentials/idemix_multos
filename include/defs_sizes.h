@@ -71,6 +71,5 @@
 #define SIZE_KEY 16
 
 #define SIZE_PIN 4
-#define PIN_COUNT 3
 
 #endif // __sizes_H

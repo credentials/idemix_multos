@@ -30,7 +30,7 @@
 #include "defs_sizes.h"
 #include "defs_types.h"
 #include "funcs_debug.h"
-#include "funcs_helper.h"
+#include "funcs_pin.h"
 #include "crypto_helper.h"
 #include "crypto_issuing.h"
 #include "crypto_proving.h"
@@ -58,7 +58,7 @@ ResponseE eHat; // + 45 = 151
 ResponseV vHat; // + 231 = 382
 ResponseM mHat[SIZE_L]; // + 63*6 (378) = 760
 Credential *credential; // + 2 = 762
-Byte pinOK; // + 1 = 763
+Byte flags; // + 1 = 763
 
 
 /********************************************************************/
@@ -80,10 +80,6 @@ CLSignature signature_;
 Byte iv[SIZE_IV];
 Byte key_enc[SIZE_KEY];
 Byte key_mac[SIZE_KEY];
-
-// Card holder verification
-Byte pinCode[SIZE_PIN];
-Byte pinCount = PIN_COUNT;
 
 /********************************************************************/
 /* APDU handling                                                    */
@@ -231,6 +227,9 @@ void main(void) {
     
         case INS_ISSUE_CREDENTIAL:
           debugMessage("INS_ISSUE_CREDENTIAL");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_H)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -264,6 +263,9 @@ void main(void) {
         
         case INS_ISSUE_PUBLIC_KEY_N:
           debugMessage("INS_ISSUE_PUBLIC_KEY_N");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -275,6 +277,9 @@ void main(void) {
         
         case INS_ISSUE_PUBLIC_KEY_Z:
           debugMessage("INS_ISSUE_PUBLIC_KEY_Z");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -286,6 +291,9 @@ void main(void) {
         
         case INS_ISSUE_PUBLIC_KEY_S:
           debugMessage("INS_ISSUE_PUBLIC_KEY_S");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -299,6 +307,9 @@ void main(void) {
         
         case INS_ISSUE_PUBLIC_KEY_R:
           debugMessage("INS_ISSUE_PUBLIC_KEY_R");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -313,6 +324,9 @@ void main(void) {
         
         case INS_ISSUE_ATTRIBUTES:
           debugMessage("INS_ISSUE_ATTRIBUTES");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_M)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -337,6 +351,9 @@ void main(void) {
         
         case INS_ISSUE_NONCE_1:
           debugMessage("INS_ISSUE_NONCE_1");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_STATZK)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -351,6 +368,9 @@ void main(void) {
           
         case INS_ISSUE_PROOF_U:
           debugMessage("INS_ISSUE_PROOF_U");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           switch (P1) {
             case P1_PROOF_U_C:
               debugMessage("P1_PROOF_U_C");
@@ -394,6 +414,9 @@ void main(void) {
           
         case INS_ISSUE_NONCE_2:
           debugMessage("INS_ISSUE_NONCE_2");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -405,6 +428,9 @@ void main(void) {
         
         case INS_ISSUE_SIGNATURE:
           debugMessage("INS_ISSUE_SIGNATURE");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           switch(P1) {
             case P1_SIGNATURE_A:
               debugMessage("P1_SIGNATURE_A");
@@ -459,6 +485,9 @@ void main(void) {
     
         case INS_ISSUE_PROOF_A:
           debugMessage("INS_ISSUE_PROOF_A");
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           switch(P1) {
             case P1_PROOF_A_C:
               debugMessage("P1_PROOF_A_C");
@@ -517,6 +546,9 @@ void main(void) {
           for (i = 0; i < MAX_CRED; i++) {
             if (credentials[i].id == P1P2) {
               credential = &credentials[i];
+              if (pin_required && !pin_verified) {
+                ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+              }
               COPYN(SIZE_H, context, apdu.data);
               debugValue("Initialised context", context, SIZE_H);
               ReturnSW(ISO7816_SW_NO_ERROR);
@@ -527,6 +559,9 @@ void main(void) {
     
         case INS_PROVE_SELECTION:
           debugMessage("INS_PROVE_SELECTION");
+          if (pin_required && !pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc < SIZE_L)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -537,6 +572,9 @@ void main(void) {
           
         case INS_PROVE_NONCE:
           debugMessage("INS_PROVE_NONCE");
+          if (pin_required && !pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_STATZK)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -551,6 +589,9 @@ void main(void) {
         
         case INS_PROVE_SIGNATURE:
           debugMessage("INS_PROVE_SIGNATURE");
+          if (pin_required && !pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           switch(P1) {
             case P1_SIGNATURE_A:
               debugMessage("P1_SIGNATURE_A");
@@ -594,6 +635,9 @@ void main(void) {
         
         case INS_PROVE_ATTRIBUTE:
           debugMessage("INS_PROVE_ATTRIBUTE");
+          if (pin_required && !pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
@@ -611,6 +655,9 @@ void main(void) {
           
         case INS_PROVE_RESPONSE:
           debugMessage("INS_PROVE_RESPONSE");
+          if (pin_required && !pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
