@@ -28,7 +28,7 @@
 #include "funcs_debug.h"
 
 // Card holder verification
-Byte pinCode[SIZE_PIN];
+Byte pinCode[SIZE_PIN] = { 0x30, 0x30, 0x30, 0x30 };
 Byte pinCount = PIN_COUNT;
 
 /**
