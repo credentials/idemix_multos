@@ -40,4 +40,26 @@ void verifySignature(void);
  */
 void verifyProof(void);
 
+/**
+ * Compute the response value vPrimeHat = vPrimeTilde + c*vPrime
+ * 
+ * @param buffer of size SIZE_VPRIME_ + SIZE_VPRIME
+ * @param c in challenge.prefix_vPrime
+ * @param vPrime signature.v + SIZE_V - SIZE_VPRIME
+ * @param vTilde in vPrimeHat
+ * @return vPrimeHat
+ */
+void crypto_compute_vPrimeHat(void);
+
+/**
+ * Compute the response value s_A = mTilde[0] + c*m[0]
+ * 
+ * @param buffer of size 2*SIZE_M_ + SIZE_M
+ * @param c in challenge.prefix_m
+ * @param m[0] in messages[0]
+ * @param mTilde[0] in mHat[0]
+ * @return s_A in mHat[0]
+ */
+void crypto_compute_s_A(void);
+
 #endif // __crypto_issuing_H

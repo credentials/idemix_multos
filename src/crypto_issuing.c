@@ -264,3 +264,68 @@ void verifyProof(void) {
 #undef AHat
 #undef Q
 #undef s_e
+
+/**
+ * Compute the response value vPrimeHat = vPrimeTilde + c*vPrime
+ * 
+ * @param buffer of size SIZE_VPRIME_ + SIZE_VPRIME
+ * @param c in challenge.prefix_vPrimeHat
+ * @param vPrime signature.v + SIZE_V - SIZE_VPRIME
+ * @param vPrimeTilde in vHat
+ * @return vPrimeHat in vHat
+ */
+void crypto_compute_vPrimeHat(void) {  
+  // Clear the buffer, to prevent garbage messing up the computation
+  CLEARN(SIZE_VPRIME_ - SIZE_VPRIME, buffer);
+  
+  // Multiply c with least significant part of vPrime
+  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 
+    challenge.prefix_vPrimeHat, credential->signature.v + SIZE_V - SIZE_VPRIME/3);
+  
+  // Multiply c with middle significant part of vPrime
+  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
+    credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3);
+  
+  // Combine the two multiplications into a partial result
+  /*  ASSIGN_ADDN(2*SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_); /* fails somehow :-S what am I doing wrong? */
+  ASSIGN_ADDN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, buffer + SIZE_VPRIME_ + SIZE_VPRIME/3);
+  COPYN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_);
+
+  // Multiply c with most significant part of vPrime
+  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
+    credential->signature.v + SIZE_V - SIZE_VPRIME);
+  
+  // Combine the two multiplications into a single result
+/*  ASSIGN_ADDN(SIZE_VPRIME_ - 2*SIZE_VPRIME/3, buffer, buffer + 4*SIZE_VPRIME/3); /* fails somehow :-S what am I doing wrong? */
+  ASSIGN_ADDN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_ + SIZE_VPRIME/3);
+  COPYN(SIZE_VPRIME_ - SIZE_VPRIME, buffer, buffer + 4*SIZE_VPRIME/3);
+  
+  // Add (with carry) vPrimeTilde and store the result in vPrimeHat
+  ASSIGN_ADDN(SIZE_VPRIME_/2, vHat + SIZE_VPRIME_/2, buffer + SIZE_VPRIME_/2);
+  CFlag(buffer + SIZE_VPRIME_);
+  if (buffer[SIZE_VPRIME_] != 0x00) {
+    debugMessage("Addition with carry, adding 1");
+    INCN(SIZE_VPRIME_/2, vHat);
+  }
+  ASSIGN_ADDN(SIZE_VPRIME_/2, vHat, buffer);
+}
+
+/**
+ * Compute the response value s_A = mTilde[0] + c*m[0]
+ * 
+ * @param buffer of size 2*SIZE_M_ + SIZE_M
+ * @param c in challenge.prefix_m
+ * @param m[0] in masterSecret
+ * @param mTilde[0] in mHat[0]
+ * @return s_A in mHat[0]
+ */
+void crypto_compute_s_A(void) {
+  // Multiply c with m
+  MULN(SIZE_M, buffer, challenge.prefix_mHat, masterSecret);
+  
+  // Add mTilde to the result of the multiplication
+  ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
+  
+  // Store the result in mHat
+  COPYN(SIZE_S_A, mHat[0], buffer + 2*SIZE_M);
+}

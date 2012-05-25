@@ -22,10 +22,6 @@
 
 #include "defs_types.h"
 
-//////////////////////////////////////////////////////////////////////
-// Shared functions                                                 //
-//////////////////////////////////////////////////////////////////////
-
 /**
  * Compute a cryptographic hash of the given input values
  * 
@@ -67,83 +63,5 @@ void crypto_compute_S_(void);
 void crypto_compute_SpecialModularExponentiation(int size, 
                                                  ByteArray exponent, 
                                                  ByteArray result);
-
-//////////////////////////////////////////////////////////////////////
-// Issuing functions                                                //
-//////////////////////////////////////////////////////////////////////
-
-/**
- * Compute the response value vPrimeHat = vPrimeTilde + c*vPrime
- * 
- * @param buffer of size SIZE_VPRIME_ + SIZE_VPRIME
- * @param c in challenge.prefix_vPrime
- * @param vPrime signature.v + SIZE_V - SIZE_VPRIME
- * @param vTilde in vPrimeHat
- * @return vPrimeHat
- */
-void crypto_compute_vPrimeHat(void);
-
-/**
- * Compute the response value s_A = mTilde[0] + c*m[0]
- * 
- * @param buffer of size 2*SIZE_M_ + SIZE_M
- * @param c in challenge.prefix_m
- * @param m[0] in messages[0]
- * @param mTilde[0] in mHat[0]
- * @return s_A in mHat[0]
- */
-void crypto_compute_s_A(void);
-
-//////////////////////////////////////////////////////////////////////
-// Proving functions                                                //
-//////////////////////////////////////////////////////////////////////
-
-/**
- * Compute the response value v' = v - e*r_A
- *
- * Requires buffer of size SIZE_V + 2*SIZE_R_A.
- *
- * @param r_A the randomisation value
- */
-void crypto_compute_vPrime(void);
-
-/**
- * Compute the response value vHat = vTilde + c*v'
- * 
- * Requires buffer of size SIZE_V_ + SIZE_V and vTilde to be stored in 
- * vHat.
- * 
- * @param c the challenge
- */
-void crypto_compute_vHat(void);
-
-/**
- * Compute the response value mHat = mTilde + c*m
- * 
- * Requires buffer of size 2*SIZE_M_ + SIZE_M and mTilde[index] to be 
- * stored in mHat[index].
- * 
- * @param c the challenge
- * @param index of the message to be hidden
- */
-void crypto_compute_mHat(int index);
-
-/**
- * Compute the response value eHat = eTilde + c*e
- * 
- * Requires buffer of size 2*SIZE_E and eTilde to be stored in eHat.
- * 
- * @param c the challenge
- * @param e the value to be hidden
- */
-void crypto_compute_eHat(void);
-
-/**
- * Determine whether an attribute is to be disclosed or not.
- * 
- * @param index of the attribute
- * @return 1 if disclosed, 0 if not
- */
-#define disclosed(index) ((disclose >> (index)) & 0x0001)
 
 #endif // __crypto_helper_H

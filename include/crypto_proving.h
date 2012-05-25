@@ -32,4 +32,52 @@ void selectAttributes(ByteArray list, int length);
  */
 void constructProof(void);
 
+/**
+ * Compute the response value v' = v - e*r_A
+ *
+ * Requires buffer of size SIZE_V + 2*SIZE_R_A.
+ *
+ * @param r_A the randomisation value
+ */
+void crypto_compute_vPrime(void);
+
+/**
+ * Compute the response value vHat = vTilde + c*v'
+ * 
+ * Requires buffer of size SIZE_V_ + SIZE_V and vTilde to be stored in 
+ * vHat.
+ * 
+ * @param c the challenge
+ */
+void crypto_compute_vHat(void);
+
+/**
+ * Compute the response value mHat = mTilde + c*m
+ * 
+ * Requires buffer of size 2*SIZE_M_ + SIZE_M and mTilde[index] to be 
+ * stored in mHat[index].
+ * 
+ * @param c the challenge
+ * @param index of the message to be hidden
+ */
+void crypto_compute_mHat(int index);
+
+/**
+ * Compute the response value eHat = eTilde + c*e
+ * 
+ * Requires buffer of size 2*SIZE_E and eTilde to be stored in eHat.
+ * 
+ * @param c the challenge
+ * @param e the value to be hidden
+ */
+void crypto_compute_eHat(void);
+
+/**
+ * Determine whether an attribute is to be disclosed or not.
+ * 
+ * @param index of the attribute
+ * @return 1 if disclosed, 0 if not
+ */
+#define disclosed(index) ((disclose >> (index)) & 0x0001)
+
 #endif // __crypto_proving_H
