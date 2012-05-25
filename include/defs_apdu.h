@@ -41,6 +41,7 @@
 #define INS_ISSUE_PUBLIC_KEY_S  0x13
 #define INS_ISSUE_PUBLIC_KEY_R  0x14
 #define INS_ISSUE_ATTRIBUTES    0x15
+#define INS_ISSUE_FLAGS         0x1B
 
 #define INS_ISSUE_NONCE_1       0x16
 #define INS_ISSUE_PROOF_U       0x17
@@ -58,6 +59,7 @@
 
 #define INS_ADMIN_CREDENTIAL    0x30
 #define INS_ADMIN_REMOVE        0x31
+#define INS_ADMIN_FLAGS         0x32
 
 #define P1_PROOF_U_C            0x00
 #define P1_PROOF_U_VPRIMEHAT    0x01

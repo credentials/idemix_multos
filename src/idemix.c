@@ -362,6 +362,23 @@ void main(void) {
           ReturnSW(ISO7816_SW_NO_ERROR);
           break;
         
+        case INS_ISSUE_FLAGS:
+          debugMessage("INS_ISSUE_FLAGS");
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
+          }
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (!(wrapped || CheckCase(1))) {
+            ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          }
+          
+          credential->flags = P1;
+          debugValue("Initialised flags", &(credential->flags), 1);
+          ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
+          break;
+          
         case INS_ISSUE_NONCE_1:
           debugMessage("INS_ISSUE_NONCE_1");
           if (credential == NULL) {
@@ -764,6 +781,23 @@ void main(void) {
             ReturnSW(ISO7816_SW_NO_ERROR);
           }
           ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
+          break;
+          
+        case INS_ADMIN_FLAGS:
+          debugMessage("INS_ADMIN_FLAGS");
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
+          }
+          if (!pin_verified) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (!(wrapped || CheckCase(1))) {
+            ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          }
+          
+          credential->flags = P1;
+          debugValue("Updated flags", &(credential->flags), 1);
+          ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
           break;
           
         //////////////////////////////////////////////////////////////
