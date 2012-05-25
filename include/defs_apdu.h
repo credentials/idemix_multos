@@ -56,6 +56,9 @@
 #define INS_PROVE_ATTRIBUTE     0x24
 #define INS_PROVE_RESPONSE      0x25
 
+#define INS_ADMIN_CREDENTIAL    0x30
+#define INS_ADMIN_REMOVE        0x31
+
 #define P1_PROOF_U_C            0x00
 #define P1_PROOF_U_VPRIMEHAT    0x01
 #define P1_PROOF_U_S_A          0x02
