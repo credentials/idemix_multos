@@ -35,11 +35,11 @@
 void pin_verify(ByteArray buffer);
 
 /**
- * Update a PIN code
+ * Modify a PIN code
  *
- * @param buffer which contains the new code
+ * @param buffer which contains the old and new code
  */
-void pin_update(ByteArray buffer);
+void pin_modify(ByteArray buffer);
 
 /**
  * Whether a PIN code has been verified

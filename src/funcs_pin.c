@@ -55,15 +55,18 @@ void pin_verify(ByteArray buffer) {
 }
 
 /**
- * Update a PIN code
+ * Modify a PIN code
  *
- * @param buffer which contains the new code
+ * @param buffer which contains the old and new code
  */
-void pin_update(ByteArray buffer) {
-  if (!pin_verified) {
-    ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+void pin_modify(ByteArray buffer) {
+  pin_verify(buffer);
+
+  if (memcmp(buffer, buffer + SIZE_PIN, SIZE_PIN) == 0) {
+    // This is not a modification
+    ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
+  } else {
+    // Store the new code
+    COPYN(SIZE_PIN, pinCode, buffer + SIZE_PIN);
   }
-  
-  // Store the new code
-  COPYN(SIZE_PIN, pinCode, apdu.data);
 }

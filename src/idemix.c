@@ -128,7 +128,7 @@ void main(void) {
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_PIN)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
-          pin_update(apdu.data);
+          pin_modify(apdu.data);
           ReturnSW(ISO7816_SW_NO_ERROR);
           break;
 
