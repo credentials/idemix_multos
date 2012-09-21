@@ -28,6 +28,7 @@
 #include "defs_apdu.h"
 #include "defs_externals.h"
 #include "funcs_debug.h"
+#include "crypto_helper.h"
 
 // Secure Messaging
 Byte iv[SIZE_IV];
@@ -216,3 +217,66 @@ uint unpad(ByteArray in, int length) {
   }
   return length;
 }
+
+/**
+ * Derive session key from a given key seed and mode
+ *
+ * @param key to be stored
+ * @param mode for which a key needs to be derived
+ */
+#define seed apdu.data
+void deriveSessionKey(ByteArray key, Byte mode) {
+  int i, j, bits;
+
+  // Derive the session key for mode
+  seed[SIZE_KEY_SEED + 3] = mode;
+  SHA1(SIZE_KEY_SEED + 4, key, seed);
+  
+  // Compute the parity bits
+  for (i = 0; i < SIZE_KEY; i++) {
+    for (j = 0, bits = 0; j < 8; j++) {
+      bits += (key[i] >> j) & 0x01;
+    }
+    if (bits % 2 == 0) {
+      key[i] ^= 0x01;
+    }
+  }
+}
+#undef seed
+
+/**
+ * Derive session keys from a given key seed
+ */
+#define seed apdu.data
+void crypto_derive_sessionkeys(void) {
+  // Clear the seed suffix such that we can add a mode specific part
+  CLEARN(4, seed + SIZE_KEY_SEED);
+  
+  // Derive the session key for encryption
+  deriveSessionKey(seed + SIZE_KEY_SEED + 4, 0x01);
+  COPYN(SIZE_KEY, key_enc, seed + SIZE_KEY_SEED + 4);
+  COPYN(4, ssc, seed + SIZE_KEY_SEED + 4 + SIZE_KEY);
+  
+  // Derive the session key for authentication
+  deriveSessionKey(seed + SIZE_KEY_SEED + 4, 0x02);
+  COPYN(SIZE_KEY, key_mac, seed + SIZE_KEY_SEED + 4);
+  COPYN(4, ssc + 4, seed + SIZE_KEY_SEED + 4 + SIZE_KEY);
+}
+#undef seed
+
+#define buffer apdu.data
+void crypto_authenticate_card(void) {
+  // Decrypt the session key seed input from the terminal
+  ModularExponentiation(SIZE_RSA_EXPONENT, SIZE_RSA_MODULUS, 
+    rsaSecret, rsaModulus, buffer, buffer + SIZE_RSA_MODULUS);
+  
+  // Generate the session key seed input from the card
+  crypto_generate_random(buffer, LENGTH_KEY_SEED_CARD);
+  
+  // Derive the session keys
+  crypto_derive_sessionkeys();
+  
+  // Clean up intermediate results
+  CLEARN(SIZE_KEY_SEED_TERMINAL + 4 + SIZE_H, buffer + SIZE_KEY_SEED_CARD);
+}
+#undef buffer

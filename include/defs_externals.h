@@ -27,6 +27,9 @@ extern APDUData apdu;
 extern CLMessage masterSecret;
 extern Credential *credential;
 
+extern Byte rsaSecret[SIZE_RSA_EXPONENT];
+extern Byte rsaModulus[SIZE_RSA_MODULUS];
+
 extern Byte disclose;
 extern Hash context;
 extern Nonce nonce;
