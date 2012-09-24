@@ -39,4 +39,7 @@ do { \
   __code(PRIM, 0xEB); \
 } while (0)
 
+#define PRIM_MULTIPLY 0x10
+#define PRIM_RANDOM 0xc4
+
 #endif // __crypto_multos_H
