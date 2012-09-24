@@ -60,8 +60,6 @@ void crypto_compute_S_(void);
  * @param exponent the power to which the base S should be raised
  * @param result of the computation
  */
-void crypto_compute_SpecialModularExponentiation(int size, 
-                                                 ByteArray exponent, 
-                                                 ByteArray result);
+void crypto_modexp_special(int size, ByteArray exponent, ByteArray result);
 
 #endif // __crypto_helper_H

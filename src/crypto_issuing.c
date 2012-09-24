@@ -31,6 +31,7 @@
 #include "defs_types.h"
 #include "funcs_debug.h"
 #include "crypto_helper.h"
+#include "crypto_multos.h"
 
 #define buffer apdu.temp.data
 #define values apdu.temp.list
@@ -66,12 +67,12 @@ void constructCommitment(void) {
   debugValue("vPrime", vPrime, SIZE_VPRIME);
 
   // Compute U = S^vPrime * R[0]^m[0] mod n
-  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME, vPrime, U);
+  crypto_modexp_special(SIZE_VPRIME, vPrime, U);
   debugValue("U = S^vPrime mod n", U, SIZE_N);
-  ModularExponentiation(SIZE_M, SIZE_N, 
+  crypto_modexp_secure(SIZE_M, SIZE_N,
     masterSecret, credential->issuerKey.n, credential->issuerKey.R[0], buffer);
   debugValue("buffer = R[0]^m[0] mod n", buffer, SIZE_N);
-  ModularMultiplication(SIZE_N, U, buffer, credential->issuerKey.n);
+  crypto_modmul(SIZE_N, U, buffer, credential->issuerKey.n);
   debugValue("U = U * buffer mod n", U, SIZE_N);
   
   // Compute P1:
@@ -82,12 +83,12 @@ void constructCommitment(void) {
   debugValue("mTilde[0]", mHat[0], SIZE_S_A);
 
   // - Compute UTilde = S^vPrimeTilde * R[0]^mTilde[0] mod n
-  crypto_compute_SpecialModularExponentiation(SIZE_VPRIME_, vHat, UTilde);
+  crypto_modexp_special(SIZE_VPRIME_, vHat, UTilde);
   debugValue("UTilde = S^vPrimeTilde mod n", UTilde, SIZE_N);
-  ModularExponentiation(SIZE_S_A, SIZE_N, 
+  crypto_modexp(SIZE_S_A, SIZE_N,
     mHat[0], credential->issuerKey.n, credential->issuerKey.R[0], buffer);
   debugValue("buffer = R[0]^mTilde[0] mod n", buffer, SIZE_N);
-  ModularMultiplication(SIZE_N, UTilde, buffer, credential->issuerKey.n);
+  crypto_modmul(SIZE_N, UTilde, buffer, credential->issuerKey.n);
   debugValue("UTilde = UTilde * buffer mod n", UTilde, SIZE_N);
 
   // - Compute challenge c = H(context | U | UTilde | nonce)
@@ -171,26 +172,26 @@ void verifySignature(void) {
   int i;
   
   // Compute Ri = R[i]^m[i] mod n forall i
-  ModularExponentiation(SIZE_M, SIZE_N, masterSecret, 
+  crypto_modexp_secure(SIZE_M, SIZE_N, masterSecret,
     credential->issuerKey.n, credential->issuerKey.R[0], Ri);
   debugValue("Ri = R[0]^ms mod n", Ri, SIZE_N);
   for (i = 1; i <= credential->size; i++) {
-    ModularExponentiation(SIZE_M, SIZE_N, credential->attribute[i - 1], 
+    crypto_modexp(SIZE_M, SIZE_N, credential->attribute[i - 1],
       credential->issuerKey.n, credential->issuerKey.R[i], buffer);
-    debugValue("buffer = R[i]^m[i] mod n", buffer, SIZE_N);    
-    ModularMultiplication(SIZE_N, Ri, buffer, credential->issuerKey.n);
+    debugValue("buffer = R[i]^m[i] mod n", buffer, SIZE_N);
+    crypto_modmul(SIZE_N, Ri, buffer, credential->issuerKey.n);
     debugValue("Ri = Ri * buffer mod n", Ri, SIZE_N);
   }
   
   // Compute Z' = A^e * S^v * Ri mod n
-  crypto_compute_SpecialModularExponentiation(SIZE_V, credential->signature.v, ZPrime);
-  debugValue("Z' = S^v mod n", ZPrime, SIZE_N);    
-  ModularMultiplication(SIZE_N, ZPrime, Ri, credential->issuerKey.n);
+  crypto_modexp_special(SIZE_V, credential->signature.v, ZPrime);
+  debugValue("Z' = S^v mod n", ZPrime, SIZE_N);
+  crypto_modmul(SIZE_N, ZPrime, Ri, credential->issuerKey.n);
   debugValue("Z' = Z' * Ri mod n", ZPrime, SIZE_N);
-  ModularExponentiation(SIZE_E, SIZE_N, credential->signature.e, 
+  crypto_modexp(SIZE_E, SIZE_N, credential->signature.e,
     credential->issuerKey.n, credential->signature.A, Ri);
   debugValue("Ri = A^e mod n", Ri, SIZE_N);
-  ModularMultiplication(SIZE_N, ZPrime, Ri, credential->issuerKey.n);
+  crypto_modmul(SIZE_N, ZPrime, Ri, credential->issuerKey.n);
   debugValue("Z' = Z' * R mod n", ZPrime, SIZE_N);
   
   // - Verify Z =?= Z'
@@ -222,17 +223,17 @@ void verifySignature(void) {
 void verifyProof(void) {
 
   // Compute Q = A^e mod n
-  ModularExponentiation(SIZE_E, SIZE_N, credential->signature.e, 
+  crypto_modexp(SIZE_E, SIZE_N, credential->signature.e,
     credential->issuerKey.n, credential->signature.A, Q);
   debugValue("Q = A^e mod n", Q, SIZE_N);
 
   // Compute AHat = A^(c + s_e * e) = Q^s_e * A^c mod n
-  ModularExponentiation(SIZE_N, SIZE_N, s_e, credential->issuerKey.n, Q, buffer);
+  crypto_modexp(SIZE_N, SIZE_N, s_e, credential->issuerKey.n, Q, buffer);
   debugValue("buffer = Q^s_e mod n", buffer, SIZE_N);
-  ModularExponentiation(SIZE_H, SIZE_N, credential->proof.challenge, 
+  crypto_modexp(SIZE_H, SIZE_N, credential->proof.challenge,
     credential->issuerKey.n, credential->signature.A, AHat);
   debugValue("AHat = A^c mod n", AHat, SIZE_N);
-  ModularMultiplication(SIZE_N, AHat, buffer, credential->issuerKey.n);
+  crypto_modmul(SIZE_N, AHat, buffer, credential->issuerKey.n);
   debugValue("AHat = AHat * buffer", AHat, SIZE_N);
   
   // Compute challenge c' = H(context | Q | A | nonce | AHat)

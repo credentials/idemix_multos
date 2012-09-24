@@ -29,6 +29,7 @@
 #include "defs_externals.h"
 #include "funcs_debug.h"
 #include "crypto_helper.h"
+#include "crypto_multos.h"
 
 // Secure Messaging
 Byte iv[SIZE_IV];
@@ -267,7 +268,7 @@ void crypto_derive_sessionkeys(void) {
 #define buffer apdu.data
 void crypto_authenticate_card(void) {
   // Decrypt the session key seed input from the terminal
-  ModularExponentiation(SIZE_RSA_EXPONENT, SIZE_RSA_MODULUS, 
+  crypto_modexp_secure(SIZE_RSA_EXPONENT, SIZE_RSA_MODULUS,
     rsaSecret, rsaModulus, buffer, buffer + SIZE_RSA_MODULUS);
   
   // Generate the session key seed input from the card

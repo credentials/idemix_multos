@@ -26,6 +26,7 @@
 #include "defs_externals.h"
 #include "funcs_debug.h"
 #include "funcs_helper.h"
+#include "crypto_multos.h"
 
 #ifdef TEST
   #include "defs_test.h"
@@ -163,7 +164,7 @@ void crypto_compute_S_(void) {
   buffer[0] = 0x01;
   
   // Compute S_ = S^(2_l)
-  ModularExponentiation(SIZE_S_EXPONENT + 1, SIZE_N, buffer, 
+  crypto_modexp(SIZE_S_EXPONENT + 1, SIZE_N, buffer, 
     credential->issuerKey.n, credential->issuerKey.S, credential->issuerKey.S_);
 }
 
@@ -177,19 +178,18 @@ void crypto_compute_S_(void) {
  * @param exponent the power to which the base S should be raised
  * @param result of the computation
  */
-void crypto_compute_SpecialModularExponentiation(int size, 
-    ByteArray exponent, ByteArray result) {
+void crypto_modexp_special(int size, ByteArray exponent, ByteArray result) {
   
   if (size > SIZE_N) {
     // Compute result = S^(exponent_bottom) * S_^(exponent_top)
-    ModularExponentiation(SIZE_S_EXPONENT, SIZE_N, 
+    crypto_modexp(SIZE_S_EXPONENT, SIZE_N, 
       exponent + size - SIZE_S_EXPONENT, credential->issuerKey.n, credential->issuerKey.S, result);
-    ModularExponentiation(size - SIZE_S_EXPONENT, SIZE_N, 
+    crypto_modexp(size - SIZE_S_EXPONENT, SIZE_N, 
       exponent, credential->issuerKey.n, credential->issuerKey.S_, buffer);
-    ModularMultiplication(SIZE_N, result, buffer, credential->issuerKey.n);
+    crypto_modmul(SIZE_N, result, buffer, credential->issuerKey.n);
   } else {
     // Compute result = S^exponent
-    ModularExponentiation(size, SIZE_N, 
+    crypto_modexp(size, SIZE_N, 
       exponent, credential->issuerKey.n, credential->issuerKey.S, result);
   }
 }

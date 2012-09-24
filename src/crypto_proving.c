@@ -30,6 +30,7 @@
 #include "defs_types.h"
 #include "funcs_debug.h"
 #include "crypto_helper.h"
+#include "crypto_multos.h"
 
 #define buffer apdu.temp.data
 #define values apdu.temp.list
@@ -80,9 +81,9 @@ void constructProof(void) {
   debugValue("e' = e - 2^(l_e' - 1)", ePrime, SIZE_EPRIME);
   
   // Compute A' = A S^r_A
-  crypto_compute_SpecialModularExponentiation(SIZE_R_A, r_A, APrime);
+  crypto_modexp_special(SIZE_R_A, r_A, APrime);
   debugValue("A' = S^r_A mod n", APrime, SIZE_N);
-  ModularMultiplication(SIZE_N, APrime, credential->signature.A, credential->issuerKey.n);
+  crypto_modmul(SIZE_N, APrime, credential->signature.A, credential->issuerKey.n);
   debugValue("A' = A' * A mod n", APrime, SIZE_N);
   COPYN(SIZE_N, signature_.A, APrime);
   
@@ -99,17 +100,17 @@ void constructProof(void) {
   debugValue("v_", vHat, SIZE_V_);
   
   // Compute ZTilde = A'^eTilde * S^vTilde * (R[i]^mHat[i] foreach i not in D)
-  crypto_compute_SpecialModularExponentiation(SIZE_V_, vHat, ZTilde);
+  crypto_modexp_special(SIZE_V_, vHat, ZTilde);
   debugValue("ZTilde = S^v_", ZTilde, SIZE_N);
-  ModularExponentiation(SIZE_E_, SIZE_N, eHat, credential->issuerKey.n, APrime, buffer);
+  crypto_modexp(SIZE_E_, SIZE_N, eHat, credential->issuerKey.n, APrime, buffer);
   debugValue("buffer = A'^eTilde", buffer, SIZE_N);
-  ModularMultiplication(SIZE_N, ZTilde, buffer, credential->issuerKey.n);
+  crypto_modmul(SIZE_N, ZTilde, buffer, credential->issuerKey.n);
   debugValue("ZTilde = ZTilde * buffer", ZTilde, SIZE_N);
   for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
-      ModularExponentiation(SIZE_M_, SIZE_N, mHat[i], credential->issuerKey.n, credential->issuerKey.R[i], buffer);
+      crypto_modexp(SIZE_M_, SIZE_N, mHat[i], credential->issuerKey.n, credential->issuerKey.R[i], buffer);
       debugValue("R_i^m_i", buffer, SIZE_N);
-      ModularMultiplication(SIZE_N, ZTilde, buffer, credential->issuerKey.n);
+      crypto_modmul(SIZE_N, ZTilde, buffer, credential->issuerKey.n);
       debugValue("ZTilde = ZTilde * buffer", ZTilde, SIZE_N);
     }
   }
