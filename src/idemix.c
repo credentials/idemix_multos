@@ -43,7 +43,8 @@
 /********************************************************************/
 #pragma melpublic
 
-PublicData public; // 458
+PublicData public;
+
 
 /********************************************************************/
 /* RAM variable declaration                                         */
@@ -51,13 +52,12 @@ PublicData public; // 458
 #pragma melsession
 
 Counter ssc; // 8 = 8
-Nonce nonce; // + 10 = 18
-Byte disclose; // + 1 = 39 (public?)
-ResponseE eHat; // + 45 = 151
-ResponseV vHat; // + 231 = 382
-ResponseM mHat[SIZE_L]; // + 62*6 (372) = 754
-Credential *credential; // + 2 = 756
-Byte flags; // + 1 = 757
+
+SessionData session;
+Credential *credential; // + 2 = 669
+
+Byte flags; // + 1 = 670
+Byte flag;
 
 
 /********************************************************************/
@@ -79,8 +79,6 @@ Credential credentials[MAX_CRED];
 /* APDU handling                                                    */
 /********************************************************************/
 
-#define buffer public.temp.data
-#define U public.temp.numa
 void main(void) {
   int i;
   
@@ -201,8 +199,8 @@ void main(void) {
           
           // Prevent reinitialisation of the master secret
           TESTN(SIZE_M, masterSecret);
-          ZFlag(buffer);
-          if (buffer[0] == 0) {
+          ZFlag(&flag);
+          if (flag == 0) {
             debugWarning("Master secret is already generated");
             ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED_AGAIN);
           }
@@ -349,8 +347,8 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
           }
           TESTN(SIZE_M, public.apdu.data);
-          ZFlag(buffer + SIZE_M);
-          if (buffer[SIZE_M] != 0) {
+          ZFlag(&flag);
+          if (flag != 0) {
             debugWarning("Attribute cannot be empty");
             ReturnSW(ISO7816_SW_WRONG_DATA);
           }
@@ -393,10 +391,9 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
           
-          COPYN(SIZE_STATZK, nonce, public.apdu.data);
-          debugValue("Initialised nonce", nonce, SIZE_STATZK);
+          COPYN(SIZE_STATZK, session.issue.nonce, public.apdu.data);
+          debugValue("Initialised nonce", session.issue.nonce, SIZE_STATZK);
           constructCommitment();
-          COPYN(SIZE_N, public.apdu.data, U);
           debugValue("Returned U", public.apdu.data, SIZE_N);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
           break;
@@ -416,7 +413,7 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
               
-              COPYN(SIZE_H, public.apdu.data, public.temp.challenge);
+              COPYN(SIZE_H, public.apdu.data, session.issue.challenge);
               debugValue("Returned c", public.apdu.data, SIZE_H);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_H);
               break;
@@ -427,7 +424,7 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
               
-              COPYN(SIZE_VPRIME_, public.apdu.data, vHat);
+              COPYN(SIZE_VPRIME_, public.apdu.data, public.issue.vPrimeHat);
               debugValue("Returned vPrimeHat", public.apdu.data, SIZE_VPRIME_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_VPRIME_);
               break;
@@ -438,7 +435,7 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
               
-              COPYN(SIZE_S_A, public.apdu.data, mHat[0]);
+              COPYN(SIZE_S_A, public.apdu.data, session.issue.sA);
               debugValue("Returned s_A", public.apdu.data, SIZE_S_A);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_S_A);
               break;
@@ -596,8 +593,8 @@ void main(void) {
               if (pin_required && !pin_verified) {
                 ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
               }
-              COPYN(SIZE_H, public.temp.context, public.apdu.data);
-              debugValue("Initialised context", public.temp.context, SIZE_H);
+              COPYN(SIZE_H, credential->proof.context, public.apdu.data);
+              debugValue("Initialised context", credential->proof.context, SIZE_H);
               ReturnSW(ISO7816_SW_NO_ERROR);
             }
           }
@@ -632,10 +629,10 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
           
-          COPYN(SIZE_STATZK, nonce, public.apdu.data);
-          debugValue("Initialised nonce", nonce, SIZE_STATZK);
+          //COPYN(SIZE_STATZK, nonce, public.apdu.data);
+          //debugValue("Initialised nonce", nonce, SIZE_STATZK);
           constructProof();
-          COPYN(SIZE_H, public.apdu.data, public.temp.challenge);
+          //COPYN(SIZE_H, public.apdu.data, public.temp.challenge);
           debugValue("Returned c", public.apdu.data, SIZE_H);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_H);
           break;
@@ -655,7 +652,7 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
               
-              COPYN(SIZE_N, public.apdu.data, public.temp.signature_.A);
+              COPYN(SIZE_N, public.apdu.data, public.prove.APrime);
               debugValue("Returned A'", public.apdu.data, SIZE_N);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
               break;
@@ -666,7 +663,7 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
               
-              COPYN(SIZE_E_, public.apdu.data, eHat);
+              COPYN(SIZE_E_, public.apdu.data, public.prove.eHat);
               debugValue("Returned e^", public.apdu.data, SIZE_E_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_E_);
               break;
@@ -677,7 +674,7 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
               
-              COPYN(SIZE_V_, public.apdu.data, vHat);
+              COPYN(SIZE_V_, public.apdu.data, public.prove.vHat);
               debugValue("Returned v^", public.apdu.data, SIZE_V_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_V_);
               break;
@@ -730,7 +727,7 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation?
           }
           
-          COPYN(SIZE_M_, public.apdu.data, mHat[P1]);
+          COPYN(SIZE_M_, public.apdu.data, session.prove.mHat[P1]);
           debugValue("Returned response", public.apdu.data, SIZE_M_);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_M_);
           break;

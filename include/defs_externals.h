@@ -23,18 +23,13 @@
 #include "defs_types.h"
 
 extern PublicData public;
+extern SessionData session;
 
 extern CLMessage masterSecret;
 extern Credential *credential;
 
 extern Byte rsaSecret[SIZE_RSA_EXPONENT];
 extern Byte rsaModulus[SIZE_RSA_MODULUS];
-
-extern Byte disclose;
-extern Nonce nonce;
-extern ResponseE eHat;
-extern ResponseM mHat[SIZE_L];
-extern ResponseV vHat;
 
 extern Byte key_enc[SIZE_KEY];
 extern Byte key_mac[SIZE_KEY];
@@ -43,5 +38,6 @@ extern Byte iv[SIZE_IV];
 extern Byte ssc[SIZE_SSC];
 
 extern Byte flags;
+extern Byte flag;
 
 #endif // __defs_externals_H

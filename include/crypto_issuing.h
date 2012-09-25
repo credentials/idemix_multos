@@ -51,4 +51,28 @@ void verifyProof(void);
  */
 void crypto_compute_vPrimeHat(void);
 
+/**
+ * Compute the response value mHat[i] = mTilde[i] + c*m[i]
+ * 
+ * Requires mTilde[i] to be stored in mHat[i].
+ * 
+ * @param i index of the message to be hidden
+ * @param size of mTilde and mHat
+ */
+#define crypto_compute_sA() \
+do { \
+  /* Multiply c with m */\
+  __code(PUSHZ, SIZE_M - SIZE_H); \
+  __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
+  __push(BLOCKCAST(SIZE_M)(masterSecret)); \
+  __code(PRIM, PRIM_MULTIPLY, SIZE_M); \
+  /* Add mTilde to the result of the multiplication */\
+  __push(BLOCKCAST(SIZE_S_A)(session.issue.sA)); \
+  __code(ADDN, SIZE_S_A); \
+  /* Store the result in mHat */\
+  __push(session.issue.sA); \
+  __code(STOREI, SIZE_S_A); \
+  __code(POPN, 2*SIZE_M - SIZE_S_A); \
+} while (0)
+
 #endif // __crypto_issuing_H

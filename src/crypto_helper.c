@@ -161,11 +161,11 @@ void crypto_generate_random(ByteArray buffer, int length) {
  */
 void crypto_compute_S_(void) {
   // Store the value l = SIZE_S_EXPONENT*8 in the buffer
-  CLEARN(SIZE_S_EXPONENT + 1, public.buffer);
-  public.buffer[0] = 0x01;
+  CLEARN(SIZE_S_EXPONENT + 1, public.issue.buffer.data);
+  public.issue.buffer.data[0] = 0x01;
   
   // Compute S_ = S^(2_l)
-  crypto_modexp(SIZE_S_EXPONENT + 1, SIZE_N, public.buffer, 
+  crypto_modexp(SIZE_S_EXPONENT + 1, SIZE_N, public.issue.buffer.data, 
     credential->issuerKey.n, credential->issuerKey.S, credential->issuerKey.S_);
 }
 
@@ -179,17 +179,17 @@ void crypto_compute_S_(void) {
  * @param exponent the power to which the base S should be raised
  * @param result of the computation
  */
-void crypto_modexp_special(int size, ByteArray exponent, ByteArray result) {
+void crypto_modexp_special(int size, ByteArray exponent, ByteArray result, ByteArray buffer) {
   if (size > SIZE_N) {
     // Compute result = S^(exponent_bottom) * S_^(exponent_top)
-    crypto_modexp(SIZE_S_EXPONENT, SIZE_N, 
-      exponent + size - SIZE_S_EXPONENT, credential->issuerKey.n, credential->issuerKey.S, result);
+    crypto_modexp(SIZE_S_EXPONENT, SIZE_N, exponent + size - SIZE_S_EXPONENT,
+      credential->issuerKey.n, credential->issuerKey.S, result);
     crypto_modexp(size - SIZE_S_EXPONENT, SIZE_N, 
-      exponent, credential->issuerKey.n, credential->issuerKey.S_, public.buffer);
-    crypto_modmul(SIZE_N, result, public.buffer, credential->issuerKey.n);
+      exponent, credential->issuerKey.n, credential->issuerKey.S_, buffer);
+    crypto_modmul(SIZE_N, result, buffer, credential->issuerKey.n);
   } else {
     // Compute result = S^exponent
-    crypto_modexp(size, SIZE_N, 
+    crypto_modexp(size, SIZE_N,
       exponent, credential->issuerKey.n, credential->issuerKey.S, result);
   }
 }

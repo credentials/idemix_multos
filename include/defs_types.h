@@ -83,15 +83,48 @@ typedef union {
     Byte data[255];
     Byte session[SIZE_PUBLIC - 255];
   } apdu;
-  Byte buffer[SIZE_PUBLIC];
+
   struct {
-    Byte data[SIZE_BUFFER_C2];
+    union {
+      Nonce nonce;
+      Hash challenge;
+    } apdu;
+    union {
+      Byte data[SIZE_VPRIME + SIZE_R_A];
+      Number number[2];
+    } buffer;
+    Hash context;
+    Value list[4];
+    Byte rA[SIZE_R_A];
+    Number APrime;
+    ResponseV vHat;
+    ResponseE eHat;
+  } prove;
+
+  struct {
+    Number U;
+    ResponseVPRIME vPrimeHat;
+    union {
+      Byte data[SIZE_BUFFER_C2];
+      Number number[3];
+    } buffer;
     Value list[5];
-    Hash context; // + 20 = 38 (public?)
-    Hash challenge; // + 20 (+ 47) = 106 (public?)
-    Number numa, numb; //(2*128 = 256)
-    CLSignature signature_; //(128 + 63 + 201 = 396)
-  } temp;
+  } issue;
 } PublicData;
+
+typedef union {
+  struct {
+    ResponseM mHat[SIZE_L]; // 62*6 (372)
+    Byte disclose; // 1
+  } prove; // 373
+  
+  struct {
+    Byte sA[SIZE_S_A]; // 63
+    Nonce nonce; // 10
+    Hash challenge; // 20
+    Byte v[SIZE_V - SIZE_VPRIME]; // 201
+    Byte vPrime[SIZE_VPRIME];
+  } issue;
+} SessionData;
 
 #endif // __defs_types_H

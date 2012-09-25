@@ -32,9 +32,6 @@
 #include "crypto_helper.h"
 #include "crypto_multos.h"
 
-#define buffer public.temp.data
-#define values public.temp.list
-
 /********************************************************************/
 /* Proving functions                                                */
 /********************************************************************/
@@ -46,109 +43,106 @@ void selectAttributes(ByteArray list, int length) {
   int i = 0;
 
   debugValue("Disclosure list", list, length);
-  disclose = 0x00;
+  session.prove.disclose = 0x00;
   for (i = 0; i < length; i++) {
     if (list[i] == 0 || list[i] > MAX_ATTR) {
       // FAIL, TODO: clear already stored things
       debugError("selectAttributes(): invalid attribute index");
       ReturnSW(ISO7816_SW_WRONG_DATA);
     }
-    disclose |= 1 << list[i];
+    session.prove.disclose |= 1 << list[i];
   }
-  debugInteger("Disclosure selection", disclose);
+  debugInteger("Disclosure selection", session.prove.disclose);
 }
 
 /**
  * Construct a proof
  */
-#define ZTilde (buffer + SIZE_N)
-#define APrime (buffer + 2*SIZE_N)
-#define ePrime (credential->signature.e + SIZE_E - SIZE_EPRIME)
-#define r_A vHat
 void constructProof(void) {
   int i;
   
-  // Generate random r_A
-  // IMPORTANT: Correction to the length of r_A to prevent negative values
-  crypto_generate_random(r_A, LENGTH_R_A - 7);
-  debugValue("r_A", r_A, SIZE_R_A);
-  
-  // Compute v' = v - e r_A
-  crypto_compute_vPrime();
-  debugValue("v' = v - e*r_A", public.temp.signature_.v, SIZE_V);
-
-  // Compute e' = e - 2^(l_e' - 1) (just ignore the first bit of e)
-  debugValue("e' = e - 2^(l_e' - 1)", ePrime, SIZE_EPRIME);
-  
-  // Compute A' = A S^r_A
-  crypto_modexp_special(SIZE_R_A, r_A, APrime);
-  debugValue("A' = S^r_A mod n", APrime, SIZE_N);
-  crypto_modmul(SIZE_N, APrime, credential->signature.A, credential->issuerKey.n);
-  debugValue("A' = A' * A mod n", APrime, SIZE_N);
-  COPYN(SIZE_N, public.temp.signature_.A, APrime);
-  
-  // Generate random values for m~[i], e~, v~ and r_A
+  // Generate random values for m~[i], e~, v~ and rA
   for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
-      crypto_generate_random(mHat[i], LENGTH_M_);
+      crypto_generate_random(session.prove.mHat[i], LENGTH_M_);
     }
   }
-  debugValues("m_", (ByteArray) mHat, SIZE_S_A, SIZE_L);
-  crypto_generate_random(eHat, LENGTH_E_);
-  debugValue("e_", eHat, SIZE_E_);
-  crypto_generate_random(vHat, LENGTH_V_);
-  debugValue("v_", vHat, SIZE_V_);
+  debugValues("m_", (ByteArray) session.prove.mHat, SIZE_S_A, SIZE_L);
+  crypto_generate_random(public.prove.eHat, LENGTH_E_);
+  debugValue("e_", public.prove.eHat, SIZE_E_);
+  crypto_generate_random(public.prove.vHat, LENGTH_V_);
+  debugValue("v_", public.prove.vHat, SIZE_V_);
+  // IMPORTANT: Correction to the length of rA to prevent negative values
+  crypto_generate_random(public.prove.rA, LENGTH_R_A - 7);
+  debugValue("rA", public.prove.rA, SIZE_R_A);
+  
+  // Compute A' = A S^r_A
+  crypto_modexp_special(SIZE_R_A, public.prove.rA, public.prove.APrime, 
+    public.prove.buffer.number[0]);
+  debugValue("A' = S^r_A mod n", public.prove.APrime, SIZE_N);
+  crypto_modmul(SIZE_N, public.prove.APrime, credential->signature.A, credential->issuerKey.n);
+  debugValue("A' = A' * A mod n", public.prove.APrime, SIZE_N);
   
   // Compute ZTilde = A'^eTilde * S^vTilde * (R[i]^mHat[i] foreach i not in D)
-  crypto_modexp_special(SIZE_V_, vHat, ZTilde);
-  debugValue("ZTilde = S^v_", ZTilde, SIZE_N);
-  crypto_modexp(SIZE_E_, SIZE_N, eHat, credential->issuerKey.n, APrime, buffer);
-  debugValue("buffer = A'^eTilde", buffer, SIZE_N);
-  crypto_modmul(SIZE_N, ZTilde, buffer, credential->issuerKey.n);
-  debugValue("ZTilde = ZTilde * buffer", ZTilde, SIZE_N);
+  crypto_modexp_special(SIZE_V_, public.prove.vHat, public.prove.buffer.number[0],
+    public.prove.buffer.number[1]);
+  debugValue("ZTilde = S^v_", public.prove.buffer.number[0], SIZE_N);
+  crypto_modexp(SIZE_E_, SIZE_N, public.prove.eHat,
+    credential->issuerKey.n, public.prove.APrime, public.prove.buffer.number[1]);
+  debugValue("buffer = A'^eTilde", public.prove.buffer.number[1], SIZE_N);
+  crypto_modmul(SIZE_N, public.prove.buffer.number[0],
+    public.prove.buffer.number[1], credential->issuerKey.n);
+  debugValue("ZTilde = ZTilde * buffer", public.prove.buffer.number[0], SIZE_N);
   for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
-      crypto_modexp(SIZE_M_, SIZE_N, mHat[i], credential->issuerKey.n, credential->issuerKey.R[i], buffer);
-      debugValue("R_i^m_i", buffer, SIZE_N);
-      crypto_modmul(SIZE_N, ZTilde, buffer, credential->issuerKey.n);
-      debugValue("ZTilde = ZTilde * buffer", ZTilde, SIZE_N);
+      crypto_modexp(SIZE_M_, SIZE_N, session.prove.mHat[i], credential->issuerKey.n, 
+        credential->issuerKey.R[i], public.prove.buffer.number[1]);
+      debugValue("R_i^m_i", public.prove.buffer.number[1], SIZE_N);
+      crypto_modmul(SIZE_N, public.prove.buffer.number[0], 
+        public.prove.buffer.number[1], credential->issuerKey.n);
+      debugValue("ZTilde = ZTilde * buffer", public.prove.buffer.number[0], SIZE_N);
     }
   }
   
   // Compute challenge c = H(context | A' | ZTilde | nonce)
-  values[0].data = public.temp.context;
-  values[0].size = SIZE_H;
-  values[1].data = public.temp.signature_.A;
-  values[1].size = SIZE_N;      
-  values[2].data = ZTilde;
-  values[2].size = SIZE_N;
-  values[3].data = nonce;
-  values[3].size = SIZE_STATZK;
-  crypto_compute_hash(values, 4, public.temp.challenge, buffer, SIZE_BUFFER_C2);
-  debugValue("c", public.temp.challenge, SIZE_H);
+  public.prove.list[0].data = public.prove.context;
+  public.prove.list[0].size = SIZE_H;
+  public.prove.list[1].data = public.prove.APrime;
+  public.prove.list[1].size = SIZE_N;
+  public.prove.list[2].data = public.prove.buffer.number[0];
+  public.prove.list[2].size = SIZE_N;
+  public.prove.list[3].data = public.prove.apdu.nonce;
+  public.prove.list[3].size = SIZE_STATZK;
+  crypto_compute_hash(public.prove.list, 4, public.prove.apdu.challenge, 
+    public.prove.buffer.data, SIZE_BUFFER_C2);
+  debugValue("c", public.prove.apdu.challenge, SIZE_H);
+  
+  // Compute e' = e - 2^(l_e' - 1) (just ignore the first bit of e)
+  debugValue("e' = e - 2^(l_e' - 1)", 
+    credential->signature.e + SIZE_E - SIZE_EPRIME, SIZE_EPRIME);
   
   // Compute e^ = e~ + c e'
   crypto_compute_eHat();
-  debugValue("eHat", eHat, SIZE_E_);
+  debugValue("eHat", public.prove.eHat, SIZE_E_);
   
+  // Compute v' = v - e r_A
+  crypto_compute_vPrime();
+  debugValue("v' = v - e*r_A", public.prove.buffer.data, SIZE_V);
+
   // Compute v^ = v~ + c v'
   crypto_compute_vHat();
-  debugValue("vHat", vHat, SIZE_V_);
+  debugValue("vHat", public.prove.vHat, SIZE_V_);
   
   // Compute m_i^ = m_i~ + c m_i
   for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
-      crypto_compute_mHat(i, SIZE_M_);
+      crypto_compute_mHat(i);
     }
   }
-  debugValues("mHat", (ByteArray) mHat, SIZE_M_, SIZE_L);
+  debugValues("mHat", (ByteArray) session.prove.mHat, SIZE_M_, SIZE_L);
   
   // return eHat, vHat, mHat[i], c, A'
 }
-#undef ZTilde
-#undef APrime
-#undef ePrime
-#undef r_A
 
 /**
  * Compute the value vPrime = v - e*r_A
@@ -159,45 +153,54 @@ void constructProof(void) {
  * @param v in signature.v
  * @return vPrime in signature_.v
  */
-#define r_A vHat
-#define e_prefix_rA (buffer + SIZE_V + SIZE_R_A)
-#define vPrime (buffer + SIZE_V)
 void crypto_compute_vPrime(void) {
   // Clear the buffer, to prevent garbage messing up the computation
-  CLEARN(SIZE_V - SIZE_R_A, buffer);
-
-  // Prepare e for computations
-  CLEARN(SIZE_R_A/2 - SIZE_E, e_prefix_rA);
-  COPYN(SIZE_E, e_prefix_rA + SIZE_R_A/2 - SIZE_E, credential->signature.e);
+  CLEARN(SIZE_V - SIZE_R_A, public.prove.buffer.data);
 
   // Multiply e with least significant half of r_A
-  MULN(SIZE_R_A/2, buffer + SIZE_V - SIZE_R_A, e_prefix_rA, r_A + SIZE_R_A/2);
+//  MULN(SIZE_R_A/2, buffer + SIZE_V - SIZE_R_A, e_prefix_rA, r_A + SIZE_R_A/2);
+  do {
+    __code(PUSHZ, SIZE_R_A/2 - SIZE_E);
+    __push(BLOCKCAST(SIZE_E)(credential->signature.e));
+    __push(BLOCKCAST(SIZE_R_A/2)(public.prove.rA + SIZE_R_A/2));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_R_A/2);
+    __code(STORE, public.prove.buffer.data + SIZE_V - SIZE_R_A, SIZE_R_A);
+  } while (0);
 
   // Multiply e with most significant half of r_A
-  MULN(SIZE_R_A/2, buffer + SIZE_V, e_prefix_rA, r_A);
+//  MULN(SIZE_R_A/2, buffer + SIZE_V, e_prefix_rA, r_A);
+  do {
+    __code(PUSHZ, SIZE_R_A/2 - SIZE_E);
+    __push(BLOCKCAST(SIZE_E)(credential->signature.e));
+    __push(BLOCKCAST(SIZE_R_A/2)(public.prove.rA));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_R_A/2);
+//    __code(STORE, public.prove.buffer.data + SIZE_V, SIZE_R_A);
+  } while (0);
 
   // Combine the two multiplications into a single result
-  ASSIGN_ADDN(SIZE_V - SIZE_R_A/2, buffer, buffer + SIZE_R_A + SIZE_R_A/2);
+//  ASSIGN_ADDN(SIZE_V - SIZE_R_A/2, public.prove.buffer.data, 
+//    public.prove.buffer.data + SIZE_R_A + SIZE_R_A/2);
+  __code(ADDN, public.prove.buffer.data, SIZE_V - SIZE_R_A/2);
+  __code(POPN, SIZE_R_A);
 
   // Subtract (with carry) from v and store the result in v'
-  SUBN(SIZE_V/3, vPrime + 2*SIZE_V/3, credential->signature.v + 2*SIZE_V/3, buffer + 2*SIZE_V/3);
-  CFlag(buffer + 2*SIZE_V);
-  if (buffer[2*SIZE_V] != 0x00) {
+  SUBN(SIZE_V/3, public.prove.buffer.data + 2*SIZE_V/3, 
+    credential->signature.v + 2*SIZE_V/3, public.prove.buffer.data + 2*SIZE_V/3);
+  CFlag(&flag);
+  if (flag != 0x00) {
     debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
-    INCN(SIZE_V/3, buffer + SIZE_V/3);
+    INCN(SIZE_V/3, public.prove.buffer.data + SIZE_V/3);
   }
-  SUBN(SIZE_V/3, vPrime + SIZE_V/3, credential->signature.v + SIZE_V/3, buffer + SIZE_V/3);
-  CFlag(buffer + 2*SIZE_V);
-  if (buffer[2*SIZE_V] != 0x00) {
+  SUBN(SIZE_V/3, public.prove.buffer.data + SIZE_V/3, 
+    credential->signature.v + SIZE_V/3, public.prove.buffer.data + SIZE_V/3);
+  CFlag(&flag);
+  if (flag != 0x00) {
     debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
-    INCN(SIZE_V/3, buffer);
+    INCN(SIZE_V/3, public.prove.buffer.data);
   }
-  SUBN(SIZE_V/3, vPrime, credential->signature.v, buffer);
-  COPYN(SIZE_V, public.temp.signature_.v, vPrime);
+  SUBN(SIZE_V/3, public.prove.buffer.data, 
+    credential->signature.v, public.prove.buffer.data);
 }
-#undef r_A
-#undef e_prefix_rA
-#undef vPrime
 
 /**
  * Compute the response value vHat = vTilde + c*vPrime
@@ -210,17 +213,17 @@ void crypto_compute_vPrime(void) {
  */
 void crypto_compute_vHat(void) {
   // Clear the buffer, to prevent garbage messing up the computation
-  CLEARN(SIZE_V_ - SIZE_V, buffer);
+  CLEARN(SIZE_V_ - SIZE_V, public.prove.buffer.data + SIZE_V);
   
   // Multiply c with least significant part of v
 //  MULN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, public.temp.challenge.prefix_vHat, 
 //    public.temp.signature_.v + 2*SIZE_V/3);
   do {
     __code(PUSHZ, SIZE_V/3 - SIZE_H);
-    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
-    __push(BLOCKCAST(SIZE_V/3)(public.temp.signature_.v + 2*SIZE_V/3));
+    __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge));
+    __push(BLOCKCAST(SIZE_V/3)(public.prove.buffer.data + 2*SIZE_V/3));
     __code(PRIM, PRIM_MULTIPLY, SIZE_V/3);
-    __code(STORE, buffer + SIZE_V_ - 2*SIZE_V/3, 2*SIZE_V/3);
+    __code(STORE, public.prove.buffer.data + SIZE_V + SIZE_V_ - 2*SIZE_V/3, 2*SIZE_V/3);
   } while (0);
   
   // Multiply c with middle significant part of v
@@ -228,44 +231,48 @@ void crypto_compute_vHat(void) {
 //    public.temp.signature_.v + SIZE_V/3);
   do {
     __code(PUSHZ, SIZE_V/3 - SIZE_H);
-    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
-    __push(BLOCKCAST(SIZE_V/3)(public.temp.signature_.v + SIZE_V/3));
+    __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge));
+    __push(BLOCKCAST(SIZE_V/3)(public.prove.buffer.data + SIZE_V/3));
     __code(PRIM, PRIM_MULTIPLY, SIZE_V/3);
-    __code(STORE, buffer + SIZE_V_, 2*SIZE_V/3);
+    __code(STORE, public.prove.buffer.data + SIZE_V + SIZE_V_, 2*SIZE_V/3);
   } while (0);
   
   // Combine the two multiplications into a partial result
 /*  ASSIGN_ADDN(2*SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_); /* works as expected */
-  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, buffer + SIZE_V_ + SIZE_V/3);
-  COPYN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_);
+  ASSIGN_ADDN(SIZE_V/3, public.prove.buffer.data + SIZE_V + SIZE_V_ - 2*SIZE_V/3, public.prove.buffer.data + SIZE_V + SIZE_V_ + SIZE_V/3);
+  COPYN(SIZE_V/3, public.prove.buffer.data + SIZE_V + SIZE_V_ - SIZE_V, public.prove.buffer.data + SIZE_V + SIZE_V_);
     
   // Multiply c with most significant part of v
 //  MULN(SIZE_V/3, buffer + SIZE_V_, public.temp.challenge.prefix_vHat, public.temp.signature_.v);
   do {
     __code(PUSHZ, SIZE_V/3 - SIZE_H);
-    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
-    __push(BLOCKCAST(SIZE_V/3)(public.temp.signature_.v));
+    __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge));
+    __push(BLOCKCAST(SIZE_V/3)(public.prove.buffer.data));
     __code(PRIM, PRIM_MULTIPLY, SIZE_V/3);
-    __code(STORE, buffer + SIZE_V_, 2*SIZE_V/3);
+    __code(STORE, public.prove.buffer.data + SIZE_V + SIZE_V_, 2*SIZE_V/3);
   } while (0);
   
   // Combine the two multiplications into a single result
 /*  ASSIGN_ADDN(SIZE_V_ - 2*SIZE_V/3, buffer, buffer + 4*SIZE_V/3); /* fails somehow :-S what am I doing wrong? */
-  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_ + SIZE_V/3);
-  COPYN(SIZE_V_ - SIZE_V, buffer, buffer + 4*SIZE_V/3);
+  ASSIGN_ADDN(SIZE_V/3, public.prove.buffer.data + SIZE_V + SIZE_V_ - SIZE_V, 
+    public.prove.buffer.data + SIZE_V + SIZE_V_ + SIZE_V/3);
+  COPYN(SIZE_V_ - SIZE_V, public.prove.buffer.data + SIZE_V, 
+    public.prove.buffer.data + SIZE_V + 4*SIZE_V/3);
   
   // Add (with carry) vTilde and store the result in vHat
-  ASSIGN_ADDN(SIZE_V_/3, vHat + 2*SIZE_V_/3, buffer + 2*SIZE_V_/3);
-  CFlag(buffer + SIZE_V_);
-  if (buffer[SIZE_V_] != 0x00) {
+  ASSIGN_ADDN(SIZE_V_/3, public.prove.vHat + 2*SIZE_V_/3, 
+    public.prove.buffer.data + SIZE_V + 2*SIZE_V_/3);
+  CFlag(&flag);
+  if (flag != 0x00) {
     debugMessage("Addition with carry, adding 1");
-    INCN(SIZE_V_/3, vHat + SIZE_V_/3);
+    INCN(SIZE_V_/3, public.prove.vHat + SIZE_V_/3);
   }
-  ASSIGN_ADDN(SIZE_V_/3, vHat + SIZE_V_/3, buffer + SIZE_V_/3);
-  CFlag(buffer + SIZE_V_);
-  if (buffer[SIZE_V_] != 0x00) {
+  ASSIGN_ADDN(SIZE_V_/3, public.prove.vHat + SIZE_V_/3, 
+    public.prove.buffer.data + SIZE_V + SIZE_V_/3);
+  CFlag(&flag);
+  if (flag != 0x00) {
     debugMessage("Addition with carry, adding 1");
-    INCN(SIZE_V_/3, vHat);
+    INCN(SIZE_V_/3, public.prove.vHat);
   }
-  ASSIGN_ADDN(SIZE_V_/3, vHat, buffer);
+  ASSIGN_ADDN(SIZE_V_/3, public.prove.vHat, public.prove.buffer.data + SIZE_V);
 }

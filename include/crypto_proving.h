@@ -62,12 +62,36 @@ do { \
   /* Push ZERO bytes for padding (since 2*SIZE_H < SIZE_E_)*/\
   __code(PUSHZ, SIZE_E_ - 2*SIZE_H); \
   /* Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_EPRIME) */\
-  __push(BLOCKCAST(SIZE_H)(public.temp.challenge)); \
+  __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
   __push(BLOCKCAST(SIZE_H)(credential->signature.e + SIZE_E - SIZE_H)); /* ePrime */\
   __code(PRIM, PRIM_MULTIPLY, SIZE_H); \
   /* Add eTilde and store the result in eHat */\
-  __code(ADDN, eHat, SIZE_E_); \
+  __code(ADDN, public.prove.eHat, SIZE_E_); \
   __code(POPN, SIZE_E_); \
+} while (0)
+
+/**
+ * Compute the response value mHat[i] = mTilde[i] + c*m[i]
+ * 
+ * Requires mTilde[i] to be stored in mHat[i].
+ * 
+ * @param i index of the message to be hidden
+ * @param size of mTilde and mHat
+ */
+#define crypto_compute_mHat(i) \
+do { \
+  /* Multiply c with m */\
+  __code(PUSHZ, SIZE_M - SIZE_H); \
+  __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
+  __push(BLOCKCAST(SIZE_M)(i == 0 ? masterSecret : credential->attribute[i - 1])); \
+  __code(PRIM, PRIM_MULTIPLY, SIZE_M); \
+  /* Add mTilde to the result of the multiplication */\
+  __push(BLOCKCAST(SIZE_M_)(session.prove.mHat[i])); \
+  __code(ADDN, SIZE_M_); \
+  /* Store the result in mHat */\
+  __push(session.prove.mHat[i]); \
+  __code(STOREI, SIZE_M_); \
+  __code(POPN, 2*SIZE_M - SIZE_M_); \
 } while (0)
 
 /**
@@ -76,6 +100,6 @@ do { \
  * @param index of the attribute
  * @return 1 if disclosed, 0 if not
  */
-#define disclosed(index) ((disclose >> (index)) & 0x0001)
+#define disclosed(index) ((session.prove.disclose >> (index)) & 0x0001)
 
 #endif // __crypto_proving_H
