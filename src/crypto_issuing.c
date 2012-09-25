@@ -266,57 +266,40 @@ void verifyProof(void) {
  */
 void crypto_compute_vPrimeHat(void) {  
   // Clear the buffer, to prevent garbage messing up the computation
-  CLEARN(SIZE_VPRIME_ - SIZE_VPRIME, buffer);
+  CLEARN(SIZE_VPRIME_ - SIZE_VPRIME, public.issue.buffer.data);
   
   // Multiply c with least significant part of vPrime
 //  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 
 //    public.temp.challenge.prefix_vPrimeHat, credential->signature.v + SIZE_V - SIZE_VPRIME/3);
   do {
-    __code(PUSHZ, SIZE_VPRIME/3 - SIZE_H);
-    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
-    __push(BLOCKCAST(SIZE_VPRIME/3)(credential->signature.v + SIZE_V - SIZE_VPRIME/3));
-    __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
-    __code(STORE, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 2*SIZE_VPRIME/3);
+    __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
+    __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
+    __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime + SIZE_VPRIME/2));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/2);
+    __code(STORE, public.issue.buffer.data + SIZE_VPRIME_ - SIZE_VPRIME, SIZE_VPRIME);
   } while (0);
   
-  // Multiply c with middle significant part of vPrime
+  // Multiply c with most significant part of vPrime
 //  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, public.temp.challenge.prefix_vPrimeHat, 
 //    credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3);
   do {
-    __code(PUSHZ, SIZE_VPRIME/3 - SIZE_H);
-    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
-    __push(BLOCKCAST(SIZE_VPRIME/3)(credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3));
+    __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
+    __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
+    __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime));
     __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
-    __code(STORE, buffer + SIZE_VPRIME_, 2*SIZE_VPRIME/3);
-  } while (0);
-  
-  // Combine the two multiplications into a partial result
-  /*  ASSIGN_ADDN(2*SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_); /* fails somehow :-S what am I doing wrong? */
-  ASSIGN_ADDN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, buffer + SIZE_VPRIME_ + SIZE_VPRIME/3);
-  COPYN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_);
-
-  // Multiply c with most significant part of vPrime
-//  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, public.temp.challenge.prefix_vPrimeHat, 
-//    credential->signature.v + SIZE_V - SIZE_VPRIME);
-  do {
-    __code(PUSHZ, SIZE_VPRIME/3 - SIZE_H);
-    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
-    __push(BLOCKCAST(SIZE_VPRIME/3)(credential->signature.v + SIZE_V - SIZE_VPRIME));
-    __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
-    __code(STORE, buffer + SIZE_VPRIME_, 2*SIZE_VPRIME/3);
+    __code(STORE, public.issue.buffer.data + SIZE_VPRIME_, SIZE_VPRIME);
   } while (0);
   
   // Combine the two multiplications into a single result
-/*  ASSIGN_ADDN(SIZE_VPRIME_ - 2*SIZE_VPRIME/3, buffer, buffer + 4*SIZE_VPRIME/3); /* fails somehow :-S what am I doing wrong? */
-  ASSIGN_ADDN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_ + SIZE_VPRIME/3);
-  COPYN(SIZE_VPRIME_ - SIZE_VPRIME, buffer, buffer + 4*SIZE_VPRIME/3);
+  ASSIGN_ADDN(SIZE_VPRIME_ - SIZE_VPRIME/2, public.issue.buffer.data, 
+    public.issue.buffer.data + SIZE_VPRIME + SIZE_VPRIME/2);
   
   // Add (with carry) vPrimeTilde and store the result in vPrimeHat
-  ASSIGN_ADDN(SIZE_VPRIME_/2, vHat + SIZE_VPRIME_/2, buffer + SIZE_VPRIME_/2);
+  ASSIGN_ADDN(SIZE_VPRIME_/2, public.issue.vPrimeHat + SIZE_VPRIME_/2, public.issue.buffer.data + SIZE_VPRIME_/2);
   CFlag(&flag);
   if (flag != 0x00) {
     debugMessage("Addition with carry, adding 1");
-    INCN(SIZE_VPRIME_/2, vHat);
+    INCN(SIZE_VPRIME_/2, public.issue.vPrimeHat);
   }
-  ASSIGN_ADDN(SIZE_VPRIME_/2, vHat, buffer);
+  ASSIGN_ADDN(SIZE_VPRIME_/2, public.issue.vPrimeHat, public.issue.buffer.data);
 }
