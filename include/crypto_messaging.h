@@ -48,8 +48,13 @@ uint pad(ByteArray data, int size);
  * @param size of the data including padding
  * @return the new size of the data excluding padding  
  */
-uint unpad(ByteArray in, int length);
+uint unpad(ByteArray data, int size);
 
 #define INVALID_PADDING 0xffff;
+
+/**
+ * Perform card authentication and secure messaging setup
+ */
+void crypto_authenticate_card(void);
 
 #endif // __crypto_messaging_H

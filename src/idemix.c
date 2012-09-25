@@ -78,6 +78,9 @@ Credential credentials[MAX_CRED];
 Number numa, numb;
 CLSignature signature_;
 
+// Card authentication
+Byte rsaSecret[SIZE_RSA_EXPONENT];
+Byte rsaModulus[SIZE_RSA_MODULUS];
 
 /********************************************************************/
 /* APDU handling                                                    */
@@ -108,6 +111,12 @@ void main(void) {
           
         case ISO7816_INS_EXTERNAL_AUTHENTICATE:
           // Perform terminal authentication
+          break;
+        
+        case ISO7816_INS_INTERNAL_AUTHENTICATE:
+          // Perform card authentication & secure messaging setup
+          crypto_authenticate_card();
+          ReturnLa(ISO7816_SW_NO_ERROR, SIZE_KEY_SEED_CARD);
           break;
         
         //////////////////////////////////////////////////////////////
