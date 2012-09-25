@@ -22,7 +22,7 @@
 
 #include "defs_types.h"
 
-extern APDUData apdu;
+extern PublicData public;
 
 extern CLMessage masterSecret;
 extern Credential *credential;
@@ -31,15 +31,10 @@ extern Byte rsaSecret[SIZE_RSA_EXPONENT];
 extern Byte rsaModulus[SIZE_RSA_MODULUS];
 
 extern Byte disclose;
-extern Hash context;
 extern Nonce nonce;
-extern Challenge challenge;
 extern ResponseE eHat;
 extern ResponseM mHat[SIZE_L];
 extern ResponseV vHat;
-
-extern CLSignature signature_;
-extern Number numa, numb;
 
 extern Byte key_enc[SIZE_KEY];
 extern Byte key_mac[SIZE_KEY];

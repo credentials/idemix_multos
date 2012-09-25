@@ -22,7 +22,7 @@
 
 // Attribute and credential definitions
 #define MAX_ATTR      5
-#define MAX_CRED      5
+#define MAX_CRED      8
 
 // System parameter lengths
 #define LENGTH_N      1024
@@ -79,5 +79,25 @@
 
 #define SIZE_PIN 4
 #define SIZE_MASTER_PIN 6
+
+#ifdef ML2
+#ifdef ML3
+#error Cannot build for both ML2 and ML3
+#endif // ML3
+#endif // ML2
+
+#ifndef ML2
+#ifndef ML3
+#error ML2 or ML3 must be specified
+#endif // ML3
+#endif // ML2
+
+#ifdef ML2
+#define SIZE_PUBLIC 702
+#endif // ML2
+
+#ifdef ML3
+#define SIZE_PUBLIC 1088
+#endif // ML3
 
 #endif // __sizes_H

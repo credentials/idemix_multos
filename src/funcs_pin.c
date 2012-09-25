@@ -65,5 +65,5 @@ void pin_update(ByteArray buffer) {
   }
   
   // Store the new code
-  COPYN(SIZE_PIN, pinCode, apdu.data);
+  COPYN(SIZE_PIN, pinCode, public.apdu.data);
 }

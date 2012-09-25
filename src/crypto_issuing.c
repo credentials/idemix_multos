@@ -33,8 +33,8 @@
 #include "crypto_helper.h"
 #include "crypto_multos.h"
 
-#define buffer apdu.temp.data
-#define values apdu.temp.list
+#define buffer public.temp.data
+#define values public.temp.list
 
 /********************************************************************/
 /* Issuing functions                                                */
@@ -58,8 +58,8 @@
  * @param (buffer for SpecialModularExponentiation of SIZE_N)
  */
 #define vPrime (credential->signature.v + SIZE_V - SIZE_VPRIME)
-#define U numa
-#define UTilde numb
+#define U public.temp.numa
+#define UTilde public.temp.numb
 void constructCommitment(void) {
   
   // Generate random vPrime
@@ -100,15 +100,15 @@ void constructCommitment(void) {
   values[2].size = SIZE_N;
   values[3].data = nonce;
   values[3].size = SIZE_STATZK;
-  crypto_compute_hash(values, 4, challenge.c, buffer, SIZE_BUFFER_C1);
-  debugValue("c", challenge.c, SIZE_H);
+  crypto_compute_hash(values, 4, public.temp.challenge, buffer, SIZE_BUFFER_C1);
+  debugValue("c", public.temp.challenge, SIZE_H);
 
   // - Compute response vPrimeHat = vPrimeTilde + c * vPrime
   crypto_compute_vPrimeHat();
   debugValue("vPrimeHat", vHat, SIZE_VPRIME_);
 
   // - Compute response s_A = mTilde[0] + c * m[0]
-  crypto_compute_s_A();
+  crypto_compute_mHat(0, SIZE_S_A);
   debugValue("s_A", mHat[0], SIZE_S_A);
   
   // Generate random n_2
@@ -130,19 +130,14 @@ void constructCommitment(void) {
  */
 void constructSignature(void) {
   
-  // Clear v, to prevent garbage messing up the computation
-  memset(credential->signature.v, 0x00, SIZE_V - SIZE_VPRIME);
-  
   // Compute v = v' + v'' using add with carry
-  ASSIGN_ADDN(SIZE_V/3, buffer + 2*SIZE_V/3, 
-    credential->signature.v + 2*SIZE_V/3);
+  ASSIGN_ADDN(SIZE_V/3, buffer + 2*SIZE_V/3, credential->signature.v + 2*SIZE_V/3);
   CFlag(buffer + SIZE_V);
   if (buffer[SIZE_V] != 0x00) {
     debugMessage("Addition with carry, adding 1");
     INCN(2*SIZE_V/3, buffer);
   }
-  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V/3, 
-    credential->signature.v + SIZE_V/3);
+  ASSIGN_ADDN(SIZE_V/3, buffer + SIZE_V/3, credential->signature.v + SIZE_V/3);
   CFlag(buffer + SIZE_V);
   if (buffer[SIZE_V] != 0x00) {
     debugMessage("Addition with carry, adding 1");
@@ -218,7 +213,7 @@ void verifySignature(void) {
  * @param (buffer for AHat of SIZE_N)
  */
 #define AHat (buffer + SIZE_N)
-#define Q numa
+#define Q public.temp.numa
 #define s_e credential->proof.response
 void verifyProof(void) {
 
@@ -252,11 +247,11 @@ void verifyProof(void) {
   values[4].data = AHat;
   values[4].size = SIZE_N;
   debugValue("AHat", AHat, SIZE_N);
-  crypto_compute_hash(values, 5, challenge.c, buffer, SIZE_BUFFER_C2);
-  debugValue("c'", challenge.c, SIZE_H);
+  crypto_compute_hash(values, 5, public.temp.challenge, buffer, SIZE_BUFFER_C2);
+  debugValue("c'", public.temp.challenge, SIZE_H);
 
   // Verify c =?= c'
-  if (memcmp(credential->proof.challenge, challenge.c, SIZE_H) != 0) {
+  if (memcmp(credential->proof.challenge, public.temp.challenge, SIZE_H) != 0) {
     // TODO: clear already stored things?
     debugError("verifyProof(): verification of P2 failed");
     ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
@@ -280,12 +275,26 @@ void crypto_compute_vPrimeHat(void) {
   CLEARN(SIZE_VPRIME_ - SIZE_VPRIME, buffer);
   
   // Multiply c with least significant part of vPrime
-  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 
-    challenge.prefix_vPrimeHat, credential->signature.v + SIZE_V - SIZE_VPRIME/3);
+//  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 
+//    public.temp.challenge.prefix_vPrimeHat, credential->signature.v + SIZE_V - SIZE_VPRIME/3);
+  do {
+    __code(PUSHZ, SIZE_VPRIME/3 - SIZE_H);
+    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
+    __push(BLOCKCAST(SIZE_VPRIME/3)(credential->signature.v + SIZE_V - SIZE_VPRIME/3));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
+    __code(STORE, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 2*SIZE_VPRIME/3);
+  } while (0);
   
   // Multiply c with middle significant part of vPrime
-  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
-    credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3);
+//  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, public.temp.challenge.prefix_vPrimeHat, 
+//    credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3);
+  do {
+    __code(PUSHZ, SIZE_VPRIME/3 - SIZE_H);
+    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
+    __push(BLOCKCAST(SIZE_VPRIME/3)(credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
+    __code(STORE, buffer + SIZE_VPRIME_, 2*SIZE_VPRIME/3);
+  } while (0);
   
   // Combine the two multiplications into a partial result
   /*  ASSIGN_ADDN(2*SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_); /* fails somehow :-S what am I doing wrong? */
@@ -293,8 +302,15 @@ void crypto_compute_vPrimeHat(void) {
   COPYN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - SIZE_VPRIME, buffer + SIZE_VPRIME_);
 
   // Multiply c with most significant part of vPrime
-  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, challenge.prefix_vPrimeHat, 
-    credential->signature.v + SIZE_V - SIZE_VPRIME);
+//  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, public.temp.challenge.prefix_vPrimeHat, 
+//    credential->signature.v + SIZE_V - SIZE_VPRIME);
+  do {
+    __code(PUSHZ, SIZE_VPRIME/3 - SIZE_H);
+    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
+    __push(BLOCKCAST(SIZE_VPRIME/3)(credential->signature.v + SIZE_V - SIZE_VPRIME));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
+    __code(STORE, buffer + SIZE_VPRIME_, 2*SIZE_VPRIME/3);
+  } while (0);
   
   // Combine the two multiplications into a single result
 /*  ASSIGN_ADDN(SIZE_VPRIME_ - 2*SIZE_VPRIME/3, buffer, buffer + 4*SIZE_VPRIME/3); /* fails somehow :-S what am I doing wrong? */
@@ -309,24 +325,4 @@ void crypto_compute_vPrimeHat(void) {
     INCN(SIZE_VPRIME_/2, vHat);
   }
   ASSIGN_ADDN(SIZE_VPRIME_/2, vHat, buffer);
-}
-
-/**
- * Compute the response value s_A = mTilde[0] + c*m[0]
- * 
- * @param buffer of size 2*SIZE_M_ + SIZE_M
- * @param c in challenge.prefix_m
- * @param m[0] in masterSecret
- * @param mTilde[0] in mHat[0]
- * @return s_A in mHat[0]
- */
-void crypto_compute_s_A(void) {
-  // Multiply c with m
-  MULN(SIZE_M, buffer, challenge.prefix_mHat, masterSecret);
-  
-  // Add mTilde to the result of the multiplication
-  ADDN(SIZE_S_A, buffer + 2*SIZE_M, mHat[0], buffer + 2*SIZE_M - SIZE_S_A);
-  
-  // Store the result in mHat
-  COPYN(SIZE_S_A, mHat[0], buffer + 2*SIZE_M);
 }

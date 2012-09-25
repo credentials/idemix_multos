@@ -32,8 +32,8 @@
 #include "crypto_helper.h"
 #include "crypto_multos.h"
 
-#define buffer apdu.temp.data
-#define values apdu.temp.list
+#define buffer public.temp.data
+#define values public.temp.list
 
 /********************************************************************/
 /* Proving functions                                                */
@@ -75,7 +75,7 @@ void constructProof(void) {
   
   // Compute v' = v - e r_A
   crypto_compute_vPrime();
-  debugValue("v' = v - e*r_A", signature_.v, SIZE_V);
+  debugValue("v' = v - e*r_A", public.temp.signature_.v, SIZE_V);
 
   // Compute e' = e - 2^(l_e' - 1) (just ignore the first bit of e)
   debugValue("e' = e - 2^(l_e' - 1)", ePrime, SIZE_EPRIME);
@@ -85,7 +85,7 @@ void constructProof(void) {
   debugValue("A' = S^r_A mod n", APrime, SIZE_N);
   crypto_modmul(SIZE_N, APrime, credential->signature.A, credential->issuerKey.n);
   debugValue("A' = A' * A mod n", APrime, SIZE_N);
-  COPYN(SIZE_N, signature_.A, APrime);
+  COPYN(SIZE_N, public.temp.signature_.A, APrime);
   
   // Generate random values for m~[i], e~, v~ and r_A
   for (i = 0; i <= credential->size; i++) {
@@ -116,16 +116,16 @@ void constructProof(void) {
   }
   
   // Compute challenge c = H(context | A' | ZTilde | nonce)
-  values[0].data = context;
+  values[0].data = public.temp.context;
   values[0].size = SIZE_H;
-  values[1].data = signature_.A;
+  values[1].data = public.temp.signature_.A;
   values[1].size = SIZE_N;      
   values[2].data = ZTilde;
   values[2].size = SIZE_N;
   values[3].data = nonce;
   values[3].size = SIZE_STATZK;
-  crypto_compute_hash(values, 4, challenge.c, buffer, SIZE_BUFFER_C2);
-  debugValue("c", challenge.c, SIZE_H);
+  crypto_compute_hash(values, 4, public.temp.challenge, buffer, SIZE_BUFFER_C2);
+  debugValue("c", public.temp.challenge, SIZE_H);
   
   // Compute e^ = e~ + c e'
   crypto_compute_eHat();
@@ -138,7 +138,7 @@ void constructProof(void) {
   // Compute m_i^ = m_i~ + c m_i
   for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
-      crypto_compute_mHat(i);
+      crypto_compute_mHat(i, SIZE_M_);
     }
   }
   debugValues("mHat", (ByteArray) mHat, SIZE_M_, SIZE_L);
@@ -193,7 +193,7 @@ void crypto_compute_vPrime(void) {
     INCN(SIZE_V/3, buffer);
   }
   SUBN(SIZE_V/3, vPrime, credential->signature.v, buffer);
-  COPYN(SIZE_V, signature_.v, vPrime);
+  COPYN(SIZE_V, public.temp.signature_.v, vPrime);
 }
 #undef r_A
 #undef e_prefix_rA
@@ -213,12 +213,26 @@ void crypto_compute_vHat(void) {
   CLEARN(SIZE_V_ - SIZE_V, buffer);
   
   // Multiply c with least significant part of v
-  MULN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, challenge.prefix_vHat, 
-    signature_.v + 2*SIZE_V/3);
+//  MULN(SIZE_V/3, buffer + SIZE_V_ - 2*SIZE_V/3, public.temp.challenge.prefix_vHat, 
+//    public.temp.signature_.v + 2*SIZE_V/3);
+  do {
+    __code(PUSHZ, SIZE_V/3 - SIZE_H);
+    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
+    __push(BLOCKCAST(SIZE_V/3)(public.temp.signature_.v + 2*SIZE_V/3));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_V/3);
+    __code(STORE, buffer + SIZE_V_ - 2*SIZE_V/3, 2*SIZE_V/3);
+  } while (0);
   
   // Multiply c with middle significant part of v
-  MULN(SIZE_V/3, buffer + SIZE_V_, challenge.prefix_vHat, 
-    signature_.v + SIZE_V/3);
+//  MULN(SIZE_V/3, buffer + SIZE_V_, public.temp.challenge.prefix_vHat, 
+//    public.temp.signature_.v + SIZE_V/3);
+  do {
+    __code(PUSHZ, SIZE_V/3 - SIZE_H);
+    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
+    __push(BLOCKCAST(SIZE_V/3)(public.temp.signature_.v + SIZE_V/3));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_V/3);
+    __code(STORE, buffer + SIZE_V_, 2*SIZE_V/3);
+  } while (0);
   
   // Combine the two multiplications into a partial result
 /*  ASSIGN_ADDN(2*SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_); /* works as expected */
@@ -226,7 +240,14 @@ void crypto_compute_vHat(void) {
   COPYN(SIZE_V/3, buffer + SIZE_V_ - SIZE_V, buffer + SIZE_V_);
     
   // Multiply c with most significant part of v
-  MULN(SIZE_V/3, buffer + SIZE_V_, challenge.prefix_vHat, signature_.v);
+//  MULN(SIZE_V/3, buffer + SIZE_V_, public.temp.challenge.prefix_vHat, public.temp.signature_.v);
+  do {
+    __code(PUSHZ, SIZE_V/3 - SIZE_H);
+    __push(BLOCKCAST(SIZE_H)(public.temp.challenge));
+    __push(BLOCKCAST(SIZE_V/3)(public.temp.signature_.v));
+    __code(PRIM, PRIM_MULTIPLY, SIZE_V/3);
+    __code(STORE, buffer + SIZE_V_, 2*SIZE_V/3);
+  } while (0);
   
   // Combine the two multiplications into a single result
 /*  ASSIGN_ADDN(SIZE_V_ - 2*SIZE_V/3, buffer, buffer + 4*SIZE_V/3); /* fails somehow :-S what am I doing wrong? */

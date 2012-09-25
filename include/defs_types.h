@@ -31,7 +31,7 @@ typedef Byte *ByteArray;
 typedef Byte Hash[SIZE_H];
 typedef Byte Nonce[SIZE_STATZK];
 typedef Byte ResponseE[SIZE_E_];
-typedef Byte ResponseM[SIZE_S_A];
+typedef Byte ResponseM[SIZE_M_];
 typedef Byte ResponseV[SIZE_V_];
 typedef Byte ResponseVPRIME[SIZE_VPRIME_];
 typedef Byte Number[SIZE_N];
@@ -78,20 +78,20 @@ typedef struct {
   int id;
 } Credential;
 
-typedef struct {
-  Byte prefix_vHat[SIZE_V/3 - SIZE_VPRIME/3];
-  Byte prefix_vPrimeHat[SIZE_VPRIME/3 - SIZE_M];
-  Byte prefix_mHat[SIZE_M - SIZE_H];
-  Hash c;
-} Challenge;
-
 typedef union {
-  Byte data[255];
-  Byte public[530];
+  struct {
+    Byte data[255];
+    Byte session[SIZE_PUBLIC - 255];
+  } apdu;
+  Byte buffer[SIZE_PUBLIC];
   struct {
     Byte data[SIZE_BUFFER_C2];
     Value list[5];
+    Hash context; // + 20 = 38 (public?)
+    Hash challenge; // + 20 (+ 47) = 106 (public?)
+    Number numa, numb; //(2*128 = 256)
+    CLSignature signature_; //(128 + 63 + 201 = 396)
   } temp;
-} APDUData;
+} PublicData;
 
 #endif // __defs_types_H

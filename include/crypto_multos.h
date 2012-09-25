@@ -22,11 +22,17 @@
 
 #include <multoscrypto.h>
 
+#define PRIM_MULTIPLY 0x10
+#define PRIM_RANDOM 0xc4
+#define PRIM_RSA_VERIFY 0xEB
+
 #define crypto_modmul(ModulusLength, LHS, RHS, Modulus) \
   ModularMultiplication(ModulusLength, LHS, RHS, Modulus)
 
 #define crypto_modexp_secure(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result) \
   ModularExponentiation(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result)
+
+#ifdef ML3
 
 #define crypto_modexp(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result) \
 do { \
@@ -36,10 +42,14 @@ do { \
   __push(__typechk(unsigned char *, Modulus)); \
   __push(__typechk(unsigned char *, Base)); \
   __push(__typechk(unsigned char *, Result)); \
-  __code(PRIM, 0xEB); \
+  __code(PRIM, PRIM_RSA_VERIFY); \
 } while (0)
 
-#define PRIM_MULTIPLY 0x10
-#define PRIM_RANDOM 0xc4
+#else // ML3
+
+#define crypto_modexp(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result) \
+  ModularExponentiation(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result)
+
+#endif // ML3
 
 #endif // __crypto_multos_H

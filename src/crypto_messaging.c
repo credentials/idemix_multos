@@ -43,8 +43,8 @@ Byte key_mac[SIZE_KEY];
 /**
  * Unwrap a command APDU from secure messaging
  */
-#define buffer apdu.data
-#define tmp (apdu.public + 255)
+#define buffer public.apdu.data
+#define tmp public.apdu.session
 void crypto_unwrap(void) {
   Byte mac[SIZE_MAC];
   int i;
@@ -130,8 +130,8 @@ void crypto_unwrap(void) {
 /**
  * Wrap a response APDU for secure messaging
  */
-#define buffer apdu.data
-#define tmp (apdu.public + 255)
+#define buffer public.apdu.data
+#define tmp public.apdu.session
 #define hasDo87 (La > 0)
 #define do87DataLenBytes (La > 0xff ? 2 : 1)
 #define do87DataLen (La + 1)
@@ -225,7 +225,7 @@ uint unpad(ByteArray in, int length) {
  * @param key to be stored
  * @param mode for which a key needs to be derived
  */
-#define seed apdu.data
+#define seed public.apdu.data
 void deriveSessionKey(ByteArray key, Byte mode) {
   int i, j, bits;
 
@@ -248,7 +248,7 @@ void deriveSessionKey(ByteArray key, Byte mode) {
 /**
  * Derive session keys from a given key seed
  */
-#define seed apdu.data
+#define seed public.apdu.data
 void crypto_derive_sessionkeys(void) {
   // Clear the seed suffix such that we can add a mode specific part
   CLEARN(4, seed + SIZE_KEY_SEED);
@@ -265,7 +265,7 @@ void crypto_derive_sessionkeys(void) {
 }
 #undef seed
 
-#define buffer apdu.data
+#define buffer public.apdu.data
 void crypto_authenticate_card(void) {
   // Decrypt the session key seed input from the terminal
   crypto_modexp_secure(SIZE_RSA_EXPONENT, SIZE_RSA_MODULUS,
