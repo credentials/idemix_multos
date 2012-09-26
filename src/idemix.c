@@ -6,7 +6,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This program is distributed in the hope t_ it will be useful,
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -21,10 +21,10 @@
 #pragma attribute("aid", "69 64 65 6D 69 78")
 #pragma attribute("dir", "61 10 4f 6 69 64 65 6D 69 78 50 6 69 64 65 6D 69 78")
 
-#include <ISO7816.h>
-#include <multosarith.h>
-#include <multosccr.h>
-#include <string.h>
+#include <ISO7816.h> // for APDU constants
+#include <multosarith.h> // for COPYN()
+#include <multosccr.h> // for ZFlag()
+#include <string.h> // for memset()
 
 #include "defs_apdu.h"
 #include "defs_sizes.h"
@@ -260,18 +260,18 @@ void main(void) {
             }
           }
 
-          // Out of space
+          // Out of space (all credential slots are occupied)
           debugWarning("Cannot issue another credential");
           ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED);
           break;
 
         case INS_ISSUE_PUBLIC_KEY_N:
           debugMessage("INS_ISSUE_PUBLIC_KEY_N");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -284,11 +284,11 @@ void main(void) {
 
         case INS_ISSUE_PUBLIC_KEY_Z:
           debugMessage("INS_ISSUE_PUBLIC_KEY_Z");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -301,11 +301,11 @@ void main(void) {
 
         case INS_ISSUE_PUBLIC_KEY_S:
           debugMessage("INS_ISSUE_PUBLIC_KEY_S");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -320,11 +320,11 @@ void main(void) {
 
         case INS_ISSUE_PUBLIC_KEY_R:
           debugMessage("INS_ISSUE_PUBLIC_KEY_R");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -340,11 +340,11 @@ void main(void) {
 
         case INS_ISSUE_ATTRIBUTES:
           debugMessage("INS_ISSUE_ATTRIBUTES");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_M)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -370,11 +370,11 @@ void main(void) {
 
         case INS_ISSUE_FLAGS:
           debugMessage("INS_ISSUE_FLAGS");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -387,11 +387,11 @@ void main(void) {
 
         case INS_ISSUE_NONCE_1:
           debugMessage("INS_ISSUE_NONCE_1");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_STATZK)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -406,11 +406,11 @@ void main(void) {
 
         case INS_ISSUE_PROOF_U:
           debugMessage("INS_ISSUE_PROOF_U");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           switch (P1) {
             case P1_PROOF_U_C:
@@ -455,11 +455,11 @@ void main(void) {
 
         case INS_ISSUE_NONCE_2:
           debugMessage("INS_ISSUE_NONCE_2");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -472,11 +472,11 @@ void main(void) {
 
         case INS_ISSUE_SIGNATURE:
           debugMessage("INS_ISSUE_SIGNATURE");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           switch(P1) {
             case P1_SIGNATURE_A:
@@ -532,11 +532,11 @@ void main(void) {
 
         case INS_ISSUE_PROOF_A:
           debugMessage("INS_ISSUE_PROOF_A");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           switch(P1) {
             case P1_PROOF_A_C:
@@ -609,11 +609,11 @@ void main(void) {
 
         case INS_PROVE_SELECTION:
           debugMessage("INS_PROVE_SELECTION");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (pin_required && !pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) && Lc < SIZE_L)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -625,31 +625,28 @@ void main(void) {
 
         case INS_PROVE_NONCE:
           debugMessage("INS_PROVE_NONCE");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (pin_required && !pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_STATZK)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
 
-          //COPYN(SIZE_STATZK, nonce, public.apdu.data);
-          //debugNonce("Initialised nonce", nonce);
           constructProof();
-          //COPYN(SIZE_H, public.apdu.data, public.temp.challenge);
           debugHash("Returned c", public.apdu.data);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_H);
           break;
 
         case INS_PROVE_SIGNATURE:
           debugMessage("INS_PROVE_SIGNATURE");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (pin_required && !pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           switch(P1) {
             case P1_SIGNATURE_A:
@@ -694,11 +691,11 @@ void main(void) {
 
         case INS_PROVE_ATTRIBUTE:
           debugMessage("INS_PROVE_ATTRIBUTE");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (pin_required && !pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -717,11 +714,11 @@ void main(void) {
 
         case INS_PROVE_RESPONSE:
           debugMessage("INS_PROVE_RESPONSE");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (pin_required && !pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -766,11 +763,11 @@ void main(void) {
 
         case INS_ADMIN_REMOVE:
           debugMessage("INS_ADMIN_REMOVE");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -781,7 +778,9 @@ void main(void) {
 
           // Verify the given credential ID and remove it if it matches
           if (credential->id == P1P2) {
+            // TODO: This is really slow, performance should be improved
             memset(credential, 0x00, sizeof(Credential));
+            credential = NULL;
             debugInteger("Removed credential", P1P2);
             ReturnSW(ISO7816_SW_NO_ERROR);
           }
@@ -790,11 +789,11 @@ void main(void) {
 
         case INS_ADMIN_FLAGS:
           debugMessage("INS_ADMIN_FLAGS");
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
           if (!pin_verified) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);

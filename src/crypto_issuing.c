@@ -262,8 +262,6 @@ void crypto_compute_vPrimeHat(void) {
   __code(CLEARN, public.issue.buffer.data, SIZE_VPRIME_ - SIZE_VPRIME);
 
   // Multiply c (padded to match size) with least significant part of vPrime
-//  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3,
-//    public.temp.challenge.prefix_vPrimeHat, credential->signature.v + SIZE_V - SIZE_VPRIME/3);
   __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
   __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
   __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime + SIZE_VPRIME/2));
@@ -271,17 +269,12 @@ void crypto_compute_vPrimeHat(void) {
   __code(STORE, public.issue.buffer.data + SIZE_VPRIME_ - SIZE_VPRIME, SIZE_VPRIME);
 
   // Multiply c (padded to match size) with most significant part of vPrime
-//  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, public.temp.challenge.prefix_vPrimeHat,
-//    credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3);
   __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
   __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
   __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime));
   __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
-//  __code(STORE, public.issue.buffer.data + SIZE_VPRIME_, SIZE_VPRIME);
 
   // Combine the two multiplications into a single result
-//  ASSIGN_ADDN(SIZE_VPRIME_ - SIZE_VPRIME/2, public.issue.buffer.data,
-//    public.issue.buffer.data + SIZE_VPRIME + SIZE_VPRIME/2);
   __code(ADDN, public.issue.buffer.data, SIZE_VPRIME_ - SIZE_VPRIME/2);
   __code(POPN, SIZE_VPRIME);
 
