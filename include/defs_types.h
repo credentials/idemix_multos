@@ -122,8 +122,8 @@ typedef union {
     Byte sA[SIZE_S_A]; // 63
     Nonce nonce; // 10
     Hash challenge; // 20
-    Byte v[SIZE_V - SIZE_VPRIME]; // 201
-    Byte vPrime[SIZE_VPRIME];
+    Byte v[SIZE_V - SIZE_VPRIME]; // 201 - 138 (63)
+    Byte vPrime[SIZE_VPRIME]; // 138
   } issue;
 } SessionData;
 

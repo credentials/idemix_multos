@@ -266,33 +266,31 @@ void verifyProof(void) {
  */
 void crypto_compute_vPrimeHat(void) {  
   // Clear the buffer, to prevent garbage messing up the computation
-  CLEARN(SIZE_VPRIME_ - SIZE_VPRIME, public.issue.buffer.data);
+  __code(CLEARN, public.issue.buffer.data, SIZE_VPRIME_ - SIZE_VPRIME);
   
-  // Multiply c with least significant part of vPrime
+  // Multiply c (padded to match size) with least significant part of vPrime
 //  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_ - 2*SIZE_VPRIME/3, 
 //    public.temp.challenge.prefix_vPrimeHat, credential->signature.v + SIZE_V - SIZE_VPRIME/3);
-  do {
-    __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
-    __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
-    __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime + SIZE_VPRIME/2));
-    __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/2);
-    __code(STORE, public.issue.buffer.data + SIZE_VPRIME_ - SIZE_VPRIME, SIZE_VPRIME);
-  } while (0);
+  __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
+  __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
+  __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime + SIZE_VPRIME/2));
+  __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/2);
+  __code(STORE, public.issue.buffer.data + SIZE_VPRIME_ - SIZE_VPRIME, SIZE_VPRIME);
   
-  // Multiply c with most significant part of vPrime
+  // Multiply c (padded to match size) with most significant part of vPrime
 //  MULN(SIZE_VPRIME/3, buffer + SIZE_VPRIME_, public.temp.challenge.prefix_vPrimeHat, 
 //    credential->signature.v + SIZE_V - 2*SIZE_VPRIME/3);
-  do {
-    __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
-    __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
-    __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime));
-    __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
-    __code(STORE, public.issue.buffer.data + SIZE_VPRIME_, SIZE_VPRIME);
-  } while (0);
+  __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
+  __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
+  __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime));
+  __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
+//  __code(STORE, public.issue.buffer.data + SIZE_VPRIME_, SIZE_VPRIME);
   
   // Combine the two multiplications into a single result
-  ASSIGN_ADDN(SIZE_VPRIME_ - SIZE_VPRIME/2, public.issue.buffer.data, 
-    public.issue.buffer.data + SIZE_VPRIME + SIZE_VPRIME/2);
+//  ASSIGN_ADDN(SIZE_VPRIME_ - SIZE_VPRIME/2, public.issue.buffer.data, 
+//    public.issue.buffer.data + SIZE_VPRIME + SIZE_VPRIME/2);
+  __code(ADDN, public.issue.buffer.data, SIZE_VPRIME_ - SIZE_VPRIME/2);
+  __code(POPN, SIZE_VPRIME);
   
   // Add (with carry) vPrimeTilde and store the result in vPrimeHat
   ASSIGN_ADDN(SIZE_VPRIME_/2, public.issue.vPrimeHat + SIZE_VPRIME_/2, public.issue.buffer.data + SIZE_VPRIME_/2);

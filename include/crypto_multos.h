@@ -32,7 +32,10 @@
 #define crypto_modexp_secure(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result) \
   ModularExponentiation(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result)
 
+// Use the efficient RSA_VERIFY primitive on ML3
 #ifdef ML3
+// This primitive is not supported by the simulator
+#ifndef SIMULATOR
 
 #define crypto_modexp(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result) \
 do { \
@@ -45,11 +48,14 @@ do { \
   __code(PRIM, PRIM_RSA_VERIFY); \
 } while (0)
 
-#else // ML3
+#endif // SIMULATOR
+#endif // ML3
+
+#ifndef crypto_modexp
 
 #define crypto_modexp(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result) \
   ModularExponentiation(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result)
 
-#endif // ML3
+#endif // crypto_modexp
 
 #endif // __crypto_multos_H
