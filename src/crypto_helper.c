@@ -193,3 +193,20 @@ void crypto_modexp_special(int size, ByteArray exponent, ByteArray result, ByteA
       exponent, credential->issuerKey.n, credential->issuerKey.S, result);
   }
 }
+
+/**
+ * Clear size bytes from a bytearray
+ *
+ * @param size the amount of bytes to clear
+ * @param buffer to be cleared
+ */
+void clear(int size, ByteArray buffer) {
+  while (size > 255) {
+    __code(PUSHZ, 255);
+    __push(buffer);
+    __code(STOREI, 255);
+    buffer += 255;
+    size -= 255;
+  }
+  memset(buffer, 0x00, size);
+}

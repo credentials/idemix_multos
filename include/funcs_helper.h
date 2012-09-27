@@ -52,4 +52,12 @@ int asn1_encode_int(ByteArray number, int length, ByteArray buffer, int offset);
  */
 int asn1_encode_seq(int length, int size, ByteArray buffer, int offset);
 
+/**
+ * Clear size bytes from a bytearray
+ *
+ * @param size the amount of bytes to clear
+ * @param buffer to be cleared
+ */
+void clear(int size, ByteArray buffer);
+
 #endif // __funcs_helper_H

@@ -30,6 +30,7 @@
 #include "defs_sizes.h"
 #include "defs_types.h"
 #include "funcs_debug.h"
+#include "funcs_helper.h"
 #include "funcs_pin.h"
 #include "crypto_helper.h"
 #include "crypto_issuing.h"
@@ -779,7 +780,8 @@ void main(void) {
           // Verify the given credential ID and remove it if it matches
           if (credential->id == P1P2) {
             // TODO: This is really slow, performance should be improved
-            memset(credential, 0x00, sizeof(Credential));
+            //memset(credential, 0x00, sizeof(Credential));
+            clear(sizeof(Credential), credential);
             credential = NULL;
             debugInteger("Removed credential", P1P2);
             ReturnSW(ISO7816_SW_NO_ERROR);
