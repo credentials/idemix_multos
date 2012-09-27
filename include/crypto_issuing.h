@@ -63,15 +63,12 @@ void crypto_compute_vPrimeHat(void);
 do { \
   /* Multiply c with m */\
   __code(PUSHZ, SIZE_M - SIZE_H); \
-  __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
+  __push(BLOCKCAST(SIZE_H)(session.issue.challenge)); \
   __push(BLOCKCAST(SIZE_M)(masterSecret)); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_M); \
-  /* Add mTilde to the result of the multiplication */\
-  __push(BLOCKCAST(SIZE_S_A)(session.issue.sA)); \
-  __code(ADDN, SIZE_S_A); \
-  /* Store the result in mHat */\
-  __push(session.issue.sA); \
-  __code(STOREI, SIZE_S_A); \
+  /* Add the result of the multiplication to mTilde and store in sA */\
+  __code(ADDN, session.issue.sA, SIZE_S_A); \
+  /* Cleanup the stack */\
   __code(POPN, 2*SIZE_M - SIZE_S_A); \
 } while (0)
 
