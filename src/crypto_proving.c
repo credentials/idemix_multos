@@ -67,7 +67,7 @@ void constructProof(void) {
       crypto_generate_random(session.prove.mHat[i], LENGTH_M_);
     }
   }
-  debugValues("m_", (ByteArray) session.prove.mHat, SIZE_S_A, SIZE_L);
+  debugValues("m_", (ByteArray) session.prove.mHat, SIZE_M_, SIZE_L);
   crypto_generate_random(public.prove.eHat, LENGTH_E_);
   debugValue("e_", public.prove.eHat, SIZE_E_);
   crypto_generate_random(public.prove.vHat, LENGTH_V_);
@@ -114,7 +114,7 @@ void constructProof(void) {
   public.prove.list[3].data = public.prove.apdu.nonce;
   public.prove.list[3].size = SIZE_STATZK;
   crypto_compute_hash(public.prove.list, 4, public.prove.apdu.challenge, 
-    public.prove.buffer.data, SIZE_BUFFER_C2);
+    public.prove.buffer.data, SIZE_BUFFER_C1);
   debugValue("c", public.prove.apdu.challenge, SIZE_H);
   
   // Compute e' = e - 2^(l_e' - 1) (just ignore the first bit of e)

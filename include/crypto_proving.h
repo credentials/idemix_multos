@@ -85,13 +85,16 @@ do { \
   __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
   __push(BLOCKCAST(SIZE_M)(i == 0 ? masterSecret : credential->attribute[i - 1])); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_M); \
-  /* Add mTilde to the result of the multiplication */\
+  /* Put the result address in front of the operand (for STOREI) */\
+  __push(session.prove.mHat[i]); \
+  __code(PUSHZ, SIZE_M_); \
+  __code(ORN, SIZE_M_ + 2); \
+  __code(POPN, SIZE_M_ + 2); \
+  /* Add mTilde to the result of the multiplication and store in mHat*/\
   __push(BLOCKCAST(SIZE_M_)(session.prove.mHat[i])); \
   __code(ADDN, SIZE_M_); \
-  /* Store the result in mHat */\
-  __push(session.prove.mHat[i]); \
+  __code(POPN, SIZE_M_); \
   __code(STOREI, SIZE_M_); \
-  __code(POPN, 2*SIZE_M - SIZE_M_); \
 } while (0)
 
 /**

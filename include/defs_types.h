@@ -90,16 +90,16 @@ typedef union {
       Hash challenge; // 20
     } apdu; // 20
     union {
-      Byte data[SIZE_VPRIME + SIZE_R_A]; // 138 + 138 = 276
+      Byte data[SIZE_BUFFER_C1]; // 307
       Number number[2]; // 256
-    } buffer; // 276
+    } buffer; // 307
     Hash context; // 20
     Value list[4]; // 16
     Byte rA[SIZE_R_A]; // 138
     Number APrime; // 128
     ResponseV vHat; // 231
     ResponseE eHat; // 45
-  } prove; // 20 + 276 + 20 + 16 + 138 + 128 + 231 + 45 = 874
+  } prove; // 20 + 307 + 20 + 16 + 138 + 128 + 231 + 45 = 905
 
   struct {
     Number U; // 128
