@@ -127,11 +127,13 @@ void constructCommitment(void) {
 void constructSignature(void) {
 
   // Compute v = v' + v'' using add with carry
+  debugValue("v'", session.issue.vPrime, SIZE_VPRIME);
+  debugValue("v''", public.apdu.data, SIZE_V);
+  __push(credential->signature.v + SIZE_V/2);
   __push(BLOCKCAST(1 + SIZE_V/2)(session.issue.vPrime + SIZE_VPRIME - SIZE_V/2 - 1));
   __push(BLOCKCAST(1 + SIZE_V/2)(public.apdu.data + SIZE_V/2));
   __code(ADDN, 1 + SIZE_V/2);
   __code(POPN, 1 + SIZE_V/2);
-  __push(credential->signature.v + SIZE_V/2);
   __code(STOREI, 1 + SIZE_V/2);
 
   CFlag(&flag);
@@ -141,12 +143,12 @@ void constructSignature(void) {
   }
 
   // First push some zero's to compensate for the size difference
-  __code(PUSHZ, SIZE_V - SIZE_VPRIME + 1);
+  __push(credential->signature.v);
+  __code(PUSHZ, SIZE_V - SIZE_VPRIME);
   __push(BLOCKCAST(SIZE_VPRIME - SIZE_V/2 - 1)(session.issue.vPrime));
   __push(BLOCKCAST(SIZE_V/2)(public.apdu.data));
   __code(ADDN, SIZE_V/2);
   __code(POPN, SIZE_V/2);
-  __push(credential->signature.v);
   __code(STOREI, SIZE_V/2);
   debugValue("v = v' + v''", credential->signature.v, SIZE_V);
 }
@@ -272,18 +274,23 @@ void crypto_compute_vPrimeHat(void) {
   __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H);
   __push(BLOCKCAST(SIZE_H)(session.issue.challenge));
   __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime));
-  __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/3);
+  __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/2);
 
   // Combine the two multiplications into a single result
   __code(ADDN, public.issue.buffer.data, SIZE_VPRIME_ - SIZE_VPRIME/2);
   __code(POPN, SIZE_VPRIME);
 
   // Add (with carry) vPrimeTilde and store the result in vPrimeHat
-  ASSIGN_ADDN(SIZE_VPRIME_/2, session.issue.vPrimeHat + SIZE_VPRIME_/2, public.issue.buffer.data + SIZE_VPRIME_/2);
+  __push(BLOCKCAST(SIZE_VPRIME_/2)(public.issue.buffer.data + SIZE_VPRIME_/2));
+  __code(ADDN, session.issue.vPrimeHat + SIZE_VPRIME_/2, SIZE_VPRIME_/2);
+  __code(POPN, SIZE_VPRIME_/2);
+
   CFlag(&flag);
   if (flag != 0x00) {
     debugMessage("Addition with carry, adding 1");
-    INCN(SIZE_VPRIME_/2, session.issue.vPrimeHat);
+    __code(INCN, session.issue.vPrimeHat, SIZE_VPRIME_/2);
   }
-  ASSIGN_ADDN(SIZE_VPRIME_/2, session.issue.vPrimeHat, public.issue.buffer.data);
+  __push(BLOCKCAST(SIZE_VPRIME_/2)(public.issue.buffer.data));
+  __code(ADDN, session.issue.vPrimeHat, SIZE_VPRIME_/2);
+  __code(POPN, SIZE_VPRIME_/2);
 }
