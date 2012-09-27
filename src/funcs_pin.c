@@ -27,10 +27,6 @@
 #include "defs_externals.h"
 #include "funcs_debug.h"
 
-// Card holder verification
-Byte pinCode[SIZE_PIN] = { 0x30, 0x30, 0x30, 0x30 };
-Byte pinCount = PIN_COUNT;
-
 /**
  * Verify a PIN code
  * 
@@ -43,6 +39,8 @@ void pin_verify(ByteArray buffer) {
   }
   
   // Compare the PIN with the stored code
+  debugValue("pinCode", pinCode, SIZE_PIN);
+  debugValue("buffer", buffer, SIZE_PIN);
   if (memcmp(buffer, pinCode, SIZE_PIN) != 0) {
     debugWarning("PIN verification failed");
     debugInteger("Tries left", pinCount - 1);
@@ -65,5 +63,5 @@ void pin_update(ByteArray buffer) {
   }
   
   // Store the new code
-  COPYN(SIZE_PIN, pinCode, public.apdu.data);
+  COPYN(SIZE_PIN, pinCode, buffer);
 }

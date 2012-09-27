@@ -46,7 +46,6 @@
 
 // Idemix: protocol public variables
 PublicData public;
-Byte flag;
 
 
 /********************************************************************/
@@ -58,6 +57,7 @@ Byte flag;
 SessionData session; // 389
 Credential *credential; // + 2 = 669
 Byte flags; // + 1 = 670
+Byte flag;
 
 // Secure messaging: send sequence counter and session keys
 Counter ssc; // 8
@@ -73,6 +73,10 @@ Byte key_mac[SIZE_KEY];
 // Idemix: credentials and master secret
 Credential credentials[MAX_CRED];
 CLMessage masterSecret;
+
+// Card holder verification: PIN
+Byte pinCode[SIZE_PIN] = { 0x30, 0x30, 0x30, 0x30 };
+Byte pinCount = PIN_COUNT;
 
 // Card authentication: private key and modulus
 Byte rsaSecret[SIZE_RSA_EXPONENT];

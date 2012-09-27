@@ -24,12 +24,12 @@
 
 // Idemix: protocol public variables
 extern PublicData public;
-extern Byte flag;
 
 // Idemix: protocol session variables
 extern SessionData session;
 extern Credential *credential;
 extern Byte flags;
+extern Byte flag;
 
 // Idemix: master secret
 extern CLMessage masterSecret;
@@ -45,5 +45,9 @@ extern Byte rsaModulus[SIZE_RSA_MODULUS];
 
 // Secure messaging: initialisation vector
 extern Byte iv[SIZE_IV];
+
+// Card holder verification: PIN
+extern Byte pinCode[SIZE_PIN];
+extern Byte pinCount;
 
 #endif // __defs_externals_H
