@@ -781,7 +781,7 @@ void main(void) {
           if (credential->id == P1P2) {
             // TODO: This is really slow, performance should be improved
             //memset(credential, 0x00, sizeof(Credential));
-            clear(sizeof(Credential), credential);
+            clear(sizeof(Credential), (ByteArray) credential);
             credential = NULL;
             debugInteger("Removed credential", P1P2);
             ReturnSW(ISO7816_SW_NO_ERROR);
