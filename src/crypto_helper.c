@@ -85,8 +85,8 @@ void crypto_generate_random(ByteArray buffer, int length) {
   // Generate the random number in blocks of eight bytes (64 bits)
   while (length >= 64) {
     do {
-      __code(PRIM, PRIM_RANDOM);
       __push(random);
+      __code(PRIM, PRIM_RANDOM);
       __code(STOREI, 8);
     } while (0);
     length -= 64;
