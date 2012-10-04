@@ -53,7 +53,7 @@ void crypto_compute_vPrime(void);
 void crypto_compute_vHat(void);
 
 /**
- * Compute the response value eHat = eTilde + c*e
+ * Compute the response value eHat = eTilde + c*e'
  * 
  * Requires eTilde to be stored in eHat.
  */
@@ -63,7 +63,8 @@ do { \
   __code(PUSHZ, SIZE_E_ - 2*SIZE_H); \
   /* Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_EPRIME) */\
   __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
-  __push(BLOCKCAST(SIZE_H)(credential->signature.e + SIZE_E - SIZE_H)); /* ePrime */\
+  __code(PUSHZ, SIZE_H - SIZE_EPRIME); \
+  __push(BLOCKCAST(SIZE_EPRIME)(credential->signature.e + SIZE_E - SIZE_EPRIME)); /* ePrime */\
   __code(PRIM, PRIM_MULTIPLY, SIZE_H); \
   /* Add eTilde and store the result in eHat */\
   __code(ADDN, public.prove.eHat, SIZE_E_); \
