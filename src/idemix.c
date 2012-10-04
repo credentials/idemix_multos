@@ -604,8 +604,8 @@ void main(void) {
               if (pin_required && !pin_verified) {
                 ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
               }
-              COPYN(SIZE_H, credential->proof.context, public.apdu.data);
-              debugHash("Initialised context", credential->proof.context);
+              COPYN(SIZE_H, public.prove.context, public.apdu.data);
+              debugHash("Initialised context", public.prove.context);
               ReturnSW(ISO7816_SW_NO_ERROR);
             }
           }
