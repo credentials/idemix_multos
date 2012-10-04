@@ -604,8 +604,13 @@ void main(void) {
               if (pin_required && !pin_verified) {
                 ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
               }
+#ifndef SIMULATOR
               COPYN(SIZE_H, public.prove.context, public.apdu.data);
               debugHash("Initialised context", public.prove.context);
+#else // SIMULATOR
+              COPYN(SIZE_H, session.prove.context, public.apdu.data);
+              debugHash("Initialised context", session.prove.context);
+#endif // SIMULATOR
               ReturnSW(ISO7816_SW_NO_ERROR);
             }
           }

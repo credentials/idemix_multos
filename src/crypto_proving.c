@@ -105,7 +105,11 @@ void constructProof(void) {
   }
   
   // Compute challenge c = H(context | A' | ZTilde | nonce)
+#ifndef SIMULATOR
   public.prove.list[0].data = public.prove.context;
+#else // SIMULATOR
+  public.prove.list[0].data = session.prove.context;
+#endif // SIMULATOR
   public.prove.list[0].size = SIZE_H;
   public.prove.list[1].data = public.prove.APrime;
   public.prove.list[1].size = SIZE_N;
