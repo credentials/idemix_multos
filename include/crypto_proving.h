@@ -45,12 +45,30 @@ void crypto_compute_vPrime(void);
 /**
  * Compute the response value vHat = vTilde + c*v'
  * 
- * Requires buffer of size SIZE_V_ + SIZE_V and vTilde to be stored in 
- * vHat.
- * 
- * @param c the challenge
+ * Requires vTilde to be stored in vHat.
  */
-void crypto_compute_vHat(void);
+#define crypto_compute_vHat() \
+do { \
+  /* Multiply c with least significant part of v */\
+  __code(PUSHZ, SIZE_V/2 - SIZE_H); \
+  __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
+  __push(BLOCKCAST(SIZE_V/2)(public.prove.buffer.data + SIZE_V/2 + 1)); \
+  __code(PRIM, PRIM_MULTIPLY, SIZE_V/2); \
+  __code(STORE, public.prove.buffer.data + SIZE_V/2 + 1, 2*(SIZE_V/2)); \
+  /* Multiply c with most significant part of v */\
+  __code(PUSHZ, SIZE_V/2 + 1- SIZE_H); \
+  __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
+  __push(BLOCKCAST(SIZE_V/2 + 1)(public.prove.buffer.data)); \
+  __code(PRIM, PRIM_MULTIPLY, SIZE_V/2 + 1); \
+  /* Combine the two multiplications into a single result */\
+  __code(CLEARN, public.prove.buffer.data, SIZE_V/2 + 1); \
+  __code(ADDN, public.prove.buffer.data, SIZE_V); \
+  __code(POPN, SIZE_V + 1); \
+  /* Add vTilde and store the result in vHat */\
+  __push(BLOCKCAST(SIZE_V_)(public.prove.buffer.data + SIZE_V + SIZE_V/2 - SIZE_V_)); \
+  __code(ADDN, public.prove.vHat, SIZE_V_); \
+  __code(POPN, SIZE_V_); \
+} while (0)
 
 /**
  * Compute the response value eHat = eTilde + c*e'
@@ -77,7 +95,6 @@ do { \
  * Requires mTilde[i] to be stored in mHat[i].
  * 
  * @param i index of the message to be hidden
- * @param size of mTilde and mHat
  */
 #define crypto_compute_mHat(i) \
 do { \
