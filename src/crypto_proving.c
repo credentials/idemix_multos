@@ -173,20 +173,13 @@ void crypto_compute_vPrime(void) {
   __code(POPN, SIZE_R_A);
 
   // Subtract (with carry) from v and store the result in v'
-  SUBN(SIZE_V/3, public.prove.buffer.data + 2*SIZE_V/3,
-    credential->signature.v + 2*SIZE_V/3, public.prove.buffer.data + 2*SIZE_V/3);
+  SUBN(SIZE_V/2 + 1, public.prove.buffer.data + SIZE_V/2,
+    credential->signature.v + SIZE_V/2, public.prove.buffer.data + SIZE_V/2);
   CFlag(&flag);
   if (flag != 0x00) {
     debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
-    INCN(SIZE_V/3, public.prove.buffer.data + SIZE_V/3);
+    INCN(SIZE_V/2, public.prove.buffer.data);
   }
-  SUBN(SIZE_V/3, public.prove.buffer.data + SIZE_V/3,
-    credential->signature.v + SIZE_V/3, public.prove.buffer.data + SIZE_V/3);
-  CFlag(&flag);
-  if (flag != 0x00) {
-    debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
-    INCN(SIZE_V/3, public.prove.buffer.data);
-  }
-  SUBN(SIZE_V/3, public.prove.buffer.data,
+  SUBN(SIZE_V/2, public.prove.buffer.data,
     credential->signature.v, public.prove.buffer.data);
 }
