@@ -43,21 +43,36 @@ void verifyProof(void);
 /**
  * Compute the response value vPrimeHat = vPrimeTilde + c*vPrime
  * 
- * @param buffer of size SIZE_VPRIME_ + SIZE_VPRIME
- * @param c in challenge.prefix_vPrime
- * @param vPrime signature.v + SIZE_V - SIZE_VPRIME
- * @param vTilde in vPrimeHat
- * @return vPrimeHat
+ * Requires vPrimeTilde to be stored in vPrimeHat.
  */
-void crypto_compute_vPrimeHat(void);
+#define crypto_compute_vPrimeHat() \
+do { \
+  /* Clear the buffer, to prevent garbage messing up the computation */\
+  __code(CLEARN, public.issue.buffer.data, SIZE_VPRIME_ - SIZE_VPRIME); \
+  /* Multiply c (padded to match size) with least significant part of vPrime */\
+  __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H); \
+  __push(BLOCKCAST(SIZE_H)(session.issue.challenge)); \
+  __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime + SIZE_VPRIME/2)); \
+  __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/2); \
+  __code(STORE, public.issue.buffer.data + SIZE_VPRIME_ - SIZE_VPRIME, SIZE_VPRIME); \
+  /* Multiply c (padded to match size) with most significant part of vPrime */\
+  __code(PUSHZ, SIZE_VPRIME/2 - SIZE_H); \
+  __push(BLOCKCAST(SIZE_H)(session.issue.challenge)); \
+  __push(BLOCKCAST(SIZE_VPRIME/2)(session.issue.vPrime)); \
+  __code(PRIM, PRIM_MULTIPLY, SIZE_VPRIME/2); \
+  /* Combine the two multiplications into a single result */\
+  __code(ADDN, public.issue.buffer.data, SIZE_VPRIME_ - SIZE_VPRIME/2); \
+  __code(POPN, SIZE_VPRIME); \
+  /* Add vPrimeTilde and store the result in vPrimeHat */\
+  __push(BLOCKCAST(SIZE_VPRIME_)(public.issue.buffer.data)); \
+  __code(ADDN, session.issue.vPrimeHat, SIZE_VPRIME_); \
+  __code(POPN, SIZE_VPRIME_); \
+} while (0)
 
 /**
- * Compute the response value mHat[i] = mTilde[i] + c*m[i]
+ * Compute the response value sA = mTilde + c*ms
  * 
- * Requires mTilde[i] to be stored in mHat[i].
- * 
- * @param i index of the message to be hidden
- * @param size of mTilde and mHat
+ * Requires mTilde to be stored in sA.
  */
 #define crypto_compute_sA() \
 do { \
