@@ -54,7 +54,7 @@ void selectAttributes(int selection) {
 }
 
 /**
- * Construct a proof
+ * Construct a proof.
  */
 void constructProof(void) {
   int i;
@@ -119,65 +119,25 @@ void constructProof(void) {
     public.prove.buffer.data, SIZE_BUFFER_C1);
   debugValue("c", public.prove.apdu.challenge, SIZE_H);
 
-  // Compute e' = e - 2^(l_e' - 1) (just ignore the first bit of e)
+  crypto_compute_ePrime(); // Compute e' = e - 2^(l_e' - 1)
   debugValue("e' = e - 2^(l_e' - 1)",
     credential->signature.e + SIZE_E - SIZE_EPRIME, SIZE_EPRIME);
 
-  // Compute e^ = e~ + c e'
-  crypto_compute_eHat();
-  debugValue("eHat", public.prove.eHat, SIZE_E_);
+  crypto_compute_eHat(); // Compute e^ = e~ + c e'
+  debugValue("e^ = e~ + c*e'", public.prove.eHat, SIZE_E_);
 
-  // Compute v' = v - e r_A
-  crypto_compute_vPrime();
+  crypto_compute_vPrime(); // Compute v' = v - e r_A
   debugValue("v' = v - e*r_A", public.prove.buffer.data, SIZE_V);
 
-  // Compute v^ = v~ + c v'
-  crypto_compute_vHat();
+  crypto_compute_vHat(); // Compute v^ = v~ + c v'
   debugValue("vHat", public.prove.vHat, SIZE_V_);
 
-  // Compute m_i^ = m_i~ + c m_i
   for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
-      crypto_compute_mHat(i);
+      crypto_compute_mHat(i); // Compute m_i^ = m_i~ + c m_i
     }
   }
   debugValues("mHat", (ByteArray) session.prove.mHat, SIZE_M_, SIZE_L);
 
   // return eHat, vHat, mHat[i], c, A'
-}
-
-/**
- * Compute the value vPrime = v - e*r_A
- */
-void crypto_compute_vPrime(void) {
-  // Clear the buffer, to prevent garbage messing up the computation
-  __code(CLEARN, public.prove.buffer.data, SIZE_V - SIZE_R_A);
-
-  // Multiply e with least significant half of r_A
-  __code(PUSHZ, SIZE_R_A/2 - SIZE_E);
-  __push(BLOCKCAST(SIZE_E)(credential->signature.e));
-  __push(BLOCKCAST(SIZE_R_A/2)(public.prove.rA + SIZE_R_A/2));
-  __code(PRIM, PRIM_MULTIPLY, SIZE_R_A/2);
-  __code(STORE, public.prove.buffer.data + SIZE_V - SIZE_R_A, SIZE_R_A);
-
-  // Multiply e with most significant half of r_A
-  __code(PUSHZ, SIZE_R_A/2 - SIZE_E);
-  __push(BLOCKCAST(SIZE_E)(credential->signature.e));
-  __push(BLOCKCAST(SIZE_R_A/2)(public.prove.rA));
-  __code(PRIM, PRIM_MULTIPLY, SIZE_R_A/2);
-
-  // Combine the two multiplications into a single result
-  __code(ADDN, public.prove.buffer.data, SIZE_V - SIZE_R_A/2);
-  __code(POPN, SIZE_R_A);
-
-  // Subtract (with carry) from v and store the result in v'
-  SUBN(SIZE_V/2 + 1, public.prove.buffer.data + SIZE_V/2,
-    credential->signature.v + SIZE_V/2, public.prove.buffer.data + SIZE_V/2);
-  CFlag(&flag);
-  if (flag != 0x00) {
-    debugMessage("Subtraction with carry, subtracting 1 (by increasing the buffer with 1)");
-    INCN(SIZE_V/2, public.prove.buffer.data);
-  }
-  SUBN(SIZE_V/2, public.prove.buffer.data,
-    credential->signature.v, public.prove.buffer.data);
 }
