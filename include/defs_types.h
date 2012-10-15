@@ -81,6 +81,8 @@ typedef struct {
 } Credential;
 
 typedef union {
+  Byte base[1];
+
   struct {
     Byte data[255]; // 255
     Byte session[SIZE_PUBLIC - 255]; // SIZE_PUBLIC - 255
@@ -125,6 +127,8 @@ typedef union {
 } PublicData;
 
 typedef union {
+  Byte base[1];
+
   struct {
     ResponseM mHat[SIZE_L]; // 62*6 (372)
     int disclose; // 2

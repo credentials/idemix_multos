@@ -1,19 +1,19 @@
 /**
  * crypto_helper.c
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope t_ it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) Pim Vullers, Radboud University Nijmegen, September 2011.
  */
 
@@ -30,7 +30,7 @@
 
 #ifdef TEST
   #include "defs_test.h"
-  
+
   int m_count = 0;
 #endif // TEST
 
@@ -44,7 +44,7 @@
 
 /**
  * Compute a cryptographic hash of the given input values
- * 
+ *
  * @param list of values to be included in the hash
  * @param length of the values list
  * @param result of the hashing operation
@@ -54,18 +54,18 @@
 void crypto_compute_hash(ValueArray list, int length, ByteArray result,
                          ByteArray buffer, int size) {
   int i, offset = size;
-  
+
   // Store the values
   for (i = length - 1; i >= 0; i--) {
     offset = asn1_encode_int(list[i].data, list[i].size, buffer, offset);
   }
-  
+
   // Store the number of values in the sequence
   offset = asn1_encode_int((ByteArray) &length, 2, buffer, offset);
-  
+
   // Finalise the sequence
   offset = asn1_encode_seq(size - offset, length, buffer, offset);
-  
+
   // Hash the data
   debugValue("asn1rep", buffer + offset, size - offset);
   SHA1(size - offset, result, buffer + offset);
@@ -73,7 +73,7 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
 
 /**
  * Generate a random number in the buffer of length bits
- * 
+ *
  * @param buffer to store the generated random number
  * @param length in bits of the random number to generate
  */
@@ -81,7 +81,7 @@ void crypto_generate_random(ByteArray buffer, int length) {
 #ifndef TEST
   Byte number[8];
   ByteArray random = buffer;
-    
+
   // Generate the random number in blocks of eight bytes (64 bits)
   while (length >= 64) {
     do {
@@ -92,7 +92,7 @@ void crypto_generate_random(ByteArray buffer, int length) {
     length -= 64;
     random += 8;
   }
-  
+
   // Generate the remaining few bytes/bits
   if (length > 0) {
     GetRandomNumber(number);
@@ -155,26 +155,26 @@ void crypto_generate_random(ByteArray buffer, int length) {
 
 /**
  * Compute the helper value S' = S^(2_l) where l = SIZE_S_EXPONENT*8
- * 
- * This value is required for exponentiations with base S and an 
+ *
+ * This value is required for exponentiations with base S and an
  * exponent which is larger than SIZE_N bytes.
  */
 void crypto_compute_S_(void) {
   // Store the value l = SIZE_S_EXPONENT*8 in the buffer
   CLEARN(SIZE_S_EXPONENT + 1, public.issue.buffer.data);
   public.issue.buffer.data[0] = 0x01;
-  
+
   // Compute S_ = S^(2_l)
-  crypto_modexp(SIZE_S_EXPONENT + 1, SIZE_N, public.issue.buffer.data, 
+  crypto_modexp(SIZE_S_EXPONENT + 1, SIZE_N, public.issue.buffer.data,
     credential->issuerKey.n, credential->issuerKey.S, credential->issuerKey.S_);
 }
 
 /**
  * Compute the modular exponentiation: result = S^exponent mod n
- * 
- * This function will use the helper value S' to compute exponentiations 
+ *
+ * This function will use the helper value S' to compute exponentiations
  * with exponents larger than SIZE_N bytes.
- * 
+ *
  * @param size of the exponent
  * @param exponent the power to which the base S should be raised
  * @param result of the computation
@@ -184,7 +184,7 @@ void crypto_modexp_special(int size, ByteArray exponent, ByteArray result, ByteA
     // Compute result = S^(exponent_bottom) * S_^(exponent_top)
     crypto_modexp(SIZE_S_EXPONENT, SIZE_N, exponent + size - SIZE_S_EXPONENT,
       credential->issuerKey.n, credential->issuerKey.S, result);
-    crypto_modexp(size - SIZE_S_EXPONENT, SIZE_N, 
+    crypto_modexp(size - SIZE_S_EXPONENT, SIZE_N,
       exponent, credential->issuerKey.n, credential->issuerKey.S_, buffer);
     crypto_modmul(SIZE_N, result, buffer, credential->issuerKey.n);
   } else {
@@ -202,8 +202,8 @@ void crypto_modexp_special(int size, ByteArray exponent, ByteArray result, ByteA
  */
 void crypto_clear(int size, ByteArray buffer) {
   while (size > 255) {
-    __code(PUSHZ, 255);
     __push(buffer);
+    __code(PUSHZ, 255);
     __code(STOREI, 255);
     buffer += 255;
     size -= 255;
@@ -212,9 +212,33 @@ void crypto_clear(int size, ByteArray buffer) {
 }
 
 /**
- * Clear the session.
+ * Clear the current credential.
+ */
+void crypto_clear_credential(void) {
+  int i;
+
+  for (i = 0; i < sizeof(Credential) / 255; i++) {
+    __push(credential);
+    __code(PUSHZ, 255);
+    __code(STOREI, 255);
+
+    credential += 255;
+  }
+  __push(credential);
+  __code(PUSHZ, sizeof(Credential) % 255);
+  __code(STOREI, sizeof(Credential) % 255);
+
+  credential = NULL;
+}
+
+/**
+ * Clear the current session.
  */
 void crypto_clear_session(void) {
-  CLEARN(sizeof(public), &public);
-  CLEARN(sizeof(session), &session);
+  CLEARN(255, public.base);
+  CLEARN(255, public.base + 255);
+  CLEARN(255, public.base + 255*2);
+  CLEARN(sizeof(PublicData) % 255, public.base + 255*3);
+  CLEARN(255, session.base);
+  CLEARN(sizeof(SessionData) % 255, session.base + 255);
 }

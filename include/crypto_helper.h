@@ -71,7 +71,12 @@ void crypto_modexp_special(int size, ByteArray exponent, ByteArray result, ByteA
 void crypto_clear(int size, ByteArray buffer);
 
 /**
- * Clear the session.
+ * Clear the current credential.
+ */
+void crypto_clear_credential(void);
+
+/**
+ * Clear the current session.
  */
 void crypto_clear_session(void);
 

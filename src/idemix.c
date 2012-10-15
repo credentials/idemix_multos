@@ -800,10 +800,7 @@ void main(void) {
 
           // Verify the given credential ID and remove it if it matches
           if (credential->id == P1P2) {
-            // TODO: This is really slow, performance should be improved
-            //memset(credential, 0x00, sizeof(Credential));
-            crypto_clear(sizeof(Credential), (ByteArray) credential);
-            credential = NULL;
+            crypto_clear_credential();
             debugInteger("Removed credential", P1P2);
             ReturnSW(ISO7816_SW_NO_ERROR);
           }
