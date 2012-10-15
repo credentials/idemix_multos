@@ -42,10 +42,15 @@
 void selectAttributes(int selection) {
   int i;
 
-  for (i = 1; i < 0x8000; i = i << 1) {
-    if ((selection & i != 0) && (i == 0 || i > credential->size)) {
-      // FAIL, TODO: clear already stored things
+  if (session.prove.disclose != 0) {
+      debugError("selectAttributes(): selection already made");
+      ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED_AGAIN);
+  }
+
+  for (i = 0; i < sizeof(int); i++) {
+    if (((1 << i) & selection) != 0 && (i == 0 || i > credential->size)) {
       debugError("selectAttributes(): invalid attribute index");
+      credential = NULL;
       ReturnSW(ISO7816_SW_WRONG_DATA);
     }
   }

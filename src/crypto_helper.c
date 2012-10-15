@@ -200,7 +200,7 @@ void crypto_modexp_special(int size, ByteArray exponent, ByteArray result, ByteA
  * @param size the amount of bytes to clear
  * @param buffer to be cleared
  */
-void clear(int size, ByteArray buffer) {
+void crypto_clear(int size, ByteArray buffer) {
   while (size > 255) {
     __code(PUSHZ, 255);
     __push(buffer);
@@ -209,4 +209,12 @@ void clear(int size, ByteArray buffer) {
     size -= 255;
   }
   memset(buffer, 0x00, size);
+}
+
+/**
+ * Clear the session.
+ */
+void crypto_clear_session(void) {
+  CLEARN(sizeof(public), &public);
+  CLEARN(sizeof(session), &session);
 }

@@ -62,4 +62,17 @@ void crypto_compute_S_(void);
  */
 void crypto_modexp_special(int size, ByteArray exponent, ByteArray result, ByteArray buffer);
 
+/**
+ * Clear size bytes from a bytearray
+ *
+ * @param size the amount of bytes to clear
+ * @param buffer to be cleared
+ */
+void crypto_clear(int size, ByteArray buffer);
+
+/**
+ * Clear the session.
+ */
+void crypto_clear_session(void);
+
 #endif // __crypto_helper_H

@@ -37,8 +37,6 @@
 #include "crypto_proving.h"
 #include "crypto_messaging.h"
 
-#define NULL 0x0000
-
 /********************************************************************/
 /* Public segment (APDU buffer) variable declaration                */
 /********************************************************************/
@@ -244,6 +242,13 @@ void main(void) {
           }
           if (P1P2 == 0) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
+          }
+
+          // Clear the session, if needed.
+          TESTN(SIZE_H, session.issue.challenge);
+          ZFlag(&flag);
+          if (flag == 0) {
+            crypto_clear_session();
           }
 
           // Prevent reissuance of a credential
@@ -597,6 +602,13 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
           }
 
+          // Clear the session, if needed.
+          TESTN(SIZE_H, public.prove.context);
+          ZFlag(&flag);
+          if (flag == 0) {
+            crypto_clear_session();
+          }
+
           // Lookup the given credential ID and select it if it exists
           for (i = 0; i < MAX_CRED; i++) {
             if (credentials[i].id == P1P2) {
@@ -790,7 +802,7 @@ void main(void) {
           if (credential->id == P1P2) {
             // TODO: This is really slow, performance should be improved
             //memset(credential, 0x00, sizeof(Credential));
-            clear(sizeof(Credential), (ByteArray) credential);
+            crypto_clear(sizeof(Credential), (ByteArray) credential);
             credential = NULL;
             debugInteger("Removed credential", P1P2);
             ReturnSW(ISO7816_SW_NO_ERROR);

@@ -22,6 +22,8 @@
 
 #include "defs_sizes.h"
 
+#define NULL 0x0000
+
 typedef unsigned int uint;
 typedef const char *String;
 
