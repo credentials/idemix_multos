@@ -26,7 +26,7 @@
 /**
  * Select the attributes to be disclosed
  */
-void selectAttributes(ByteArray list, int length);
+void selectAttributes(int selection);
 
 /**
  * Construct a proof

@@ -125,11 +125,11 @@ typedef union {
 typedef union {
   struct {
     ResponseM mHat[SIZE_L]; // 62*6 (372)
-    Byte disclose; // 1
+    int disclose; // 2
 #ifdef SIMULATOR
     Hash context;
 #endif // SIMULATOR
-  } prove; // 372 + 1 = 373
+  } prove; // 372 + 2 = 374
 
   struct {
     Hash challenge; // 20

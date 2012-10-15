@@ -625,11 +625,11 @@ void main(void) {
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
-          if (!((wrapped || CheckCase(3)) && Lc < SIZE_L)) {
+          if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
 
-          selectAttributes(public.apdu.data, Lc);
+          selectAttributes(P1P2);
           ReturnSW(ISO7816_SW_NO_ERROR);
           break;
 

@@ -39,19 +39,17 @@
 /**
  * Select the attributes to be disclosed
  */
-void selectAttributes(ByteArray list, int length) {
-  int i = 0;
+void selectAttributes(int selection) {
+  int i;
 
-  debugValue("Disclosure list", list, length);
-  session.prove.disclose = 0x00;
-  for (i = 0; i < length; i++) {
-    if (list[i] == 0 || list[i] > MAX_ATTR) {
+  for (i = 1; i < 0x8000; i = i << 1) {
+    if ((selection & i != 0) && (i == 0 || i > credential->size)) {
       // FAIL, TODO: clear already stored things
       debugError("selectAttributes(): invalid attribute index");
       ReturnSW(ISO7816_SW_WRONG_DATA);
     }
-    session.prove.disclose |= 1 << list[i];
   }
+  session.prove.disclose = selection;
   debugInteger("Disclosure selection", session.prove.disclose);
 }
 
