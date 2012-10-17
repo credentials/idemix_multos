@@ -76,7 +76,7 @@ void constructCommitment(void) {
   crypto_generate_random(session.issue.vPrimeHat, LENGTH_VPRIME_);
   debugValue("vPrimeTilde", session.issue.vPrimeHat, SIZE_VPRIME_);
   crypto_generate_random(session.issue.sA, LENGTH_S_A);
-  debugValue("mTilde[0]", session.issue.sA, SIZE_S_A);
+  debugValue("sA", session.issue.sA, SIZE_S_A);
 
   // - Compute UTilde = S^vPrimeTilde * R[0]^mTilde[0] mod n
   crypto_modexp_special(SIZE_VPRIME_, session.issue.vPrimeHat,
