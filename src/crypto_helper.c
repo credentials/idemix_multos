@@ -215,20 +215,22 @@ void crypto_clear(int size, ByteArray buffer) {
  * Clear the current credential.
  */
 void crypto_clear_credential(void) {
+  Credential *buffer = credential;
   int i;
 
-  for (i = 0; i < sizeof(Credential) / 255; i++) {
-    __push(credential);
-    __code(PUSHZ, 255);
-    __code(STOREI, 255);
-
-    credential += 255;
-  }
-  __push(credential);
-  __code(PUSHZ, sizeof(Credential) % 255);
-  __code(STOREI, sizeof(Credential) % 255);
-
   credential = NULL;
+  for (i = 0; i < sizeof(Credential) / 240; i++) {
+    __push(buffer);
+    __code(PUSHZ, 240);
+    __code(STOREI, 240);
+
+    buffer += 240;
+  }
+  if (sizeof(Credential) % 240 > 0) {
+    __push(buffer);
+    __code(PUSHZ, sizeof(Credential) % 240);
+    __code(STOREI, sizeof(Credential) % 240);
+  }
 }
 
 /**
