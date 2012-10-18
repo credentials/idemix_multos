@@ -237,10 +237,10 @@ void crypto_clear_credential(void) {
  * Clear the current session.
  */
 void crypto_clear_session(void) {
+  CLEARN(255, session.base);
+  CLEARN(sizeof(SessionData) % 255, session.base + 255);
   CLEARN(255, public.base);
   CLEARN(255, public.base + 255);
   CLEARN(255, public.base + 255*2);
   CLEARN(sizeof(PublicData) % 255, public.base + 255*3);
-  CLEARN(255, session.base);
-  CLEARN(sizeof(SessionData) % 255, session.base + 255);
 }
