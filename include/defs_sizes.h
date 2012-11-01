@@ -30,7 +30,7 @@
 #define LENGTH_STATZK   80
 #define LENGTH_H       160 // SHA-1
 #define LENGTH_V      1604
-#define LENGTH_E       501 // > L_STATZK(80) + L_H(160) + L_M(256) + 4
+#define LENGTH_E       504 // > L_STATZK(80) + L_H(160) + L_M(256) + 4
 #define LENGTH_EPRIME  120
 #define LENGTH_VPRIME   (LENGTH_N + LENGTH_STATZK)
 #define LENGTH_VPRIME_  (LENGTH_N + 2*LENGTH_STATZK + LENGTH_H)
