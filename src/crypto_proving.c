@@ -86,29 +86,33 @@ void constructProof(void) {
   // Generate random values for m~[i], e~, v~ and rA
   for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
-      crypto_generate_random(session.prove.mHat[i], LENGTH_M_);
+      // IMPORTANT: Correction to the length of mTilde to prevent overflows
+      crypto_generate_random(session.prove.mHat[i], LENGTH_M_ - 1);
     }
   }
-  debugValues("m_", (ByteArray) session.prove.mHat, SIZE_M_, SIZE_L);
-  crypto_generate_random(public.prove.eHat, LENGTH_E_);
-  debugValue("e_", public.prove.eHat, SIZE_E_);
-  crypto_generate_random(public.prove.vHat, LENGTH_V_);
-  debugValue("v_", public.prove.vHat, SIZE_V_);
+  debugValues("mTilde", (ByteArray) session.prove.mHat, SIZE_M_, SIZE_L);
+  // IMPORTANT: Correction to the length of eTilde to prevent overflows
+  crypto_generate_random(public.prove.eHat, LENGTH_E_ - 1);
+  debugValue("eTilde", public.prove.eHat, SIZE_E_);
+  // IMPORTANT: Correction to the length of vTilde to prevent overflows
+  crypto_generate_random(public.prove.vHat, LENGTH_V_ - 1);
+  debugValue("vTilde", public.prove.vHat, SIZE_V_);
   // IMPORTANT: Correction to the length of rA to prevent negative values
-  crypto_generate_random(public.prove.rA, LENGTH_R_A - 7);
+  crypto_generate_random(public.prove.rA + 1, LENGTH_R_A - 9);
   debugValue("rA", public.prove.rA, SIZE_R_A);
 
-  // Compute A' = A S^r_A
-  crypto_modexp_special(SIZE_R_A, public.prove.rA, public.prove.APrime,
+  // Compute A' = A * S^r_A
+  // IMPORTANT: Correction to the size of rA to skip initial zero bytes
+  crypto_modexp_special(SIZE_R_A - 1, public.prove.rA + 1, public.prove.APrime,
     public.prove.buffer.number[0]);
   debugValue("A' = S^r_A mod n", public.prove.APrime, SIZE_N);
   crypto_modmul(SIZE_N, public.prove.APrime, credential->signature.A, credential->issuerKey.n);
   debugValue("A' = A' * A mod n", public.prove.APrime, SIZE_N);
 
-  // Compute ZTilde = A'^eTilde * S^vTilde * (R[i]^mHat[i] foreach i not in D)
+  // Compute ZTilde = A'^eTilde * S^vTilde * (R[i]^mTilde[i] foreach i not in D)
   crypto_modexp_special(SIZE_V_, public.prove.vHat, public.prove.buffer.number[0],
     public.prove.buffer.number[1]);
-  debugValue("ZTilde = S^v_", public.prove.buffer.number[0], SIZE_N);
+  debugValue("ZTilde = S^vTilde", public.prove.buffer.number[0], SIZE_N);
   crypto_modexp(SIZE_E_, SIZE_N, public.prove.eHat,
     credential->issuerKey.n, public.prove.APrime, public.prove.buffer.number[1]);
   debugValue("buffer = A'^eTilde", public.prove.buffer.number[1], SIZE_N);
