@@ -93,11 +93,12 @@ void crypto_generate_random(ByteArray buffer, int length) {
 
   // Generate the remaining few bytes/bits
   if (length > 0) {
+    buffer -= (length + 7) / 8;
     GetRandomNumber(number);
     number[0] &= 0xFF >> ((64 - length) % 8);
-    buffer -= (length + 7) / 8;
     memcpy(buffer, number, (length + 7) / 8);
   }
+
 #else // TEST
 
   // Copy a test value instead of generating a random
