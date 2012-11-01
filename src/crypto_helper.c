@@ -80,28 +80,23 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
 void crypto_generate_random(ByteArray buffer, int length) {
 #ifndef TEST
   Byte number[8];
-  ByteArray random = buffer;
+  buffer += ((length + 7) / 8);
 
   // Generate the random number in blocks of eight bytes (64 bits)
   while (length >= 64) {
-    do {
-      __push(random);
-      __code(PRIM, PRIM_RANDOM);
-      __code(STOREI, 8);
-    } while (0);
+    buffer -= 8;
+    __push(buffer);
+    __code(PRIM, PRIM_RANDOM);
+    __code(STOREI, 8);
     length -= 64;
-    random += 8;
   }
 
   // Generate the remaining few bytes/bits
   if (length > 0) {
     GetRandomNumber(number);
-    if (length % 8 == 0) {
-      memcpy(random, number, length / 8);
-    } else {
-      memcpy(random, number, (length / 8) + 1);
-      buffer[0] &= 0xFF >> (8 - (length % 8));
-    }
+    number[0] &= 0xFF >> ((64 - length) % 8);
+    buffer -= (length + 7) / 8;
+    memcpy(buffer, number, (length + 7) / 8);
   }
 #else // TEST
 
