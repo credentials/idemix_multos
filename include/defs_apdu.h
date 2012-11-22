@@ -33,6 +33,7 @@
 
 #define INS_SELECT_CREDENTIAL   0x00
 #define INS_GENERATE_SECRET     0x01
+#define INS_RSA_SECRET          0x02
 
 #define INS_ISSUE_CREDENTIAL    0x10
 
@@ -60,6 +61,9 @@
 #define INS_ADMIN_CREDENTIAL    0x30
 #define INS_ADMIN_REMOVE        0x31
 #define INS_ADMIN_FLAGS         0x32
+
+#define P1_RSA_EXPONENT         0x00
+#define P1_RSA_MODULUS          0x01
 
 #define P1_PROOF_U_C            0x00
 #define P1_PROOF_U_VPRIMEHAT    0x01

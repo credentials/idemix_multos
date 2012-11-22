@@ -40,7 +40,7 @@ extern Byte key_enc[SIZE_KEY];
 extern Byte key_mac[SIZE_KEY];
 
 // Card authentication: private key and modulus
-extern Byte rsaSecret[SIZE_RSA_EXPONENT];
+extern Byte rsaExponent[SIZE_RSA_EXPONENT];
 extern Byte rsaModulus[SIZE_RSA_MODULUS];
 
 // Secure messaging: initialisation vector

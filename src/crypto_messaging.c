@@ -264,7 +264,7 @@ void crypto_derive_sessionkeys(void) {
 void crypto_authenticate_card(void) {
   // Decrypt the session key seed input from the terminal
   crypto_modexp_secure(SIZE_RSA_EXPONENT, SIZE_RSA_MODULUS,
-    rsaSecret, rsaModulus, buffer, buffer + SIZE_RSA_MODULUS);
+    rsaExponent, rsaModulus, buffer, buffer + SIZE_RSA_MODULUS);
 
   // Generate the session key seed input from the card
   crypto_generate_random(buffer, LENGTH_KEY_SEED_CARD);

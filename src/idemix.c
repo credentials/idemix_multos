@@ -77,7 +77,7 @@ Byte pinCode[SIZE_PIN] = { 0x30, 0x30, 0x30, 0x30 };
 Byte pinCount = PIN_COUNT;
 
 // Card authentication: private key and modulus
-Byte rsaSecret[SIZE_RSA_EXPONENT];
+Byte rsaExponent[SIZE_RSA_EXPONENT];
 Byte rsaModulus[SIZE_RSA_MODULUS];
 
 // Secure messaging: initialisation vector
@@ -227,6 +227,37 @@ void main(void) {
           debugValue("Initialised master secret", masterSecret, SIZE_M);
           ReturnSW(ISO7816_SW_NO_ERROR);
           break;
+
+        case INS_RSA_SECRET:
+          debugMessage("INS_RSA_SECRET");
+          switch (P1) {
+            case P1_RSA_EXPONENT:
+              debugMessage("P1_RSA_EXPONENT");
+              if (!((wrapped || CheckCase(3)) && Lc == SIZE_RSA_EXPONENT)) {
+                ReturnSW(ISO7816_SW_WRONG_LENGTH);
+              }
+
+              COPYN(SIZE_RSA_EXPONENT, rsaExponent, public.apdu.data);
+              debugValue("Initialised rsaExponent", rsaExponent, SIZE_RSA_EXPONENT);
+              ReturnSW(ISO7816_SW_NO_ERROR);
+              break;
+
+            case P1_RSA_MODULUS:
+              debugMessage("P1_RSA_MODULUS");
+              if (!((wrapped || CheckCase(3)) && Lc == SIZE_RSA_MODULUS)) {
+                ReturnSW(ISO7816_SW_WRONG_LENGTH);
+              }
+
+              COPYN(SIZE_RSA_EXPONENT, rsaModulus, public.apdu.data);
+              debugValue("Initialised rsaModulus", rsaModulus, SIZE_RSA_MODULUS);
+              ReturnSW(ISO7816_SW_NO_ERROR);
+              break;
+
+            default:
+              debugWarning("Unknown parameter");
+              ReturnSW(ISO7816_SW_WRONG_P1P2);
+              break;
+          }
 
         //////////////////////////////////////////////////////////////
         // Personalisation / Issuance instructions                  //
