@@ -1,0 +1,212 @@
+Skipped issuing @ line 98: '### Presenting an Idemix credential
+'
+Processing for number of attributes: 0
+
+Notice: Undefined offset: 0 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+Processing for number of attributes: 1
+
+Notice: Undefined offset: 1 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+
+Notice: Undefined offset: 1 in /mnt/data/credentials/idemix_multos/test/parse.php on line 43
+Processing for number of attributes: 2
+
+Notice: Undefined offset: 2 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+
+Notice: Undefined offset: 2 in /mnt/data/credentials/idemix_multos/test/parse.php on line 43
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+File parsed
+Skipped issuing @ line 122: '### Presenting an Idemix credential
+'
+Processing for number of attributes: 0
+
+Notice: Undefined offset: 0 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+Processing for number of attributes: 1
+
+Notice: Undefined offset: 1 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+
+Notice: Undefined offset: 1 in /mnt/data/credentials/idemix_multos/test/parse.php on line 43
+Processing for number of attributes: 2
+
+Notice: Undefined offset: 2 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+
+Notice: Undefined offset: 2 in /mnt/data/credentials/idemix_multos/test/parse.php on line 43
+Processing for number of attributes: 3
+
+Notice: Undefined offset: 3 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+
+Notice: Undefined offset: 3 in /mnt/data/credentials/idemix_multos/test/parse.php on line 43
+Processing for number of attributes: 4
+
+Notice: Undefined offset: 4 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+
+Notice: Undefined offset: 4 in /mnt/data/credentials/idemix_multos/test/parse.php on line 43
+Processing for number of attributes: 5
+
+Notice: Undefined offset: 5 in /mnt/data/credentials/idemix_multos/test/parse.php on line 48
+
+Notice: Undefined offset: 5 in /mnt/data/credentials/idemix_multos/test/parse.php on line 43
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+Processing for number of attributes: 0
+Processing for number of attributes: 1
+Processing for number of attributes: 2
+Processing for number of attributes: 3
+Processing for number of attributes: 4
+Processing for number of attributes: 5
+File parsed
+Total: Array
+(
+    [2] => Array
+        (
+            [1] => 1427.98
+            [2] => 1299.54
+        )
+
+    [5] => Array
+        (
+            [1] => 1860.3
+            [2] => 1731.5
+            [3] => 1604.06
+            [4] => 1475.12
+            [5] => 1346.08
+        )
+
+)
+Proof generation: Array
+(
+    [2] => Array
+        (
+            [1] => 1295.06
+            [2] => 1165.7
+        )
+
+    [5] => Array
+        (
+            [1] => 1672.16
+            [2] => 1542.16
+            [3] => 1412.64
+            [4] => 1282.54
+            [5] => 1151.94
+        )
+
+)
+Transfer overhead: Array
+(
+    [2] => Array
+        (
+            [0] => 17.58
+            [1] => 132.92
+            [2] => 133.84
+        )
+
+    [5] => Array
+        (
+            [0] => 17.7
+            [1] => 188.14
+            [2] => 189.34
+            [3] => 191.42
+            [4] => 192.58
+            [5] => 194.14
+        )
+
+)
+
+
+Total:
+  &  0  &  1  &  2  &  3  &  4  &  5  \\hline
+1
+Notice: Undefined offset: 1 in /mnt/data/credentials/idemix_multos/test/parse.php on line 91
+ \\hline
+2
+Notice: Undefined offset: 0 in /mnt/data/credentials/idemix_multos/test/parse.php on line 92
+ &   0 & 1427 \\hline
+
+
+Proof generation:
+  &  0  &  1  &  2  &  3  &  4  &  5  \\hline
+1
+Notice: Undefined offset: 1 in /mnt/data/credentials/idemix_multos/test/parse.php on line 101
+ \\hline
+2
+Notice: Undefined offset: 0 in /mnt/data/credentials/idemix_multos/test/parse.php on line 102
+ &   0 & 1295 \\hline
+
+
+Transfer overhead:
+  &  0  &  1  &  2  &  3  &  4  &  5  \\hline
+1
+Notice: Undefined offset: 1 in /mnt/data/credentials/idemix_multos/test/parse.php on line 111
+ \\hline
+2 &  17 & 132 & 133 \\hline
