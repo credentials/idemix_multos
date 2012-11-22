@@ -47,7 +47,10 @@ extern Byte rsaModulus[SIZE_RSA_MODULUS];
 extern Byte iv[SIZE_IV];
 
 // Card holder verification: PIN
-extern Byte pinCode[SIZE_PIN];
-extern Byte pinCount;
+extern PIN cardPIN;
+extern PIN credPIN;
+
+// Logging
+extern LogEntry *log;
 
 #endif // __defs_externals_H

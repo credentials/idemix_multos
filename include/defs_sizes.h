@@ -77,8 +77,13 @@
 #define SIZE_RSA_EXPONENT 128
 #define SIZE_RSA_MODULUS 128
 
-#define SIZE_PIN 4
-#define SIZE_MASTER_PIN 6
+#define SIZE_PIN_MAX 8
+#define SIZE_CRED_PIN 4
+#define SIZE_CARD_PIN 6
+
+#define SIZE_LOG 30
+#define SIZE_TERMINAL_ID 4
+#define SIZE_TIMESTAMP 4
 
 #ifdef ML2
 #ifdef ML3

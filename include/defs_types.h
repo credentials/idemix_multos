@@ -75,16 +75,41 @@ typedef struct {
   CLSignature signature;
   CLMessages attribute;
   CLProof proof;
-  Byte flags;
   Byte size;
+  int flags;
   int id;
 } Credential;
+
+typedef struct {
+  Byte code[SIZE_PIN_MAX];
+  Byte size;
+  Byte minSize;
+  Byte count;
+  Byte flag;
+} PIN;
+
+typedef struct {
+  Byte timestamp[SIZE_TIMESTAMP];
+  Byte terminal[SIZE_TERMINAL_ID];
+  Byte action;
+  int credential;
+  union {
+    struct {
+      int selection;
+    } prove;
+    Byte data[5];
+  } details;
+} LogEntry;
+
+#define ACTION_ISSUE 0x01;
+#define ACTION_PROVE 0x02;
 
 typedef union {
   Byte base[1];
 
   struct {
     Byte data[255]; // 255
+    short list[127]; // 254
     Byte session[SIZE_PUBLIC - 255]; // SIZE_PUBLIC - 255
   } apdu; // SIZE_PUBLIC
 

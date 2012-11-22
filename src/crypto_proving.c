@@ -75,6 +75,7 @@ void selectAttributes(int selection) {
   // Set the attribute disclosure selection.
   session.prove.disclose = selection;
   debugInteger("Disclosure selection", session.prove.disclose);
+  log->details.prove.selection = selection;
 }
 
 /**
