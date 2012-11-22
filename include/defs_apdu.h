@@ -1,22 +1,22 @@
 /**
  * defs_apdu.h
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * Copyright (C) Pim Vullers, Radboud University Nijmegen, July 2011.
  */
- 
+
 #ifndef __defs_apdu_H
 #define __defs_apdu_H
 
@@ -33,6 +33,7 @@
 
 #define INS_SELECT_CREDENTIAL   0x00
 #define INS_GENERATE_SECRET     0x01
+#define INS_RSA_SECRET          0x02
 
 #define INS_ISSUE_CREDENTIAL    0x10
 
@@ -58,8 +59,17 @@
 #define INS_PROVE_RESPONSE      0x25
 
 #define INS_ADMIN_CREDENTIAL    0x30
-#define INS_ADMIN_REMOVE        0x31
-#define INS_ADMIN_FLAGS         0x32
+#define INS_ADMIN_CREDENTIALS   0x31
+#define INS_ADMIN_ATTRIBUTE     0x32
+#define INS_ADMIN_REMOVE        0x33
+#define INS_ADMIN_FLAGS         0x34
+#define INS_ADMIN_LOG           0x35
+
+#define P1_RSA_EXPONENT         0x00
+#define P1_RSA_MODULUS          0x01
+
+#define P1_CARD_PIN             0x00
+#define P1_CRED_PIN             0x01
 
 #define P1_PROOF_U_C            0x00
 #define P1_PROOF_U_VPRIMEHAT    0x01

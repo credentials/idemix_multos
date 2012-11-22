@@ -60,8 +60,24 @@ void crypto_compute_S_(void);
  * @param exponent the power to which the base S should be raised
  * @param result of the computation
  */
-void crypto_compute_SpecialModularExponentiation(int size, 
-                                                 ByteArray exponent, 
-                                                 ByteArray result);
+void crypto_modexp_special(int size, ByteArray exponent, ByteArray result, ByteArray buffer);
+
+/**
+ * Clear size bytes from a bytearray
+ *
+ * @param size the amount of bytes to clear
+ * @param buffer to be cleared
+ */
+void crypto_clear(int size, ByteArray buffer);
+
+/**
+ * Clear the current credential.
+ */
+void crypto_clear_credential(void);
+
+/**
+ * Clear the current session.
+ */
+void crypto_clear_session(void);
 
 #endif // __crypto_helper_H

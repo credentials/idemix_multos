@@ -3,15 +3,16 @@ INCDIR=include
 SRCDIR=src
 TESTDIR=test
 
-FLAGS=-ansi -v
-CARDFLAGS=$(FLAGS) -I$(INCDIR) -O
+PLATFORM=ML3
+FLAGS=-ansi -D$(PLATFORM)
+CARDFLAGS=$(FLAGS) -I$(INCDIR) -Falu -O
 SIMFLAGS=$(FLAGS) -g -I$(INCDIR) -DSIMULATOR -DTEST
 
 HEADERS=$(wildcard $(INCDIR)/*.h)
 SOURCES=$(wildcard $(SRCDIR)/*.c)
 
-SMARTCARD=$(BINDIR)/idemix.smartcard.hzx
-SIMULATOR=$(BINDIR)/idemix.simulator.hzx
+SMARTCARD=$(BINDIR)/idemix.smartcard-$(PLATFORM).alu
+SIMULATOR=$(BINDIR)/idemix.simulator-$(PLATFORM).hzx
 
 SOURCES_crypto_compute_hash=$(TESTDIR)/crypto_compute_hash.c $(SRCDIR)/crypto_helper.c $(SRCDIR)/funcs_helper.c
 TEST_crypto_compute_hash=$(BINDIR)/crypto_compute_hash.hzx
