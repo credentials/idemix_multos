@@ -211,22 +211,33 @@ void crypto_clear(int size, ByteArray buffer) {
  * Clear the current credential.
  */
 void crypto_clear_credential(void) {
-  Credential *buffer = credential;
-  int i;
+  Byte i;
 
+  // Put the address of the credential on the stack
+  __push(credential);
+
+  // Clear the credential in blocks of 255 bytes
+  for (i = 0; i < sizeof(Credential) / 255; i++) {
+
+    // Store a block of 255 zero bytes at the given address
+    __code(PUSHZ, 255);
+    __code(STOREI, 255);
+
+    // Update the address for the next block (add 255)
+    __code(PUSHW, 255);
+    __code(ADDN, 2);
+    __code(POPN, 2);
+  }
+
+  // Store the remaining block of zero bytes at the given address
+  __code(PUSHZ, sizeof(Credential) % 255);
+  __code(STOREI, sizeof(Credential) % 255);
+
+  // Remove the address from the stack
+  __code(POPN, 2);
+
+  // Clear the pointer to the credential
   credential = NULL;
-  for (i = 0; i < sizeof(Credential) / 240; i++) {
-    __push(buffer);
-    __code(PUSHZ, 240);
-    __code(STOREI, 240);
-
-    buffer += 240;
-  }
-  if (sizeof(Credential) % 240 > 0) {
-    __push(buffer);
-    __code(PUSHZ, sizeof(Credential) % 240);
-    __code(STOREI, sizeof(Credential) % 240);
-  }
 }
 
 /**
