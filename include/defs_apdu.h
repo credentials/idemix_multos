@@ -68,8 +68,8 @@
 #define P1_RSA_EXPONENT         0x00
 #define P1_RSA_MODULUS          0x01
 
-#define P1_CARD_PIN             0x00
-#define P1_CRED_PIN             0x01
+#define P1_CARD_PIN             0x01
+#define P1_CRED_PIN             0x00
 
 #define P1_PROOF_U_C            0x00
 #define P1_PROOF_U_VPRIMEHAT    0x01
