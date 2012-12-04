@@ -62,8 +62,9 @@
 #define INS_ADMIN_CREDENTIALS   0x31
 #define INS_ADMIN_ATTRIBUTE     0x32
 #define INS_ADMIN_REMOVE        0x33
-#define INS_ADMIN_FLAGS         0x34
-#define INS_ADMIN_LOG           0x35
+#define INS_ADMIN_GET_FLAGS     0x34
+#define INS_ADMIN_SET_FLAGS     0x35
+#define INS_ADMIN_LOG           0x36
 
 #define P1_RSA_EXPONENT         0x00
 #define P1_RSA_MODULUS          0x01

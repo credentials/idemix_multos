@@ -324,11 +324,11 @@ void main(void) {
           }
 
           // Clear the session, if needed.
-          TESTN(SIZE_H, session.issue.challenge);
+/*          TESTN(SIZE_H, session.issue.challenge);
           ZFlag(&flag);
           if (flag == 0) {
             crypto_clear_session();
-          }
+          }*/
 
           // Prevent reissuance of a credential
           for (i = 0; i < MAX_CRED; i++) {
@@ -690,11 +690,11 @@ void main(void) {
           }
 
           // Clear the session, if needed.
-          TESTN(SIZE_H, public.prove.context);
+/*          TESTN(SIZE_H, public.prove.context);
           ZFlag(&flag);
           if (flag == 0) {
             crypto_clear_session();
-          }
+          }*/
 
           // Lookup the given credential ID and select it if it exists
           for (i = 0; i < MAX_CRED; i++) {
@@ -935,8 +935,8 @@ void main(void) {
           ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
           break;
 
-        case INS_ADMIN_FLAGS:
-          debugMessage("INS_ADMIN_FLAGS");
+        case INS_ADMIN_GET_FLAGS:
+          debugMessage("INS_ADMIN_GET_FLAGS");
           if (!pin_verified(cardPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
@@ -947,13 +947,30 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
 
-          credential->flags = P1;
+          public.apdu.list[0] = credential->flags;
+          debugInteger("Returned flags", public.apdu.list[0]);
+          ReturnLa(ISO7816_SW_NO_ERROR, 2);
+          break;
+
+        case INS_ADMIN_SET_FLAGS:
+          debugMessage("INS_ADMIN_SET_FLAGS");
+          if (!pin_verified(cardPIN)) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (credential == NULL) {
+            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
+          }
+          if (!(wrapped || CheckCase(1))) {
+            ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          }
+
+          credential->flags = P1P2;
           debugInteger("Updated flags", credential->flags);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
           break;
 
         case INS_ADMIN_LOG:
-          debugMessage("INS_ADMIN_FLAGS");
+          debugMessage("INS_ADMIN_LOG");
           if (!pin_verified(cardPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }

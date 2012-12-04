@@ -7,7 +7,7 @@ $totalsum = array();
 
 for ($total = 2; $total <= 5; $total += 3) {
 
-$file = fopen("run-" . $total . "cred-0.2-sle78.log", 'r');
+$file = fopen("run-" . $total . "cred-0.6.log", 'r');
 
 // Skip the issuing part
 $line = fgets($file);
@@ -37,7 +37,7 @@ while (strpos($line, "completed successfully") === false) {
       if (strpos($line, "C: 00A4") !== false) {
         $line = fgets($file); $line = fgets($file);
 
-      } else if (strpos($line, "C: 0021") !== false) {
+      } else if (strpos($line, "C: 8022") !== false) {
         $line = fgets($file); 
         list($d) = sscanf($line, " duration: %d ms");
         $protocol["$total"]["$attr"] += $d;

@@ -1,0 +1,12 @@
+Total: Array
+(
+    [0] => 3235
+)
+Protocol execution: Array
+(
+    [0] => 2498
+)
+Transfer overhead: Array
+(
+    [0] => 737
+)
