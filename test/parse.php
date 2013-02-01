@@ -3,93 +3,85 @@
 
 $overhead = array();
 $protocol = array();
-$totalsum = array();
+$total = array();
+$count = array();
 
-for ($total = 2; $total <= 5; $total += 3) {
+for ($attr = 1; $attr <= 5; $attr++) {
+  $file = fopen("run-" . $attr . "cred-0.6-sle78.log", 'r');
 
-$file = fopen("run-" . $total . "cred-0.6.log", 'r');
-
-// Skip the issuing part
-$line = fgets($file);
-$i = 1;
-while (strpos($line,"### Presenting") === false) {
+  // Skip the issuing part
   $line = fgets($file);
-  $i++;
-}
-echo "Skipped issuing @ line $i: '$line'\n";
-
-$attr = 0;
-$overhead["$total"] = array();
-$protocol["$total"] = array();
-$line = fgets($file);
-
-while (strpos($line, "completed successfully") === false) {
-  if (strpos($line, "### Disclosing") !== false) {
-    list($attr) = sscanf($line, "### Disclosing %d attributes");
-    echo "Processing for number of attributes: $attr\n";
+  while (strpos($line,"### Presenting") === false) {
     $line = fgets($file);
-    $attr = "$attr";
-    
-  } else if (strpos($line, "Proof Specification") !== false) {
-    $line = fgets($file);
-    
-    while (strpos($line, "### Disclosing") === false && strpos($line, "Proof Specification") === false && strpos($line, "completed successfully") === false) {
-      if (strpos($line, "C: 00A4") !== false) {
-        $line = fgets($file); $line = fgets($file);
+  }
 
-      } else if (strpos($line, "C: 8022") !== false) {
-        $line = fgets($file); 
-        list($d) = sscanf($line, " duration: %d ms");
-        $protocol["$total"]["$attr"] += $d;
-        $line = fgets($file);
-
-      } else if (strpos($line, "duration") !== false) {
-        list($d) = sscanf($line, " duration: %d ms");
-        $overhead["$total"]["$attr"] += $d;
-        $line = fgets($file);
-    
-      } else {
-        $line = fgets($file); 
+  $disclosed = 0;
+  $overhead["$attr"] = array();
+  $protocol["$attr"] = array();
+  $total["$attr"] = array();
+  $count["$attr"] = array();
+  
+  $line = fgets($file);
+  while (strpos($line, "completed successfully") === false) {
+    if (strpos($line, "### Disclosing") !== false) {
+      list($disclosed) = sscanf($line, "### Disclosing %d attributes");
+      echo "Processing for number of attributes: $disclosed\n";
+      $disclosed = "$disclosed";
+      $count["$attr"]["$disclosed"] += 1;
+      
+      $line = fgets($file);
+      while (strpos($line, "### Disclosing") === false && strpos($line, "completed successfully") === false) {
+        if (strpos($line, "C: 802") !== false) {
+	  $cmd = $line;
+          $line = fgets($file);
+          list($d) = sscanf($line, " duration: %d ms");
+	  if (strpos($cmd, "C: 8022") !== false) {
+            $protocol["$attr"]["$disclosed"] += $d;
+	  } else {
+            $overhead["$attr"]["$disclosed"] += $d;
+          }
+          $line = fgets($file);
+        } else {
+          $line = fgets($file); 
+        }
       }
-    }
     
-  } else {
-    $line = fgets($file); 
+    } else {
+      $line = fgets($file); 
+    }
+  }
+
+  fclose($file);
+
+  foreach ($protocol["$attr"] as $key => $value) {
+    $total["$attr"]["$key"] = $protocol["$attr"]["$key"] + $overhead["$attr"]["$key"];
+  }
+
+  foreach ($protocol["$attr"] as $key => $value) {
+    $protocol["$attr"][$key] = $value / ($count["$attr"]["$key"] * 1.0);
+  }
+
+  foreach ($overhead["$attr"] as $key => $value) {
+    $overhead["$attr"][$key] = $value / ($count["$attr"]["$key"] * 1.0);
+  }
+
+  foreach ($total["$attr"] as $key => $value) {
+    $total["$attr"][$key] = $value / ($count["$attr"]["$key"] * 1.0);
   }
 }
 
-echo "File parsed\n";
-
-fclose($file);
-
-foreach ($protocol["$total"] as $key => $value) {
-  $totalsum["$total"]["$key"] = $protocol["$total"]["$key"] + $overhead["$total"]["$key"];
-}
-
-foreach ($protocol["$total"] as $key => $value) {
-  $protocol["$total"][$key] = $value / 50.0;
-}
-
-foreach ($overhead["$total"] as $key => $value) {
-  $overhead["$total"][$key] = $value / 50.0;
-}
-
-foreach ($totalsum["$total"] as $key => $value) {
-  $totalsum["$total"][$key] = $value / 50.0;
-}
-
-}
-
-echo "Total: "; print_r($totalsum);
+echo "Total: "; print_r($total);
+echo "Count: "; print_r($count);
 echo "Proof generation: "; print_r($protocol);
 echo "Transfer overhead: "; print_r($overhead);
 
 echo "\n\nTotal:\n";
 echo "  &  0  &  1  &  2  &  3  &  4  &  5  \\\hline\n";
-for ($i = 1; $i <= count($totalsum); $i++) {
-  echo $i;
-  for ($j = 0; $j < count($totalsum["$i"]); $j++) {
-    printf(" & %3d", $totalsum["$i"]["$j"]);
+for ($i = 1; $i <= count($total); $i++) {
+  $attr = $i + 1;
+  echo $attr;
+  for ($j = 0; $j < count($total["$attr"]); $j++) {
+    printf(" & %3d", $total["$attr"]["$j"]);
   }
   echo " \\\hline\n";
 }
@@ -97,9 +89,10 @@ for ($i = 1; $i <= count($totalsum); $i++) {
 echo "\n\nProof generation:\n";
 echo "  &  0  &  1  &  2  &  3  &  4  &  5  \\\hline\n";
 for ($i = 1; $i <= count($protocol); $i++) {
-  echo $i;
-  for ($j = 0; $j < count($protocol["$i"]); $j++) {
-    printf(" & %3d", $protocol["$i"]["$j"]);
+  $attr = $i + 1;
+  echo $attr;
+  for ($j = 0; $j < count($protocol["$attr"]); $j++) {
+    printf(" & %3d", $protocol["$attr"]["$j"]);
   }
   echo " \\\hline\n";
 }
@@ -107,9 +100,10 @@ for ($i = 1; $i <= count($protocol); $i++) {
 echo "\n\nTransfer overhead:\n";
 echo "  &  0  &  1  &  2  &  3  &  4  &  5  \\\hline\n";
 for ($i = 1; $i <= count($overhead); $i++) {
-  echo $i;
-  for ($j = 0; $j < count($overhead["$i"]); $j++) {
-    printf(" & %3d", $overhead["$i"]["$j"]);
+  $attr = $i + 1;
+  echo $attr;
+  for ($j = 0; $j < count($overhead["$attr"]); $j++) {
+    printf(" & %3d", $overhead["$attr"]["$j"]);
   }
   echo " \\\hline\n";
 }
