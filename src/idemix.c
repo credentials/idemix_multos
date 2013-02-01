@@ -906,7 +906,7 @@ void main(void) {
 
           // Lookup the given credential ID and select it if it exists
           for (i = 0; i < MAX_CRED; i++) {
-            public.apdu.list[i] = credentials[i].id;
+            ((short*) public.apdu.data)[i] = credentials[i].id;
           }
           ReturnLa(ISO7816_SW_NO_ERROR, 2*MAX_CRED);
           break;
@@ -947,8 +947,9 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
 
-          public.apdu.list[0] = credential->flags;
-          debugInteger("Returned flags", public.apdu.list[0]);
+          public.apdu.data[0] = credential->flags >> 8;
+          public.apdu.data[1] = credential->flags & 0xff;
+          debugInteger("Returned flags", (short) public.apdu.data);
           ReturnLa(ISO7816_SW_NO_ERROR, 2);
           break;
 

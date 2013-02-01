@@ -109,7 +109,6 @@ typedef union {
 
   struct {
     Byte data[255]; // 255
-    short list[127]; // 254
     Byte session[SIZE_PUBLIC - 255]; // SIZE_PUBLIC - 255
   } apdu; // SIZE_PUBLIC
 
