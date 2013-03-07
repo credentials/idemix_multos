@@ -922,7 +922,8 @@ void main(void) {
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
-          if (!(wrapped || CheckCase(1))) {
+          if (!((wrapped || CheckCase(1)) ||
+              ((wrapped || CheckCase(3)) && (Lc == SIZE_TIMESTAMP)))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
           if (P1P2 == 0) {
@@ -935,6 +936,14 @@ void main(void) {
             debugInteger("Removed credential", P1P2);
             ReturnSW(ISO7816_SW_NO_ERROR);
           }
+          
+          // Create new log entry
+          log_new_entry();
+          COPYN(SIZE_TIMESTAMP, log->timestamp, public.apdu.data);
+          COPYN(SIZE_TERMINAL_ID, log->terminal, terminal);
+          log->action = ACTION_REMOVE;
+          log->credential = P1P2;
+
           ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
           break;
 

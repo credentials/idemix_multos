@@ -103,6 +103,7 @@ typedef struct {
 
 #define ACTION_ISSUE 0x01;
 #define ACTION_PROVE 0x02;
+#define ACTION_REMOVE 0x03;
 
 typedef union {
   Byte base[1];
