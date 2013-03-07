@@ -1,3 +1,7 @@
+*idemix-0.6.2-3bdbacd (7 March 2013)
+
+Bugfix for getting the cards transaction log.
+
 *idemix-0.6.1-965929c (19 February 2013)
 
 Bugfix for getting the list of credentials.
