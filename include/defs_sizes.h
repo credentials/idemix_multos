@@ -28,7 +28,7 @@
 #define LENGTH_N      1024
 #define LENGTH_M       256
 #define LENGTH_STATZK   80
-#define LENGTH_H       160 // SHA-1
+#define LENGTH_H       256 // SHA-256
 #define LENGTH_V      1604
 #define LENGTH_E       504 // > L_STATZK(80) + L_H(160) + L_M(256) + 4
 #define LENGTH_EPRIME  120
@@ -45,7 +45,7 @@
 #define SIZE_N      128 // 1024 bits
 #define SIZE_M       32 //  256 bits
 #define SIZE_STATZK  10 //   80 bits
-#define SIZE_H       20 //  160 bits
+#define SIZE_H       32 //  256 bits
 #define SIZE_V      201 // 1604 bits
 #define SIZE_E       63 //  504 bits
 #define SIZE_EPRIME  15 //  120 bits
