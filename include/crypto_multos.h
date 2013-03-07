@@ -62,7 +62,7 @@ do { \
 #define SHA256(PlainTextLength, HashDigest, PlainText) \
 do { \
   __push(__typechk(unsigned int, PlainTextLength));	\
-  __code(SETW, 0x20); \
+  __code(PUSHW, 32); \
   __push(__typechk(unsigned char *, HashDigest)); \
   __push(__typechk(unsigned char *, PlainText)); \
   __code(PRIM, PRIM_SECURE_HASH); \
