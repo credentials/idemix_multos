@@ -65,6 +65,6 @@ void clear(int size, ByteArray buffer);
   logHead = (logHead + 1) % SIZE_LOG;
 
 #define log_get_entry(index) \
-  logList[logHead + SIZE_LOG - 1 + (index) % SIZE_LOG]
+  log = &logList[(2*SIZE_LOG + logHead - 1 - ((index) % SIZE_LOG)) % SIZE_LOG];
 
 #endif // __funcs_helper_H

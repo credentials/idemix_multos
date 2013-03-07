@@ -20,7 +20,7 @@
 // Name everything "idemix"
 #pragma attribute("aid", "69 64 65 6D 69 78")
 #pragma attribute("dir", "61 10 4f 6 69 64 65 6D 69 78 50 6 69 64 65 6D 69 78")
-#pragma attribute("fci", "49 00 06 01")
+#pragma attribute("fci", "49 00 06 02")
 
 #include <ISO7816.h> // for APDU constants
 #include <multosarith.h> // for COPYN()
@@ -317,7 +317,8 @@ void main(void) {
           if (!pin_verified(credPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
-          if (!((wrapped || CheckCase(3)) && Lc == SIZE_H)) {
+          if (!((wrapped || CheckCase(3)) &&
+              (Lc == SIZE_H || Lc == SIZE_H + SIZE_TIMESTAMP))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
           if (P1P2 == 0) {
@@ -683,7 +684,8 @@ void main(void) {
 
         case INS_PROVE_CREDENTIAL:
           debugMessage("INS_PROVE_CREDENTIAL");
-          if (!((wrapped || CheckCase(3)) && Lc == SIZE_H)) {
+          if (!((wrapped || CheckCase(3)) &&
+              (Lc == SIZE_H || Lc == SIZE_H + SIZE_TIMESTAMP))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
           if (P1P2 == 0) {
@@ -981,8 +983,8 @@ void main(void) {
           }
 
           for (i = 0; i < 255 / sizeof(LogEntry); i++) {
-            memcpy(public.apdu.data + i*sizeof(LogEntry), &log_get_entry(P1 + i),
-              sizeof(LogEntry));
+            log_get_entry(P1 + i);
+            memcpy(public.apdu.data + i*sizeof(LogEntry), log, sizeof(LogEntry));
           }
           ReturnLa(ISO7816_SW_NO_ERROR, (255 / sizeof(LogEntry)) * sizeof(LogEntry));
           break;
