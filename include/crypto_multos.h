@@ -25,6 +25,7 @@
 #define PRIM_MULTIPLY 0x10
 #define PRIM_RANDOM 0xc4
 #define PRIM_RSA_VERIFY 0xEB
+#define PRIM_SECURE_HASH 0xCF
 
 #define crypto_modmul(ModulusLength, LHS, RHS, Modulus) \
   ModularMultiplication(ModulusLength, LHS, RHS, Modulus)
@@ -57,5 +58,14 @@ do { \
   ModularExponentiation(ExponentLength, ModulusLength, Exponent, Modulus, Base, Result)
 
 #endif // crypto_modexp
+
+#define SHA256(PlainTextLength, HashDigest, PlainText) \
+do { \
+  __push(__typechk(unsigned int, PlainTextLength));	\
+  __code(SETW, 0x20); \
+  __push(__typechk(unsigned char *, HashDigest)); \
+  __push(__typechk(unsigned char *, PlainText)); \
+  __code(PRIM, PRIM_SECURE_HASH); \
+} while (0)
 
 #endif // __crypto_multos_H

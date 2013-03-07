@@ -53,6 +53,7 @@
  */
 void crypto_compute_hash(ValueArray list, int length, ByteArray result,
                          ByteArray buffer, int size) {
+  Byte tmp[32];
   int i, offset = size;
 
   // Store the values
@@ -68,7 +69,8 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
 
   // Hash the data
   debugValue("asn1rep", buffer + offset, size - offset);
-  SHA1(size - offset, result, buffer + offset);
+  SHA256(size - offset, tmp, buffer + offset);
+  COPYN(SIZE_H, result, tmp);
 }
 
 /**
