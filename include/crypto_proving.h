@@ -104,8 +104,6 @@ do { \
  */
 #define crypto_compute_eHat() \
 do { \
-  /* Push ZERO bytes for padding (since 2*SIZE_H < SIZE_E_)*/\
-  __code(PUSHZ, SIZE_E_ - 2*SIZE_H); \
   /* Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_EPRIME) */\
   __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
   __code(PUSHZ, SIZE_H - SIZE_EPRIME); \
@@ -113,7 +111,8 @@ do { \
   __code(PRIM, PRIM_MULTIPLY, SIZE_H); \
   /* Add eTilde and store the result in eHat */\
   __code(ADDN, public.prove.eHat, SIZE_E_); \
-  __code(POPN, SIZE_E_); \
+  /* Cleanup the stack */\
+  __code(POPN, 2*SIZE_H); \
 } while (0)
 
 /**
@@ -126,7 +125,7 @@ do { \
 #define crypto_compute_mHat(i) \
 do { \
   /* Multiply c with m */\
-  __code(PUSHZ, SIZE_M - SIZE_H); \
+  __code(PUSHZ, SIZE_M_ + 2 - 2*SIZE_M); \
   __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
   __push(BLOCKCAST(SIZE_M)(i == 0 ? masterSecret : credential->attribute[i - 1])); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_M); \

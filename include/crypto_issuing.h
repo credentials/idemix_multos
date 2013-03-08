@@ -77,14 +77,14 @@ do { \
 #define crypto_compute_sA() \
 do { \
   /* Multiply c with m */\
-  __code(PUSHZ, SIZE_M - SIZE_H); \
+  __code(PUSHZ, SIZE_S_A - 2*SIZE_M); \
   __push(BLOCKCAST(SIZE_H)(session.issue.challenge)); \
   __push(BLOCKCAST(SIZE_M)(masterSecret)); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_M); \
   /* Add the result of the multiplication to mTilde and store in sA */\
   __code(ADDN, session.issue.sA, SIZE_S_A); \
   /* Cleanup the stack */\
-  __code(POPN, 2*SIZE_M - SIZE_S_A); \
+  __code(POPN, SIZE_S_A); \
 } while (0)
 
 #endif // __crypto_issuing_H
