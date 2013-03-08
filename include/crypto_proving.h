@@ -41,19 +41,19 @@ do { \
   /* Clear the buffer, to prevent garbage messing up the computation */\
   __code(CLEARN, public.prove.buffer.data, SIZE_V - SIZE_R_A); \
   /* Multiply e with least significant half of r_A */\
-  __code(PUSHZ, SIZE_R_A/2 - SIZE_E); \
-  __push(BLOCKCAST(SIZE_E)(credential->signature.e)); \
+  __code(PUSHZ, SIZE_E - SIZE_R_A/2); \
   __push(BLOCKCAST(SIZE_R_A/2)(public.prove.rA + SIZE_R_A/2)); \
-  __code(PRIM, PRIM_MULTIPLY, SIZE_R_A/2); \
-  __code(STORE, public.prove.buffer.data + SIZE_V - SIZE_R_A, SIZE_R_A); \
-  /* Multiply e with most significant half of r_A */\
-  __code(PUSHZ, SIZE_R_A/2 - SIZE_E); \
   __push(BLOCKCAST(SIZE_E)(credential->signature.e)); \
+  __code(PRIM, PRIM_MULTIPLY, SIZE_E); \
+  __code(STORE, public.prove.buffer.data + SIZE_V - SIZE_E, SIZE_E); \
+  /* Multiply e with most significant half of r_A */\
+  __code(PUSHZ, SIZE_E - SIZE_R_A/2); \
   __push(BLOCKCAST(SIZE_R_A/2)(public.prove.rA)); \
-  __code(PRIM, PRIM_MULTIPLY, SIZE_R_A/2); \
+  __push(BLOCKCAST(SIZE_E)(credential->signature.e)); \
+  __code(PRIM, PRIM_MULTIPLY, SIZE_E); \
   /* Combine the two multiplications into a single result */\
-  __code(ADDN, public.prove.buffer.data, SIZE_V - SIZE_R_A/2); \
-  __code(POPN, SIZE_R_A); \
+  __code(ADDN, public.prove.buffer.data, SIZE_V - SIZE_E); \
+  __code(POPN, SIZE_E); \
   /* Subtract from v and store the result in v' */\
   __push(BLOCKCAST(SIZE_V)(credential->signature.v)); \
   __push(BLOCKCAST(SIZE_V)(public.prove.buffer.data)); \
@@ -76,7 +76,7 @@ do { \
   __code(PRIM, PRIM_MULTIPLY, SIZE_V/2); \
   __code(STORE, public.prove.buffer.data + SIZE_V/2 + 1, 2*(SIZE_V/2)); \
   /* Multiply c with most significant part of v */\
-  __code(PUSHZ, SIZE_V/2 + 1- SIZE_H); \
+  __code(PUSHZ, SIZE_V/2 + 1 - SIZE_H); \
   __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
   __push(BLOCKCAST(SIZE_V/2 + 1)(public.prove.buffer.data)); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_V/2 + 1); \
@@ -105,9 +105,9 @@ do { \
 #define crypto_compute_eHat() \
 do { \
   /* Multiply c with ePrime (SIZE_H since SIZE_H > SIZE_EPRIME) */\
-  __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
   __code(PUSHZ, SIZE_H - SIZE_EPRIME); \
   __push(BLOCKCAST(SIZE_EPRIME)(credential->signature.e + SIZE_E - SIZE_EPRIME)); /* ePrime */\
+  __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_H); \
   /* Add eTilde and store the result in eHat */\
   __code(ADDN, public.prove.eHat, SIZE_E_); \

@@ -47,7 +47,7 @@
 #define SIZE_STATZK  10 //   80 bits
 #define SIZE_H       32 //  256 bits
 #define SIZE_V      213 // 1700 bits
-#define SIZE_E       75 //  600 bits
+#define SIZE_E       75 //  597 bits
 #define SIZE_EPRIME  15 //  120 bits
 
 #define SIZE_VPRIME  (SIZE_N + SIZE_STATZK) // 138 bytes
@@ -62,7 +62,7 @@
 #define SIZE_BUFFER_C2 ((SIZE_H+3) + 3*(SIZE_N+4) + (SIZE_STATZK+3) + 3 + 4) // 450 bytes
 
 // Auxiliary sizes
-#define SIZE_S_EXPONENT 120
+#define SIZE_S_EXPONENT 128
 #define SIZE_V_ADDITION 80
 
 #define SIZE_IV 8
