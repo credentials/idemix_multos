@@ -20,7 +20,7 @@
 // Name everything "idemix"
 #pragma attribute("aid", "69 64 65 6D 69 78")
 #pragma attribute("dir", "61 10 4f 6 69 64 65 6D 69 78 50 6 69 64 65 6D 69 78")
-#pragma attribute("fci", "49 00 06 03")
+#pragma attribute("fci", "49 00 06 04")
 
 #include <ISO7816.h> // for APDU constants
 #include <multosarith.h> // for COPYN()

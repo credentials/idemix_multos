@@ -1,3 +1,7 @@
+*idemix-0.6.4-4811e35 (13 March 2013)
+
+Bugfix which really adds logging of REMOVE actions.
+
 *idemix-0.6.3-43cb18c (11 March 2013)
 
 Bugfix which adds logging for REMOVE actions.
