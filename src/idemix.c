@@ -685,7 +685,7 @@ void main(void) {
         case INS_PROVE_CREDENTIAL:
           debugMessage("INS_PROVE_CREDENTIAL");
           if (!((wrapped || CheckCase(3)) &&
-              (Lc == SIZE_H || Lc == SIZE_H + SIZE_TIMESTAMP))) {
+              (Lc == SIZE_H || Lc == SIZE_H + SIZE_TIMESTAMP || Lc == SIZE_H + SIZE_TIMESTAMP + SIZE_TERMINAL_ID))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
           if (P1P2 == 0) {
@@ -698,6 +698,9 @@ void main(void) {
           if (flag == 0) {
             crypto_clear_session();
           }*/
+
+          // FIXME: should be done during auth.
+          COPYN(SIZE_TERMINAL_ID, terminal, public.apdu.data + SIZE_H + SIZE_TIMESTAMP);
 
           // Lookup the given credential ID and select it if it exists
           for (i = 0; i < MAX_CRED; i++) {
@@ -934,16 +937,17 @@ void main(void) {
           if (credential->id == P1P2) {
             crypto_clear_credential();
             debugInteger("Removed credential", P1P2);
+
+            // Create new log entry
+            log_new_entry();
+            COPYN(SIZE_TIMESTAMP, log->timestamp, public.apdu.data);
+            COPYN(SIZE_TERMINAL_ID, log->terminal, terminal);
+            log->action = ACTION_REMOVE;
+            log->credential = P1P2;
+
             ReturnSW(ISO7816_SW_NO_ERROR);
           }
           
-          // Create new log entry
-          log_new_entry();
-          COPYN(SIZE_TIMESTAMP, log->timestamp, public.apdu.data);
-          COPYN(SIZE_TERMINAL_ID, log->terminal, terminal);
-          log->action = ACTION_REMOVE;
-          log->credential = P1P2;
-
           ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
           break;
 
