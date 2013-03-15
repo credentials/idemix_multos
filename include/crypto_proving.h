@@ -53,7 +53,7 @@ do { \
   __code(PRIM, PRIM_MULTIPLY, SIZE_E); \
   /* Combine the two multiplications into a single result */\
   __code(ADDN, public.prove.buffer.data, SIZE_V - SIZE_E); \
-  __code(POPN, SIZE_E); \
+  __code(POPN, 3*SIZE_E); \
   /* Subtract from v and store the result in v' */\
   __push(BLOCKCAST(SIZE_V)(credential->signature.v)); \
   __push(BLOCKCAST(SIZE_V)(public.prove.buffer.data)); \
