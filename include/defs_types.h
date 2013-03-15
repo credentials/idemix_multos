@@ -155,26 +155,26 @@ typedef union {
   Byte base[1];
 
   struct {
-    ResponseM mHat[SIZE_L]; // 62*6 (372)
+    ResponseM mHat[SIZE_L]; // 74*6 (444)
     int disclose; // 2
 #ifdef SIMULATOR
     Hash context;
 #endif // SIMULATOR
-  } prove; // 372 + 2 = 374
+  } prove; // 444 + 2 = 446
 
   struct {
-    Hash challenge; // 20
-    Byte sA[SIZE_S_A]; // 63
+    Hash challenge; // 32
+    Byte sA[SIZE_S_A]; // 75
     Byte vPrime[SIZE_VPRIME]; // 138
-    ResponseVPRIME vPrimeHat; // 168
-  } issue; // 20 + 63 + 138 + 168 = 389
+    ResponseVPRIME vPrimeHat; // 180
+  } issue; // 32 + 75 + 138 + 180 = 425
 
   struct {
     Value list[5]; // 20
-    Hash challenge; // 20
+    Hash challenge; // 32
     Number Q; // 128
     Number AHat; // 128
-  } vfyPrf; // 20 + 20 + 128 + 128 = 296
+  } vfyPrf; // 20 + 32 + 128 + 128 = 308
 } SessionData;
 
 #endif // __defs_types_H
