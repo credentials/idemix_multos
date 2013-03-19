@@ -18,9 +18,9 @@
  */
 
 // Name everything "idemix"
-#pragma attribute("aid", "69 64 65 6D 69 78")
+#pragma attribute("aid", "49 52 4D 41 63 61 72 64")
 #pragma attribute("dir", "61 10 4f 6 69 64 65 6D 69 78 50 6 69 64 65 6D 69 78")
-#pragma attribute("fci", "49 00 06 04")
+#pragma attribute("fci", "49 00 07 00")
 
 #include <ISO7816.h> // for APDU constants
 #include <multosarith.h> // for COPYN()
@@ -325,13 +325,6 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
           }
 
-          // Clear the session, if needed.
-/*          TESTN(SIZE_H, session.issue.challenge);
-          ZFlag(&flag);
-          if (flag == 0) {
-            crypto_clear_session();
-          }*/
-
           // Prevent reissuance of a credential
           for (i = 0; i < MAX_CRED; i++) {
             if (credentials[i].id == P1P2) {
@@ -364,79 +357,71 @@ void main(void) {
           ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED);
           break;
 
-        case INS_ISSUE_PUBLIC_KEY_N:
-          debugMessage("INS_ISSUE_PUBLIC_KEY_N");
+        case INS_ISSUE_PUBLIC_KEY:
+          debugMessage("INS_ISSUE_PUBLIC_KEY");
           if (!pin_verified(credPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
-          if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
 
-          COPYN(SIZE_N, credential->issuerKey.n, public.apdu.data);
-          debugNumber("Initialised isserKey.n", credential->issuerKey.n);
-          ReturnSW(ISO7816_SW_NO_ERROR);
-          break;
+          switch (P1) {
+            case P1_PUBLIC_KEY_N:
+              debugMessage("P1_PUBLIC_KEY_N");
+              if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
+                ReturnSW(ISO7816_SW_WRONG_LENGTH);
+              }
 
-        case INS_ISSUE_PUBLIC_KEY_Z:
-          debugMessage("INS_ISSUE_PUBLIC_KEY_Z");
-          if (!pin_verified(credPIN)) {
-            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
-          }
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
-          if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
+              COPYN(SIZE_N, credential->issuerKey.n, public.apdu.data);
+              debugNumber("Initialised isserKey.n", credential->issuerKey.n);
+              ReturnSW(ISO7816_SW_NO_ERROR);
+              break;
 
-          COPYN(SIZE_N, credential->issuerKey.Z, public.apdu.data);
-          debugNumber("Initialised isserKey.Z", credential->issuerKey.Z);
-          ReturnSW(ISO7816_SW_NO_ERROR);
-          break;
+            case P1_PUBLIC_KEY_Z:
+              debugMessage("P1_PUBLIC_KEY_Z");
+              if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
+                ReturnSW(ISO7816_SW_WRONG_LENGTH);
+              }
 
-        case INS_ISSUE_PUBLIC_KEY_S:
-          debugMessage("INS_ISSUE_PUBLIC_KEY_S");
-          if (!pin_verified(credPIN)) {
-            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
-          }
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
-          if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
+              COPYN(SIZE_N, credential->issuerKey.Z, public.apdu.data);
+              debugNumber("Initialised isserKey.Z", credential->issuerKey.Z);
+              ReturnSW(ISO7816_SW_NO_ERROR);
+              break;
 
-          COPYN(SIZE_N, credential->issuerKey.S, public.apdu.data);
-          debugNumber("Initialised isserKey.S", credential->issuerKey.S);
-          crypto_compute_S_();
-          debugNumber("Initialised isserKey.S_", credential->issuerKey.S_);
-          ReturnSW(ISO7816_SW_NO_ERROR);
-          break;
+            case P1_PUBLIC_KEY_S:
+              debugMessage("P1_PUBLIC_KEY_S");
+              if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
+                ReturnSW(ISO7816_SW_WRONG_LENGTH);
+              }
 
-        case INS_ISSUE_PUBLIC_KEY_R:
-          debugMessage("INS_ISSUE_PUBLIC_KEY_R");
-          if (!pin_verified(credPIN)) {
-            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
-          }
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
-          if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
-          if (P1 > MAX_ATTR) {
-            ReturnSW(ISO7816_SW_WRONG_P1P2);
-          }
+              COPYN(SIZE_N, credential->issuerKey.S, public.apdu.data);
+              debugNumber("Initialised isserKey.S", credential->issuerKey.S);
+              crypto_compute_S_();
+              debugNumber("Initialised isserKey.S_", credential->issuerKey.S_);
+              ReturnSW(ISO7816_SW_NO_ERROR);
+              break;
 
-          COPYN(SIZE_N, credential->issuerKey.R[P1], public.apdu.data);
-          debugNumberI("Initialised isserKey.R", credential->issuerKey.R, P1);
-          ReturnSW(ISO7816_SW_NO_ERROR);
-          break;
+            case P1_PUBLIC_KEY_R:
+              debugMessage("P1_PUBLIC_KEY_R");
+              if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
+                ReturnSW(ISO7816_SW_WRONG_LENGTH);
+              }
+              if (P2 > MAX_ATTR) {
+                ReturnSW(ISO7816_SW_WRONG_P1P2);
+              }
 
+              COPYN(SIZE_N, credential->issuerKey.R[P2], public.apdu.data);
+              debugNumberI("Initialised isserKey.R", credential->issuerKey.R, P2);
+              ReturnSW(ISO7816_SW_NO_ERROR);
+              break;
+              
+            default:
+              debugWarning("Unknown parameter");
+              ReturnSW(ISO7816_SW_WRONG_P1P2);
+              break;
+          }
+          
         case INS_ISSUE_ATTRIBUTES:
           debugMessage("INS_ISSUE_ATTRIBUTES");
           if (!pin_verified(credPIN)) {
@@ -692,13 +677,6 @@ void main(void) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
           }
 
-          // Clear the session, if needed.
-/*          TESTN(SIZE_H, public.prove.context);
-          ZFlag(&flag);
-          if (flag == 0) {
-            crypto_clear_session();
-          }*/
-
           // FIXME: should be done during auth.
           COPYN(SIZE_TERMINAL_ID, terminal, public.apdu.data + SIZE_H + SIZE_TIMESTAMP);
 
@@ -859,6 +837,22 @@ void main(void) {
         // Administration instructions                              //
         //////////////////////////////////////////////////////////////
 
+        case INS_ADMIN_CREDENTIALS:
+          debugMessage("INS_ADMIN_CREDENTIALS");
+          if (!pin_verified(cardPIN)) {
+            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          }
+          if (!(wrapped || CheckCase(1))) {
+            ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          }
+
+          for (i = 0; i < MAX_CRED; i++) {
+            ((short*) public.apdu.data)[i] = credentials[i].id;
+          }
+
+          ReturnLa(ISO7816_SW_NO_ERROR, 2*MAX_CRED);
+          break;
+
         case INS_ADMIN_CREDENTIAL:
           debugMessage("INS_ADMIN_CREDENTIAL");
           if (!pin_verified(cardPIN)) {
@@ -901,22 +895,6 @@ void main(void) {
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_M);
           break;
 
-        case INS_ADMIN_CREDENTIALS:
-          debugMessage("INS_ADMIN_CREDENTIALS");
-          if (!pin_verified(cardPIN)) {
-            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
-          }
-          if (!(wrapped || CheckCase(1))) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
-
-          // Lookup the given credential ID and select it if it exists
-          for (i = 0; i < MAX_CRED; i++) {
-            ((short*) public.apdu.data)[i] = credentials[i].id;
-          }
-          ReturnLa(ISO7816_SW_NO_ERROR, 2*MAX_CRED);
-          break;
-
         case INS_ADMIN_REMOVE:
           debugMessage("INS_ADMIN_REMOVE");
           if (!pin_verified(cardPIN)) {
@@ -951,39 +929,29 @@ void main(void) {
           ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
           break;
 
-        case INS_ADMIN_GET_FLAGS:
-          debugMessage("INS_ADMIN_GET_FLAGS");
+        case INS_ADMIN_FLAGS:
+          debugMessage("INS_ADMIN_FLAGS");
           if (!pin_verified(cardPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
-          if (!(wrapped || CheckCase(1))) {
+          if (!((wrapped || CheckCase(1)) ||
+              ((wrapped || CheckCase(3)) && (Lc == SIZE_FLAGS)))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
-
-          public.apdu.data[0] = credential->flags >> 8;
-          public.apdu.data[1] = credential->flags & 0xff;
-          debugInteger("Returned flags", (short) public.apdu.data);
-          ReturnLa(ISO7816_SW_NO_ERROR, 2);
-          break;
-
-        case INS_ADMIN_SET_FLAGS:
-          debugMessage("INS_ADMIN_SET_FLAGS");
-          if (!pin_verified(cardPIN)) {
-            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
+          
+          if (Lc > 0) {
+            credential->flags = (short) public.apdu.data;
+            debugInteger("Updated flags", credential->flags);
+            ReturnSW(ISO7816_SW_NO_ERROR);
+          } else {
+            public.apdu.data[0] = credential->flags >> 8;
+            public.apdu.data[1] = credential->flags & 0xff;
+            debugInteger("Returned flags", (short) public.apdu.data);
+            ReturnLa(ISO7816_SW_NO_ERROR, 2);
           }
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
-          if (!(wrapped || CheckCase(1))) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
-
-          credential->flags = P1P2;
-          debugInteger("Updated flags", credential->flags);
-          ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
           break;
 
         case INS_ADMIN_LOG:

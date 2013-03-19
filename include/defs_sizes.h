@@ -84,6 +84,7 @@
 #define SIZE_LOG 30
 #define SIZE_TERMINAL_ID 4
 #define SIZE_TIMESTAMP 4
+#define SIZE_FLAGS 2
 
 #ifdef ML2
 #ifdef ML3
