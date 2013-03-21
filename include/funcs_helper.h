@@ -63,6 +63,7 @@ void clear(int size, ByteArray buffer);
 #define log_new_entry() \
   log = &logList[logHead]; \
   logHead = (logHead + 1) % SIZE_LOG;
+// FIXME: CLEAR this log entry.
 
 #define log_get_entry(index) \
   log = &logList[(2*SIZE_LOG + logHead - 1 - ((index) % SIZE_LOG)) % SIZE_LOG];
