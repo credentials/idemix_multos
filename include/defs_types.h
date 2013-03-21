@@ -119,9 +119,9 @@ typedef union {
       Hash challenge; // 20
     } apdu; // 20
     union {
-      Byte data[SIZE_BUFFER_C1]; // 307
+      Byte data[SIZE_BUFFER_C1]; // 319
       Number number[2]; // 256
-    } buffer; // 307
+    } buffer; // 319
     Hash context; // 20
     Value list[4]; // 16
     Byte rA[SIZE_R_A]; // 138
@@ -158,9 +158,13 @@ typedef union {
     ResponseM mHat[SIZE_L]; // 74*6 (444)
     int disclose; // 2
 #ifdef SIMULATOR
-    Hash context;
+    // Store values to work around the simulator clearing public
+    Hash context; // 32
+    Number APrime; // 128
+    ResponseV vHat; // 255
+    ResponseE eHat; // 57
 #endif // SIMULATOR
-  } prove; // 444 + 2 = 446
+  } prove; // 444 + 2 = 446 (444 + 2 + 32 + 128 + 255 + 57 = 918)
 
   struct {
     Hash challenge; // 32

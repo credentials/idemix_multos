@@ -68,7 +68,14 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
 
   // Hash the data
   debugValue("asn1rep", buffer + offset, size - offset);
+#ifndef SIMULATOR
   SHA256(size - offset, result, buffer + offset);
+#else // SIMULATOR
+  for (i = 0; i < SIZE_H; i++) {
+	  result[i] = i;
+  }
+  SHA1(size - offset, result, buffer + offset);
+#endif // SIMULATOR
 }
 
 /**

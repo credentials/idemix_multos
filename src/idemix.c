@@ -775,7 +775,11 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
 
+#ifndef SIMULATOR
               COPYN(SIZE_N, public.apdu.data, public.prove.APrime);
+#else // SIMULATOR
+              COPYN(SIZE_N, public.apdu.data, session.prove.APrime);
+#endif // SIMULATOR
               debugNumber("Returned A'", public.apdu.data);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
               break;
@@ -786,7 +790,11 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
 
+#ifndef SIMULATOR
               COPYN(SIZE_E_, public.apdu.data, public.prove.eHat);
+#else // SIMULATOR
+              COPYN(SIZE_E_, public.apdu.data, session.prove.eHat);
+#endif // SIMULATOR
               debugValue("Returned e^", public.apdu.data, SIZE_E_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_E_);
               break;
@@ -797,7 +805,11 @@ void main(void) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
 
+#ifndef SIMULATOR
               COPYN(SIZE_V_, public.apdu.data, public.prove.vHat);
+#else // SIMULATOR
+              COPYN(SIZE_V_, public.apdu.data, session.prove.vHat);
+#endif // SIMULATOR
               debugValue("Returned v^", public.apdu.data, SIZE_V_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_V_);
               break;
