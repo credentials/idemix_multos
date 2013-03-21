@@ -28,9 +28,9 @@
 #define LENGTH_N      1024
 #define LENGTH_M       256
 #define LENGTH_STATZK   80
-#define LENGTH_H       160 // SHA-1
-#define LENGTH_V      1604
-#define LENGTH_E       504 // > L_STATZK(80) + L_H(160) + L_M(256) + 4
+#define LENGTH_H       256 // SHA-256
+#define LENGTH_V      1700 // > L_N(1024) + L_STATZK(80) + L_H(256) + L_M(256) + 83
+#define LENGTH_E       597 // > L_STATZK(80) + L_H(256) + L_M(256) + 4
 #define LENGTH_EPRIME  120
 #define LENGTH_VPRIME   (LENGTH_N + LENGTH_STATZK)
 #define LENGTH_VPRIME_  (LENGTH_N + 2*LENGTH_STATZK + LENGTH_H)
@@ -45,24 +45,24 @@
 #define SIZE_N      128 // 1024 bits
 #define SIZE_M       32 //  256 bits
 #define SIZE_STATZK  10 //   80 bits
-#define SIZE_H       20 //  160 bits
-#define SIZE_V      201 // 1604 bits
-#define SIZE_E       63 //  504 bits
+#define SIZE_H       32 //  256 bits
+#define SIZE_V      213 // 1700 bits
+#define SIZE_E       75 //  597 bits
 #define SIZE_EPRIME  15 //  120 bits
 
 #define SIZE_VPRIME  (SIZE_N + SIZE_STATZK) // 138 bytes
-#define SIZE_VPRIME_ (SIZE_N + 2*SIZE_STATZK + SIZE_H) // 168 bytes
-#define SIZE_M_      (SIZE_M + SIZE_STATZK + SIZE_H) // 62 bytes
-#define SIZE_S_A     (SIZE_M + SIZE_STATZK + SIZE_H + 1) // 63 bytes
+#define SIZE_VPRIME_ (SIZE_N + 2*SIZE_STATZK + SIZE_H) // 180 bytes
+#define SIZE_M_      (SIZE_M + SIZE_STATZK + SIZE_H) // 74 bytes
+#define SIZE_S_A     (SIZE_M + SIZE_STATZK + SIZE_H + 1) // 75 bytes
 #define SIZE_R_A     (SIZE_N + SIZE_STATZK) // 138 bytes
-#define SIZE_V_      (SIZE_V + SIZE_STATZK + SIZE_H) // 231 bytes
-#define SIZE_E_      (SIZE_EPRIME + SIZE_STATZK + SIZE_H) // 45 bytes
+#define SIZE_V_      (SIZE_V + SIZE_STATZK + SIZE_H) // 255 bytes
+#define SIZE_E_      (SIZE_EPRIME + SIZE_STATZK + SIZE_H) // 57 bytes
 
-#define SIZE_BUFFER_C1 ((SIZE_H+3) + 2*(SIZE_N+4) + (SIZE_STATZK+3) + 3 + 4) // 307 bytes
-#define SIZE_BUFFER_C2 ((SIZE_H+3) + 3*(SIZE_N+4) + (SIZE_STATZK+3) + 3 + 4) // 438 bytes
+#define SIZE_BUFFER_C1 ((SIZE_H+3) + 2*(SIZE_N+4) + (SIZE_STATZK+3) + 3 + 4) // 319 bytes
+#define SIZE_BUFFER_C2 ((SIZE_H+3) + 3*(SIZE_N+4) + (SIZE_STATZK+3) + 3 + 4) // 450 bytes
 
 // Auxiliary sizes
-#define SIZE_S_EXPONENT 120
+#define SIZE_S_EXPONENT 128
 #define SIZE_V_ADDITION 80
 
 #define SIZE_IV 8

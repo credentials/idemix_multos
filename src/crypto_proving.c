@@ -84,6 +84,11 @@ void selectAttributes(int selection) {
 void constructProof(void) {
   int i;
 
+#ifdef SIMULATOR
+  // Get context from session memory since the simulator clears public
+  COPYN(SIZE_H, public.prove.context, session.prove.context);
+#endif // SIMULATOR
+
   // Generate random values for m~[i], e~, v~ and rA
   for (i = 0; i <= credential->size; i++) {
     if (disclosed(i) == 0) {
@@ -132,11 +137,7 @@ void constructProof(void) {
   }
 
   // Compute challenge c = H(context | A' | ZTilde | nonce)
-#ifndef SIMULATOR
   public.prove.list[0].data = public.prove.context;
-#else // SIMULATOR
-  public.prove.list[0].data = session.prove.context;
-#endif // SIMULATOR
   public.prove.list[0].size = SIZE_H;
   public.prove.list[1].data = public.prove.APrime;
   public.prove.list[1].size = SIZE_N;
@@ -167,6 +168,13 @@ void constructProof(void) {
     }
   }
   debugValues("mHat", (ByteArray) session.prove.mHat, SIZE_M_, SIZE_L);
+
+#ifdef SIMULATOR
+  // Store responses in session memory since the simulator clears public
+  COPYN(SIZE_N, session.prove.APrime, public.prove.APrime);
+  COPYN(SIZE_E_, session.prove.eHat, public.prove.eHat);
+  COPYN(SIZE_V_, session.prove.vHat, public.prove.vHat);
+#endif // SIMULATOR
 
   // return eHat, vHat, mHat[i], c, A'
 }

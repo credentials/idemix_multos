@@ -119,9 +119,9 @@ typedef union {
       Hash challenge; // 20
     } apdu; // 20
     union {
-      Byte data[SIZE_BUFFER_C1]; // 307
+      Byte data[SIZE_BUFFER_C1]; // 319
       Number number[2]; // 256
-    } buffer; // 307
+    } buffer; // 319
     Hash context; // 20
     Value list[4]; // 16
     Byte rA[SIZE_R_A]; // 138
@@ -155,26 +155,30 @@ typedef union {
   Byte base[1];
 
   struct {
-    ResponseM mHat[SIZE_L]; // 62*6 (372)
+    ResponseM mHat[SIZE_L]; // 74*6 (444)
     int disclose; // 2
 #ifdef SIMULATOR
-    Hash context;
+    // Store values to work around the simulator clearing public
+    Hash context; // 32
+    Number APrime; // 128
+    ResponseV vHat; // 255
+    ResponseE eHat; // 57
 #endif // SIMULATOR
-  } prove; // 372 + 2 = 374
+  } prove; // 444 + 2 = 446 (444 + 2 + 32 + 128 + 255 + 57 = 918)
 
   struct {
-    Hash challenge; // 20
-    Byte sA[SIZE_S_A]; // 63
+    Hash challenge; // 32
+    Byte sA[SIZE_S_A]; // 75
     Byte vPrime[SIZE_VPRIME]; // 138
-    ResponseVPRIME vPrimeHat; // 168
-  } issue; // 20 + 63 + 138 + 168 = 389
+    ResponseVPRIME vPrimeHat; // 180
+  } issue; // 32 + 75 + 138 + 180 = 425
 
   struct {
     Value list[5]; // 20
-    Hash challenge; // 20
+    Hash challenge; // 32
     Number Q; // 128
     Number AHat; // 128
-  } vfyPrf; // 20 + 20 + 128 + 128 = 296
+  } vfyPrf; // 20 + 32 + 128 + 128 = 308
 } SessionData;
 
 #endif // __defs_types_H

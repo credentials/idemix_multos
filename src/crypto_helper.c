@@ -68,7 +68,14 @@ void crypto_compute_hash(ValueArray list, int length, ByteArray result,
 
   // Hash the data
   debugValue("asn1rep", buffer + offset, size - offset);
+#ifndef SIMULATOR
+  SHA256(size - offset, result, buffer + offset);
+#else // SIMULATOR
+  for (i = 0; i < SIZE_H; i++) {
+	  result[i] = i;
+  }
   SHA1(size - offset, result, buffer + offset);
+#endif // SIMULATOR
 }
 
 /**
@@ -157,12 +164,13 @@ void crypto_generate_random(ByteArray buffer, int length) {
  */
 void crypto_compute_S_(void) {
   // Store the value l = SIZE_S_EXPONENT*8 in the buffer
-  CLEARN(SIZE_S_EXPONENT + 1, public.issue.buffer.data);
-  public.issue.buffer.data[0] = 0x01;
+  memset(public.issue.buffer.data, 0xFF, SIZE_S_EXPONENT);
 
   // Compute S_ = S^(2_l)
-  crypto_modexp(SIZE_S_EXPONENT + 1, SIZE_N, public.issue.buffer.data,
+  crypto_modexp(SIZE_S_EXPONENT, SIZE_N, public.issue.buffer.data,
     credential->issuerKey.n, credential->issuerKey.S, credential->issuerKey.S_);
+  crypto_modmul(SIZE_N, credential->issuerKey.S_, credential->issuerKey.S, 
+    credential->issuerKey.n);
 }
 
 /**
