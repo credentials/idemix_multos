@@ -52,7 +52,7 @@ do { \
   __push(BLOCKCAST(SIZE_E)(credential->signature.e)); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_E); \
   /* Combine the two multiplications into a single result */\
-  __code(ADDN, public.prove.buffer.data, SIZE_V - SIZE_E); \
+  __code(ADDN, public.prove.buffer.data, SIZE_V - SIZE_R_A/2); \
   __code(POPN, 2*SIZE_E); \
   /* Subtract from v and store the result in v' */\
   __push(BLOCKCAST(SIZE_V)(credential->signature.v)); \
@@ -69,8 +69,6 @@ do { \
  */
 #define crypto_compute_vHat() \
 do { \
-  /* Clear the buffer, to prevent garbage messing up the computation */\
-  __code(CLEARN, public.prove.buffer.data, SIZE_V/2 + 1); \
   /* Multiply c with least significant part of v */\
   __code(PUSHZ, SIZE_V/2 - SIZE_H); \
   __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
@@ -82,6 +80,8 @@ do { \
   __push(BLOCKCAST(SIZE_H)(public.prove.apdu.challenge)); \
   __push(BLOCKCAST(SIZE_V/2 + 1)(public.prove.buffer.data)); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_V/2 + 1); \
+  /* Clear the buffer, to prevent garbage messing up the computation, do NOT do this earlier since it will destroy vPrime */\
+  __code(CLEARN, public.prove.buffer.data, SIZE_V/2 + 1); \
   /* Combine the two multiplications into a single result */\
   __code(ADDN, public.prove.buffer.data, SIZE_V); \
   __code(POPN, SIZE_V + 1); \
