@@ -80,4 +80,8 @@ void crypto_clear_credential(void);
  */
 void crypto_clear_session(void);
 
+#ifdef SIMULATOR
+#define SHA1_PADDED
+#endif // SIMULATOR
+
 #endif // __crypto_helper_H
