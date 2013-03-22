@@ -34,14 +34,14 @@
  *
  * @param buffer which contains the code to verify
  */
-void pin_verify(PIN* pin, ByteArray buffer, Byte size);
+void pin_verify(PIN* pin, ByteArray buffer);
 
 /**
  * Modify a PIN code
  *
  * @param buffer which contains the old and new code
  */
-void pin_update(PIN* pin, ByteArray buffer, Byte size);
+void pin_update(PIN* pin, ByteArray buffer);
 
 /**
  * Whether a PIN code has been verified

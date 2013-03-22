@@ -75,15 +75,13 @@ CLMessage masterSecret;
 
 // Card holder verification: PIN
 PIN cardPIN = {
-  { 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30 },
-  SIZE_CARD_PIN,
+  { 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x00, 0x00 },
   SIZE_CARD_PIN,
   PIN_COUNT,
   FLAG_CARD_PIN
 };
 PIN credPIN = {
-  { 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30 },
-  SIZE_CRED_PIN,
+  { 0x30, 0x30, 0x30, 0x30, 0x00, 0x00, 0x00, 0x00 },
   SIZE_CRED_PIN,
   PIN_COUNT,
   FLAG_CRED_PIN
@@ -109,6 +107,15 @@ Byte logHead = 0;
 void main(void) {
   int i;
 
+  // Check whether the APDU has been wrapped for secure messaging
+  if (wrapped) {
+	if (!CheckCase(4)) {
+	  ExitSW(ISO7816_SW_WRONG_LENGTH);
+	}
+	crypto_unwrap();
+	debugValue("Unwrapped APDU", public.apdu.data, Lc);
+  }
+
   switch (CLA & 0xF3) {
 
     //////////////////////////////////////////////////////////////////
@@ -120,12 +127,8 @@ void main(void) {
       switch (INS) {
 
         //////////////////////////////////////////////////////////////
-        // Terminal authentication                                  //
+        // Authentication                                           //
         //////////////////////////////////////////////////////////////
-
-        case ISO7816_INS_GET_CHALLENGE:
-          // Construct a challenge for the terminal
-          break;
 
         case ISO7816_INS_EXTERNAL_AUTHENTICATE:
           // Perform terminal authentication
@@ -142,53 +145,50 @@ void main(void) {
         //////////////////////////////////////////////////////////////
 
         case ISO7816_INS_VERIFY:
-          // Perform card holder verification
-          switch (P1) {
-            case P1_CARD_PIN:
-              if (!(wrapped || CheckCase(3))) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-              pin_verify(&cardPIN, public.apdu.data, Lc);
-              ReturnSW(ISO7816_SW_NO_ERROR);
+          debugMessage("INS_VERIFY");
+          if (P1 != 0x00) {
+              ReturnSW(ISO7816_SW_WRONG_P1P2);			  
+		  }
+		  if (!((wrapped || CheckCase(3)) && Lc == SIZE_PIN_MAX)) {
+			ReturnSW(ISO7816_SW_WRONG_LENGTH);
+		  }
+          switch (P2) {
+            case P2_CARD_PIN:
+              pin_verify(&cardPIN, public.apdu.data);
               break;
 
-            case P1_CRED_PIN:
-              if (!(wrapped || CheckCase(3))) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-              pin_verify(&credPIN, public.apdu.data, Lc);
-              ReturnSW(ISO7816_SW_NO_ERROR);
+            case P2_CRED_PIN:
+              pin_verify(&credPIN, public.apdu.data);
               break;
 
             default:
               debugWarning("Unknown parameter");
               ReturnSW(ISO7816_SW_WRONG_P1P2);
-              break;
           }
+		  ReturnSW(ISO7816_SW_NO_ERROR);
 
         case ISO7816_INS_CHANGE_REFERENCE_DATA:
-          // Update card holder verification
-          switch (P1) {
-            case P1_CARD_PIN:
-              if (!(wrapped || CheckCase(3))) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-              pin_update(&cardPIN, public.apdu.data, Lc);
-              ReturnSW(ISO7816_SW_NO_ERROR);
+          debugMessage("INS_CHANGE_REFERENCE_DATA");
+          if (P1 != 0x00) {
+              ReturnSW(ISO7816_SW_WRONG_P1P2);			  
+		  }
+		  if (!((wrapped || CheckCase(3)) && Lc == 2*SIZE_PIN_MAX)) {
+			ReturnSW(ISO7816_SW_WRONG_LENGTH);
+		  }
+          switch (P2) {
+            case P2_CARD_PIN:
+              pin_update(&cardPIN, public.apdu.data);
               break;
 
-            case P1_CRED_PIN:
-              if (!(wrapped || CheckCase(3))) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-              pin_update(&credPIN, public.apdu.data, Lc);
-              ReturnSW(ISO7816_SW_NO_ERROR);
+            case P2_CRED_PIN:
+              pin_update(&credPIN, public.apdu.data);
+              break;
 
             default:
               debugWarning("Unknown parameter");
               ReturnSW(ISO7816_SW_WRONG_P1P2);
-              break;
           }
+		  ReturnSW(ISO7816_SW_NO_ERROR);
 
         //////////////////////////////////////////////////////////////
         // Unknown instruction byte (INS)                           //
@@ -196,57 +196,20 @@ void main(void) {
 
         default:
           debugWarning("Unknown instruction");
-          debugInteger("CLA", CLA);
-          debugInteger("INS", INS);
-          debugInteger("P1", P1);
-          debugInteger("P2", P2);
-          debugInteger("Lc", Lc);
-          debugValue("data", public.apdu.data, Lc);
           ReturnSW(ISO7816_SW_INS_NOT_SUPPORTED);
-          break;
       }
-      break;
 
     //////////////////////////////////////////////////////////////////
     // Idemix functionality                                         //
     //////////////////////////////////////////////////////////////////
 
-    case CLA_IDEMIX:
-      // Check whether the APDU has been wrapped for secure messaging
-      if (wrapped) {
-        if (!CheckCase(4)) {
-          ExitSW(ISO7816_SW_WRONG_LENGTH);
-        }
-        crypto_unwrap();
-        debugValue("Unwrapped APDU", public.apdu.data, Lc);
-      }
-
+    case CLA_IRMACARD:
       // Process the instruction
       switch (INS) {
 
         //////////////////////////////////////////////////////////////
         // Initialisation instructions                              //
         //////////////////////////////////////////////////////////////
-
-        case INS_SELECT_CREDENTIAL:
-          debugMessage("INS_SELECT_CREDENTIAL");
-          if (!(wrapped || CheckCase(1))) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
-          if (P1P2 == 0) {
-            ReturnSW(ISO7816_SW_WRONG_P1P2);
-          }
-
-          // Lookup the given credential ID and select it if it exists
-          for (i = 0; i < MAX_CRED; i++) {
-            if (credentials[i].id == P1P2) {
-              credential = &credentials[i];
-              ReturnSW(ISO7816_SW_NO_ERROR);
-            }
-          }
-          debugWarning("Unknown credential");
-          ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
-          break;
 
         case INS_GENERATE_SECRET:
           debugMessage("INS_GENERATE_SECRET");
@@ -275,38 +238,38 @@ void main(void) {
 #endif // TEST
           debugValue("Initialised master secret", masterSecret, SIZE_M);
           ReturnSW(ISO7816_SW_NO_ERROR);
-          break;
 
-        case INS_RSA_SECRET:
-          debugMessage("INS_RSA_SECRET");
+        case INS_AUTHENTICATION_SECRET:
+          debugMessage("INS_AUTHENTICATION_SECRET");
+          if (P2 != 0x00) {
+              ReturnSW(ISO7816_SW_WRONG_P1P2);
+		  }
           switch (P1) {
-            case P1_RSA_EXPONENT:
-              debugMessage("P1_RSA_EXPONENT");
+            case P1_AUTHENTICATION_EXPONENT:
+              debugMessage("P1_AUTHENTICATION_EXPONENT");
               if (!((wrapped || CheckCase(3)) && Lc == SIZE_RSA_EXPONENT)) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
 
               COPYN(SIZE_RSA_EXPONENT, rsaExponent, public.apdu.data);
               debugValue("Initialised rsaExponent", rsaExponent, SIZE_RSA_EXPONENT);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
-            case P1_RSA_MODULUS:
-              debugMessage("P1_RSA_MODULUS");
+            case P1_AUTHENTICATION_MODULUS:
+              debugMessage("P1_AUTHENTICATION_MODULUS");
               if (!((wrapped || CheckCase(3)) && Lc == SIZE_RSA_MODULUS)) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
 
               COPYN(SIZE_RSA_EXPONENT, rsaModulus, public.apdu.data);
               debugValue("Initialised rsaModulus", rsaModulus, SIZE_RSA_MODULUS);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             default:
               debugWarning("Unknown parameter");
               ReturnSW(ISO7816_SW_WRONG_P1P2);
-              break;
           }
+		  ReturnSW(ISO7816_SW_NO_ERROR);
 
         //////////////////////////////////////////////////////////////
         // Personalisation / Issuance instructions                  //
@@ -318,17 +281,17 @@ void main(void) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) &&
-              (Lc == SIZE_H || Lc == SIZE_H + SIZE_TIMESTAMP))) {
+              (Lc == 2 + SIZE_H + 2 || Lc == 2 + SIZE_H + 2 + SIZE_TIMESTAMP))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
-          if (P1P2 == 0) {
+          if (P1P2 != 0) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
           }
 
           // Prevent reissuance of a credential
           for (i = 0; i < MAX_CRED; i++) {
-            if (credentials[i].id == P1P2) {
-              debugWarning("Credential is already issued");
+            if (credentials[i].id == public.issuanceSetup.id) {
+              debugWarning("Credential already exists");
               ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED_AGAIN);
             }
           }
@@ -337,16 +300,18 @@ void main(void) {
           for (i = 0; i < MAX_CRED; i++) {
             if (credentials[i].id == 0) {
               credential = &credentials[i];
-              credential->id = P1P2;
-              COPYN(SIZE_H, credential->proof.context, public.apdu.data);
+              credential->id = public.issuanceSetup.id;
+              credential->size = public.issuanceSetup.size;
+              credential->flags = public.issuanceSetup.flags;
+              COPYN(SIZE_H, credential->proof.context, public.issuanceSetup.context);
               debugHash("Initialised context", credential->proof.context);
 
               // Create new log entry
               log_new_entry();
-              COPYN(SIZE_TIMESTAMP, log->timestamp, public.apdu.data + SIZE_H);
+              COPYN(SIZE_TIMESTAMP, log->timestamp, public.issuanceSetup.timestamp);
               COPYN(SIZE_TERMINAL_ID, log->terminal, terminal);
               log->action = ACTION_ISSUE;
-              log->credential = P1P2;
+              log->credential = credential->id;
 
               ReturnSW(ISO7816_SW_NO_ERROR);
             }
@@ -355,7 +320,6 @@ void main(void) {
           // Out of space (all credential slots are occupied)
           debugWarning("Cannot issue another credential");
           ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED);
-          break;
 
         case INS_ISSUE_PUBLIC_KEY:
           debugMessage("INS_ISSUE_PUBLIC_KEY");
@@ -365,62 +329,45 @@ void main(void) {
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
+          if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
+            ReturnSW(ISO7816_SW_WRONG_LENGTH);
+          }
 
           switch (P1) {
             case P1_PUBLIC_KEY_N:
               debugMessage("P1_PUBLIC_KEY_N");
-              if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-
               COPYN(SIZE_N, credential->issuerKey.n, public.apdu.data);
               debugNumber("Initialised isserKey.n", credential->issuerKey.n);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             case P1_PUBLIC_KEY_Z:
               debugMessage("P1_PUBLIC_KEY_Z");
-              if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-
               COPYN(SIZE_N, credential->issuerKey.Z, public.apdu.data);
               debugNumber("Initialised isserKey.Z", credential->issuerKey.Z);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             case P1_PUBLIC_KEY_S:
               debugMessage("P1_PUBLIC_KEY_S");
-              if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-
               COPYN(SIZE_N, credential->issuerKey.S, public.apdu.data);
               debugNumber("Initialised isserKey.S", credential->issuerKey.S);
               crypto_compute_S_();
               debugNumber("Initialised isserKey.S_", credential->issuerKey.S_);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             case P1_PUBLIC_KEY_R:
               debugMessage("P1_PUBLIC_KEY_R");
-              if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
               if (P2 > MAX_ATTR) {
                 ReturnSW(ISO7816_SW_WRONG_P1P2);
               }
-
               COPYN(SIZE_N, credential->issuerKey.R[P2], public.apdu.data);
               debugNumberI("Initialised isserKey.R", credential->issuerKey.R, P2);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
               
             default:
               debugWarning("Unknown parameter");
               ReturnSW(ISO7816_SW_WRONG_P1P2);
-              break;
           }
+		  ReturnSW(ISO7816_SW_NO_ERROR);
           
         case INS_ISSUE_ATTRIBUTES:
           debugMessage("INS_ISSUE_ATTRIBUTES");
@@ -433,7 +380,7 @@ void main(void) {
           if (!((wrapped || CheckCase(3)) && Lc == SIZE_M)) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
-          if (P1 == 0 || P1 > MAX_ATTR) {
+          if (P1 == 0 || P1 > credential->size) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
           }
           TESTN(SIZE_M, public.apdu.data);
@@ -445,32 +392,10 @@ void main(void) {
 
           COPYN(SIZE_M, credential->attribute[P1 - 1], public.apdu.data);
           debugCLMessageI("Initialised attribute", credential->attribute, P1 - 1);
-          // TODO: Implement some proper handling of the number of attributes
-          if (P1 > credential->size) {
-            credential->size = P1;
-          }
           ReturnSW(ISO7816_SW_NO_ERROR);
-          break;
 
-        case INS_ISSUE_FLAGS:
-          debugMessage("INS_ISSUE_FLAGS");
-          if (!pin_verified(credPIN)) {
-            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
-          }
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
-          if (!(wrapped || CheckCase(1))) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
-
-          credential->flags = P1;
-          debugInteger("Initialised flags", credential->flags);
-          ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
-          break;
-
-        case INS_ISSUE_NONCE_1:
-          debugMessage("INS_ISSUE_NONCE_1");
+        case INS_ISSUE_COMMITMENT:
+          debugMessage("INS_ISSUE_COMMITMENT");
           if (!pin_verified(credPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
@@ -486,59 +411,45 @@ void main(void) {
           constructCommitment();
           debugNumber("Returned U", public.apdu.data);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
-          break;
 
-        case INS_ISSUE_PROOF_U:
-          debugMessage("INS_ISSUE_PROOF_U");
+        case INS_ISSUE_COMMITMENT_PROOF:
+          debugMessage("INS_ISSUE_COMMITMENT_PROOF");
           if (!pin_verified(credPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
-          switch (P1) {
-            case P1_PROOF_U_C:
-              debugMessage("P1_PROOF_U_C");
-              if (!(wrapped || CheckCase(1))) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
+		  if (!(wrapped || CheckCase(1))) {
+			ReturnSW(ISO7816_SW_WRONG_LENGTH);
+		  }
 
+          switch (P1) {
+            case P1_COMMITMENT_PROOF_C:
+              debugMessage("P1_COMMITMENT_PROOF_C");
               COPYN(SIZE_H, public.apdu.data, session.issue.challenge);
               debugHash("Returned c", public.apdu.data);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_H);
-              break;
 
-            case P1_PROOF_U_VPRIMEHAT:
-              debugMessage("P1_PROOF_U_VPRIMEHAT");
-              if (!(wrapped || CheckCase(1))) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-
+            case P1_COMMITMENT_PROOF_VPRIMEHAT:
+              debugMessage("P1_COMMITMENT_PROOF_VPRIMEHAT");
               COPYN(SIZE_VPRIME_, public.apdu.data, session.issue.vPrimeHat);
               debugValue("Returned vPrimeHat", public.apdu.data, SIZE_VPRIME_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_VPRIME_);
-              break;
 
-            case P1_PROOF_U_S_A:
-              debugMessage("P1_PROOF_U_S_A");
-              if (!(wrapped || CheckCase(1))) {
-                ReturnSW(ISO7816_SW_WRONG_LENGTH);
-              }
-
-              COPYN(SIZE_S_A, public.apdu.data, session.issue.sA);
-              debugValue("Returned s_A", public.apdu.data, SIZE_S_A);
-              ReturnLa(ISO7816_SW_NO_ERROR, SIZE_S_A);
-              break;
+            case P1_COMMITMENT_PROOF_SHAT:
+              debugMessage("P1_COMMITMENT_PROOF_SHAT");
+              COPYN(SIZE_S_, public.apdu.data, session.issue.sHat);
+              debugValue("Returned s_A", public.apdu.data, SIZE_S_);
+              ReturnLa(ISO7816_SW_NO_ERROR, SIZE_S_);
 
             default:
               debugWarning("Unknown parameter");
               ReturnSW(ISO7816_SW_WRONG_P1P2);
-              break;
           }
-          break;
 
-        case INS_ISSUE_NONCE_2:
-          debugMessage("INS_ISSUE_NONCE_2");
+        case INS_ISSUE_CHALLENGE:
+          debugMessage("INS_ISSUE_CHALLENGE");
           if (!pin_verified(credPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
@@ -552,7 +463,6 @@ void main(void) {
           COPYN(SIZE_STATZK, public.apdu.data, credential->proof.nonce);
           debugNonce("Returned nonce", public.apdu.data);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_STATZK);
-          break;
 
         case INS_ISSUE_SIGNATURE:
           debugMessage("INS_ISSUE_SIGNATURE");
@@ -562,6 +472,7 @@ void main(void) {
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
+
           switch(P1) {
             case P1_SIGNATURE_A:
               debugMessage("P1_SIGNATURE_A");
@@ -571,7 +482,6 @@ void main(void) {
 
               COPYN(SIZE_N, credential->signature.A, public.apdu.data);
               debugNumber("Initialised signature.A", credential->signature.A);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             case P1_SIGNATURE_E:
@@ -582,7 +492,6 @@ void main(void) {
 
               COPYN(SIZE_E, credential->signature.e, public.apdu.data);
               debugValue("Initialised signature.e", credential->signature.e, SIZE_E);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             case P1_SIGNATURE_V:
@@ -593,7 +502,6 @@ void main(void) {
 
               constructSignature();
               debugValue("Initialised signature.v", credential->signature.v, SIZE_V);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             case P1_SIGNATURE_VERIFY:
@@ -604,64 +512,59 @@ void main(void) {
 
               verifySignature();
               debugMessage("Verified signature");
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             default:
               debugWarning("Unknown parameter");
               ReturnSW(ISO7816_SW_WRONG_P1P2);
-              break;
           }
-          break;
+		  ReturnSW(ISO7816_SW_NO_ERROR);
 
-        case INS_ISSUE_PROOF_A:
-          debugMessage("INS_ISSUE_PROOF_A");
+        case INS_ISSUE_SIGNATURE_PROOF:
+          debugMessage("INS_ISSUE_SIGNATURE_PROOF");
           if (!pin_verified(credPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
+          
           switch(P1) {
-            case P1_PROOF_A_C:
-              debugMessage("P1_PROOF_A_C");
+            case P1_SIGNATURE_PROOF_C:
+              debugMessage("P1_SIGNATURE_PROOF_C");
               if (!((wrapped || CheckCase(3)) && Lc == SIZE_H)) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
 
               COPYN(SIZE_H, credential->proof.challenge, public.apdu.data);
               debugHash("Initialised c", credential->proof.challenge);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
-            case P1_PROOF_A_S_E:
-              debugMessage("P1_PROOF_A_S_E");
+            case P1_SIGNATURE_PROOF_S_E:
+              debugMessage("P1_SIGNATURE_PROOF_S_E");
               if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
 
               COPYN(SIZE_N, credential->proof.response, public.apdu.data);
               debugNumber("Initialised s_e", credential->proof.response);
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
-            case P1_PROOF_A_VERIFY:
-              debugMessage("P1_PROOF_A_VERIFY");
+            case P1_SIGNATURE_PROOF_VERIFY:
+              debugMessage("P1_SIGNATURE_PROOF_VERIFY");
               if (!(wrapped || CheckCase(1))) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
               }
 
               verifyProof();
               debugMessage("Verified proof");
-              ReturnSW(ISO7816_SW_NO_ERROR);
               break;
 
             default:
               debugWarning("Unknown parameter");
               ReturnSW(ISO7816_SW_WRONG_P1P2);
-              break;
           }
-          break;
+		  ReturnSW(ISO7816_SW_NO_ERROR);
 
         //////////////////////////////////////////////////////////////
         // Disclosure / Proving instructions                        //
@@ -673,56 +576,41 @@ void main(void) {
               (Lc == SIZE_H || Lc == SIZE_H + SIZE_TIMESTAMP || Lc == SIZE_H + SIZE_TIMESTAMP + SIZE_TERMINAL_ID))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
-          if (P1P2 == 0) {
+          if (P1P2 != 0) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
           }
 
           // FIXME: should be done during auth.
-          COPYN(SIZE_TERMINAL_ID, terminal, public.apdu.data + SIZE_H + SIZE_TIMESTAMP);
+          COPYN(SIZE_TERMINAL_ID, terminal, public.verificationSetup.terminal);
 
           // Lookup the given credential ID and select it if it exists
           for (i = 0; i < MAX_CRED; i++) {
-            if (credentials[i].id == P1P2) {
+            if (credentials[i].id == public.verificationSetup.id) {
               credential = &credentials[i];
 #ifndef SIMULATOR
-              COPYN(SIZE_H, public.prove.context, public.apdu.data);
+              COPYN(SIZE_H, public.prove.context, public.verificationSetup.context);
               debugHash("Initialised context", public.prove.context);
 #else // SIMULATOR
-              COPYN(SIZE_H, session.prove.context, public.apdu.data);
+              COPYN(SIZE_H, session.prove.context, public.verificationSetup.context);
               debugHash("Initialised context", session.prove.context);
 #endif // SIMULATOR
 
               // Create new log entry
               log_new_entry();
-              COPYN(SIZE_TIMESTAMP, log->timestamp, public.apdu.data + SIZE_H);
+              COPYN(SIZE_TIMESTAMP, log->timestamp, public.verificationSetup.timestamp);
               COPYN(SIZE_TERMINAL_ID, log->terminal, terminal);
               log->action = ACTION_PROVE;
-              log->credential = P1P2;
+              log->credential = credential->id;
+
+			  selectAttributes(public.verificationSetup.selection);
 
               ReturnSW(ISO7816_SW_NO_ERROR);
             }
           }
           ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
-          break;
 
-        case INS_PROVE_SELECTION:
-          debugMessage("INS_PROVE_SELECTION");
-          if (pin_required && !pin_verified(credPIN)) {
-            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
-          }
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
-          if (!(wrapped || CheckCase(1))) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
-
-          selectAttributes(P1P2);
-          ReturnSW(ISO7816_SW_NO_ERROR);
-          break;
-
-        case INS_PROVE_NONCE:
-          debugMessage("INS_PROVE_NONCE");
+        case INS_PROVE_COMMITMENT:
+          debugMessage("INS_PROVE_COMMITMENT");
           if (pin_required && !pin_verified(credPIN)) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
@@ -736,7 +624,6 @@ void main(void) {
           constructProof();
           debugHash("Returned c", public.apdu.data);
           ReturnLa(ISO7816_SW_NO_ERROR, SIZE_H);
-          break;
 
         case INS_PROVE_SIGNATURE:
           debugMessage("INS_PROVE_SIGNATURE");
@@ -746,6 +633,7 @@ void main(void) {
           if (credential == NULL) {
             ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
           }
+
           switch(P1) {
             case P1_SIGNATURE_A:
               debugMessage("P1_SIGNATURE_A");
@@ -760,7 +648,6 @@ void main(void) {
 #endif // SIMULATOR
               debugNumber("Returned A'", public.apdu.data);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_N);
-              break;
 
             case P1_SIGNATURE_E:
               debugMessage("P1_SIGNATURE_E");
@@ -775,7 +662,6 @@ void main(void) {
 #endif // SIMULATOR
               debugValue("Returned e^", public.apdu.data, SIZE_E_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_E_);
-              break;
 
             case P1_SIGNATURE_V:
               debugMessage("P1_SIGNATURE_V");
@@ -790,14 +676,11 @@ void main(void) {
 #endif // SIMULATOR
               debugValue("Returned v^", public.apdu.data, SIZE_V_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_V_);
-              break;
 
             default:
               debugWarning("Unknown parameter");
               ReturnSW(ISO7816_SW_WRONG_P1P2);
-              break;
           }
-          break;
 
         case INS_PROVE_ATTRIBUTE:
           debugMessage("INS_PROVE_ATTRIBUTE");
@@ -810,40 +693,20 @@ void main(void) {
           if (!(wrapped || CheckCase(1))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
-          if (P1 == 0 || P1 > credential->size) {
+          if (P1 > credential->size) {
             ReturnSW(ISO7816_SW_WRONG_P1P2);
           }
-          if (disclosed(P1) != 1) {
-            ReturnSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation!
-          }
+          
+          if (disclosed(P1)) {
+            COPYN(SIZE_M, public.apdu.data, credential->attribute[P1 - 1]);
+            debugValue("Returned attribute", public.apdu.data, SIZE_M);
+            ReturnLa(ISO7816_SW_NO_ERROR, SIZE_M);
+          } else {
+            COPYN(SIZE_M_, public.apdu.data, session.prove.mHat[P1]);
+            debugValue("Returned response", public.apdu.data, SIZE_M_);
+            ReturnLa(ISO7816_SW_NO_ERROR, SIZE_M_);
+	      }
 
-          COPYN(SIZE_M, public.apdu.data, credential->attribute[P1 - 1]);
-          debugValue("Returned attribute", public.apdu.data, SIZE_M);
-          ReturnLa(ISO7816_SW_NO_ERROR, SIZE_M);
-          break;
-
-        case INS_PROVE_RESPONSE:
-          debugMessage("INS_PROVE_RESPONSE");
-          if (pin_required && !pin_verified(credPIN)) {
-            ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
-          }
-          if (credential == NULL) {
-            ReturnSW(ISO7816_SW_CONDITIONS_NOT_SATISFIED);
-          }
-          if (!(wrapped || CheckCase(1))) {
-            ReturnSW(ISO7816_SW_WRONG_LENGTH);
-          }
-          if (P1 > MAX_ATTR) {
-            ReturnSW(ISO7816_SW_WRONG_P1P2);
-          }
-          if (disclosed(P1) != 0) {
-            ReturnSW(ISO7816_SW_WRONG_P1P2); // TODO: security violation?
-          }
-
-          COPYN(SIZE_M_, public.apdu.data, session.prove.mHat[P1]);
-          debugValue("Returned response", public.apdu.data, SIZE_M_);
-          ReturnLa(ISO7816_SW_NO_ERROR, SIZE_M_);
-          break;
 
         //////////////////////////////////////////////////////////////
         // Administration instructions                              //

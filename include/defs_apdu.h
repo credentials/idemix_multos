@@ -25,65 +25,60 @@
 #include "crypto_messaging.h"
 
 // Incorrect constant name in ISO7816.h, so just define it here
-#define ISO7816_INS_GET_CHALLENGE 0x84
 #define ISO7816_INS_CHANGE_REFERENCE_DATA 0x24
 
 // Command APDU definitions
-#define CLA_IDEMIX              0x80
+#define CLA_IRMACARD               0x80
 
-#define INS_SELECT_CREDENTIAL   0x00
-#define INS_GENERATE_SECRET     0x01
-#define INS_RSA_SECRET          0x02
+#define INS_GENERATE_SECRET        0x01
+#define INS_AUTHENTICATION_SECRET  0x02
 
-#define INS_ISSUE_CREDENTIAL    0x10
+#define INS_ISSUE_CREDENTIAL       0x10
+#define INS_ISSUE_PUBLIC_KEY       0x11
+#define INS_ISSUE_ATTRIBUTES       0x12
 
-#define INS_ISSUE_PUBLIC_KEY_N  0x11
-#define INS_ISSUE_PUBLIC_KEY_Z  0x12
-#define INS_ISSUE_PUBLIC_KEY_S  0x13
-#define INS_ISSUE_PUBLIC_KEY_R  0x14
-#define INS_ISSUE_ATTRIBUTES    0x15
-#define INS_ISSUE_FLAGS         0x1B
+#define INS_ISSUE_COMMITMENT       0x1A
+#define INS_ISSUE_COMMITMENT_PROOF 0x1B
+#define INS_ISSUE_CHALLENGE        0x1C
+#define INS_ISSUE_SIGNATURE        0x1D
+#define INS_ISSUE_SIGNATURE_PROOF  0x1E
 
-#define INS_ISSUE_NONCE_1       0x16
-#define INS_ISSUE_PROOF_U       0x17
-#define INS_ISSUE_NONCE_2       0x18
-#define INS_ISSUE_SIGNATURE     0x19
-#define INS_ISSUE_PROOF_A       0x1A
+#define INS_PROVE_CREDENTIAL       0x20
 
-#define INS_PROVE_CREDENTIAL    0x20
+#define INS_PROVE_COMMITMENT       0x2A
+#define INS_PROVE_SIGNATURE        0x2B
+#define INS_PROVE_ATTRIBUTE        0x2C
 
-#define INS_PROVE_SELECTION     0x21
-#define INS_PROVE_NONCE         0x22
-#define INS_PROVE_SIGNATURE     0x23
-#define INS_PROVE_ATTRIBUTE     0x24
-#define INS_PROVE_RESPONSE      0x25
+#define INS_ADMIN_CREDENTIAL       0x30
+#define INS_ADMIN_CREDENTIALS      0x31
+#define INS_ADMIN_ATTRIBUTE        0x32
+#define INS_ADMIN_REMOVE           0x33
+#define INS_ADMIN_FLAGS            0x34
+#define INS_ADMIN_LOG              0x35
 
-#define INS_ADMIN_CREDENTIAL    0x30
-#define INS_ADMIN_CREDENTIALS   0x31
-#define INS_ADMIN_ATTRIBUTE     0x32
-#define INS_ADMIN_REMOVE        0x33
-#define INS_ADMIN_GET_FLAGS     0x34
-#define INS_ADMIN_SET_FLAGS     0x35
-#define INS_ADMIN_LOG           0x36
+#define P1_AUTHENTICATION_EXPONENT 0x00
+#define P1_AUTHENTICATION_MODULUS  0x01
 
-#define P1_RSA_EXPONENT         0x00
-#define P1_RSA_MODULUS          0x01
+#define P1_PUBLIC_KEY_N 0x00
+#define P1_PUBLIC_KEY_S 0x01
+#define P1_PUBLIC_KEY_Z 0x02
+#define P1_PUBLIC_KEY_R 0x03
 
-#define P1_CARD_PIN             0x01
-#define P1_CRED_PIN             0x00
+#define P2_CRED_PIN             0x00
+#define P2_CARD_PIN             0x01
 
-#define P1_PROOF_U_C            0x00
-#define P1_PROOF_U_VPRIMEHAT    0x01
-#define P1_PROOF_U_S_A          0x02
+#define P1_COMMITMENT_PROOF_C            0x00
+#define P1_COMMITMENT_PROOF_VPRIMEHAT    0x01
+#define P1_COMMITMENT_PROOF_SHAT          0x02
 
 #define P1_SIGNATURE_A          0x00
 #define P1_SIGNATURE_E          0x01
 #define P1_SIGNATURE_V          0x02
 #define P1_SIGNATURE_VERIFY     0x03
 
-#define P1_PROOF_A_C            0x00
-#define P1_PROOF_A_S_E          0x01
-#define P1_PROOF_A_VERIFY       0x02
+#define P1_SIGNATURE_PROOF_C            0x00
+#define P1_SIGNATURE_PROOF_S_E          0x01
+#define P1_SIGNATURE_PROOF_VERIFY       0x02
 
 #define wrapped ((CLA & 0x0C) != 0)
 

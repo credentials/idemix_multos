@@ -70,21 +70,21 @@ do { \
 } while (0)
 
 /**
- * Compute the response value sA = mTilde + c*ms
+ * Compute the response value sHat = sTilde + c * s
  * 
- * Requires mTilde to be stored in sA.
+ * Requires sTilde to be stored in sHat.
  */
-#define crypto_compute_sA() \
+#define crypto_compute_sHat() \
 do { \
   /* Multiply c with m */\
-  __code(PUSHZ, SIZE_S_A - 2*SIZE_M); \
+  __code(PUSHZ, SIZE_S_ - 2*SIZE_M); \
   __push(BLOCKCAST(SIZE_H)(session.issue.challenge)); \
   __push(BLOCKCAST(SIZE_M)(masterSecret)); \
   __code(PRIM, PRIM_MULTIPLY, SIZE_M); \
-  /* Add the result of the multiplication to mTilde and store in sA */\
-  __code(ADDN, session.issue.sA, SIZE_S_A); \
+  /* Add the result of the multiplication to sTilde and store in sHat */\
+  __code(ADDN, session.issue.sHat, SIZE_S_); \
   /* Cleanup the stack */\
-  __code(POPN, SIZE_S_A); \
+  __code(POPN, SIZE_S_); \
 } while (0)
 
 #endif // __crypto_issuing_H

@@ -82,7 +82,6 @@ typedef struct {
 
 typedef struct {
   Byte code[SIZE_PIN_MAX];
-  Byte size;
   Byte minSize;
   Byte count;
   Byte flag;
@@ -114,6 +113,14 @@ typedef union {
   } apdu; // SIZE_PUBLIC
 
   struct {
+	int id;
+	Hash context;
+	int selection;
+	Byte timestamp[SIZE_TIMESTAMP];
+	Byte terminal[SIZE_TERMINAL_ID];
+  } verificationSetup;
+
+  struct {
     union {
       Nonce nonce; // 10
       Hash challenge; // 20
@@ -130,6 +137,14 @@ typedef union {
     ResponseE eHat; // 45
   } prove; // 20 + 307 + 20 + 16 + 138 + 128 + 231 + 45 = 905
 
+  struct {
+	int id;
+	Hash context;
+	int size;
+	int flags;
+	Byte timestamp[SIZE_TIMESTAMP];
+  } issuanceSetup;
+  
   struct {
     Number U; // 128
     union {
@@ -168,7 +183,7 @@ typedef union {
 
   struct {
     Hash challenge; // 32
-    Byte sA[SIZE_S_A]; // 75
+    Byte sHat[SIZE_S_]; // 75
     Byte vPrime[SIZE_VPRIME]; // 138
     ResponseVPRIME vPrimeHat; // 180
   } issue; // 32 + 75 + 138 + 180 = 425

@@ -32,19 +32,14 @@
  *
  * @param buffer which contains the code to verify
  */
-void pin_verify(PIN* pin, ByteArray buffer, Byte size) {
+void pin_verify(PIN* pin, ByteArray buffer) {
   // Verify if the PIN has not been blocked
   if (pin->count == 0) {
     ReturnSW(ISO7816_SW_COUNTER_PROVIDED_BY_X(0));
   }
 
-  // Verify the PIN size
-  if (pin->size != size) {
-    ReturnSW(ISO7816_SW_WRONG_LENGTH);
-  }
-
   // Compare the PIN with the stored code
-  if (memcmp(buffer, pin->code, pin->size) != 0) {
+  if (memcmp(buffer, pin->code, SIZE_PIN_MAX) != 0) {
     debugWarning("PIN verification failed");
     debugInteger("Tries left", pin->count - 1);
     ReturnSW(ISO7816_SW_COUNTER_PROVIDED_BY_X(0) | --(pin->count));
@@ -60,16 +55,19 @@ void pin_verify(PIN* pin, ByteArray buffer, Byte size) {
  *
  * @param buffer which contains the old and new code
  */
-void pin_update(PIN* pin, ByteArray buffer, Byte size) {
-  // Verify the PIN size and original PIN
-  if (size < SIZE_PIN_MAX + pin->minSize || size > 2*SIZE_PIN_MAX) {
-    ReturnSW(ISO7816_SW_WRONG_LENGTH);
-  }
-  pin_verify(pin, buffer, pin->size);
+void pin_update(PIN* pin, ByteArray buffer) {
+  int i;
+  
+  // Verify the original PIN
+  pin_verify(pin, buffer);
 
-  // Determine the new PIN size
-  pin->size = size - SIZE_PIN_MAX;
+  // Verify the new PIN size
+  for (i = 0; i < pin->minSize; i++) {
+	  if (buffer[SIZE_PIN_MAX + i] == 0x00) {
+		  ReturnSW(ISO7816_SW_WRONG_LENGTH);
+	  }
+  }
 
   // Store the new code
-  memcpy(pin->code, buffer + SIZE_PIN_MAX, pin->size);
+  memcpy(pin->code, buffer + SIZE_PIN_MAX, SIZE_PIN_MAX);
 }

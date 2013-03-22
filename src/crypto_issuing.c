@@ -75,16 +75,16 @@ void constructCommitment(void) {
   // - Generate random vPrimeTilde, mTilde[0]
   crypto_generate_random(session.issue.vPrimeHat, LENGTH_VPRIME_);
   debugValue("vPrimeTilde", session.issue.vPrimeHat, SIZE_VPRIME_);
-  crypto_generate_random(session.issue.sA, LENGTH_S_A);
-  debugValue("sA", session.issue.sA, SIZE_S_A);
+  crypto_generate_random(session.issue.sHat, LENGTH_S_);
+  debugValue("sTilde", session.issue.sHat, SIZE_S_);
 
-  // - Compute UTilde = S^vPrimeTilde * R[0]^mTilde[0] mod n
+  // - Compute UTilde = S^vPrimeTilde * R[0]^sTilde mod n
   crypto_modexp_special(SIZE_VPRIME_, session.issue.vPrimeHat,
     public.issue.buffer.number[0], public.issue.buffer.number[1]);
   debugNumber("UTilde = S^vPrimeTilde mod n", public.issue.buffer.number[0]);
-  crypto_modexp(SIZE_S_A, SIZE_N, session.issue.sA, credential->issuerKey.n,
+  crypto_modexp(SIZE_S_, SIZE_N, session.issue.sHat, credential->issuerKey.n,
     credential->issuerKey.R[0], public.issue.buffer.number[1]);
-  debugNumber("buffer = R[0]^mTilde[0] mod n", public.issue.buffer.number[1]);
+  debugNumber("buffer = R[0]^sTilde mod n", public.issue.buffer.number[1]);
   crypto_modmul(SIZE_N, public.issue.buffer.number[0],
     public.issue.buffer.number[1], credential->issuerKey.n);
   debugNumber("UTilde = UTilde * buffer mod n", public.issue.buffer.number[0]);
@@ -106,9 +106,9 @@ void constructCommitment(void) {
   crypto_compute_vPrimeHat();
   debugValue("vPrimeHat", session.issue.vPrimeHat, SIZE_VPRIME_);
 
-  // - Compute response s_A = mTilde[0] + c * m[0]
-  crypto_compute_sA();
-  debugValue("s_A", session.issue.sA, SIZE_S_A);
+  // - Compute response sHat = sTilde + c * s
+  crypto_compute_sHat();
+  debugValue("sHat", session.issue.sHat, SIZE_S_);
 
   // Generate random n_2
   crypto_generate_random(credential->proof.nonce, LENGTH_STATZK);
