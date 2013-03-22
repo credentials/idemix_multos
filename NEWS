@@ -1,3 +1,7 @@
+*idemix-0.7-5262d7f (22 March 2012)
+
+Dropped SHA-1 in favour of SHA-256. Reorganised APDU handling to adhere to the specification.
+
 *idemix-0.6.4-4811e35 (13 March 2013)
 
 Bugfix which really adds logging of REMOVE actions.
