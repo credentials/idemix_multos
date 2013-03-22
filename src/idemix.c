@@ -425,19 +425,19 @@ void main(void) {
 		  }
 
           switch (P1) {
-            case P1_COMMITMENT_PROOF_C:
+            case P1_PROOF_C:
               debugMessage("P1_COMMITMENT_PROOF_C");
               COPYN(SIZE_H, public.apdu.data, session.issue.challenge);
               debugHash("Returned c", public.apdu.data);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_H);
 
-            case P1_COMMITMENT_PROOF_VPRIMEHAT:
+            case P1_PROOF_VPRIMEHAT:
               debugMessage("P1_COMMITMENT_PROOF_VPRIMEHAT");
               COPYN(SIZE_VPRIME_, public.apdu.data, session.issue.vPrimeHat);
               debugValue("Returned vPrimeHat", public.apdu.data, SIZE_VPRIME_);
               ReturnLa(ISO7816_SW_NO_ERROR, SIZE_VPRIME_);
 
-            case P1_COMMITMENT_PROOF_SHAT:
+            case P1_PROOF_SHAT:
               debugMessage("P1_COMMITMENT_PROOF_SHAT");
               COPYN(SIZE_S_, public.apdu.data, session.issue.sHat);
               debugValue("Returned s_A", public.apdu.data, SIZE_S_);
@@ -530,7 +530,7 @@ void main(void) {
           }
           
           switch(P1) {
-            case P1_SIGNATURE_PROOF_C:
+            case P1_PROOF_C:
               debugMessage("P1_SIGNATURE_PROOF_C");
               if (!((wrapped || CheckCase(3)) && Lc == SIZE_H)) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -540,7 +540,7 @@ void main(void) {
               debugHash("Initialised c", credential->proof.challenge);
               break;
 
-            case P1_SIGNATURE_PROOF_S_E:
+            case P1_PROOF_S_E:
               debugMessage("P1_SIGNATURE_PROOF_S_E");
               if (!((wrapped || CheckCase(3)) && Lc == SIZE_N)) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);
@@ -550,7 +550,7 @@ void main(void) {
               debugNumber("Initialised s_e", credential->proof.response);
               break;
 
-            case P1_SIGNATURE_PROOF_VERIFY:
+            case P1_PROOF_VERIFY:
               debugMessage("P1_SIGNATURE_PROOF_VERIFY");
               if (!(wrapped || CheckCase(1))) {
                 ReturnSW(ISO7816_SW_WRONG_LENGTH);

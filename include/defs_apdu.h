@@ -50,11 +50,12 @@
 #define INS_PROVE_ATTRIBUTE        0x2C
 
 #define INS_ADMIN_CREDENTIAL       0x30
-#define INS_ADMIN_CREDENTIALS      0x31
+#define INS_ADMIN_REMOVE           0x31
 #define INS_ADMIN_ATTRIBUTE        0x32
-#define INS_ADMIN_REMOVE           0x33
-#define INS_ADMIN_FLAGS            0x34
-#define INS_ADMIN_LOG              0x35
+#define INS_ADMIN_FLAGS            0x33
+
+#define INS_ADMIN_CREDENTIALS      0x3A
+#define INS_ADMIN_LOG              0x3B
 
 #define P1_AUTHENTICATION_EXPONENT 0x00
 #define P1_AUTHENTICATION_MODULUS  0x01
@@ -67,18 +68,17 @@
 #define P2_CRED_PIN             0x00
 #define P2_CARD_PIN             0x01
 
-#define P1_COMMITMENT_PROOF_C            0x00
-#define P1_COMMITMENT_PROOF_VPRIMEHAT    0x01
-#define P1_COMMITMENT_PROOF_SHAT          0x02
+#define P1_PROOF_VERIFY       0x00
+#define P1_PROOF_C            0x01
+#define P1_PROOF_VPRIMEHAT    0x02
+#define P1_PROOF_SHAT         0x03
+#define P1_PROOF_S_E          0x04
 
-#define P1_SIGNATURE_A          0x00
-#define P1_SIGNATURE_E          0x01
-#define P1_SIGNATURE_V          0x02
-#define P1_SIGNATURE_VERIFY     0x03
+#define P1_SIGNATURE_VERIFY     0x00
+#define P1_SIGNATURE_A          0x01
+#define P1_SIGNATURE_E          0x02
+#define P1_SIGNATURE_V          0x03
 
-#define P1_SIGNATURE_PROOF_C            0x00
-#define P1_SIGNATURE_PROOF_S_E          0x01
-#define P1_SIGNATURE_PROOF_VERIFY       0x02
 
 #define wrapped ((CLA & 0x0C) != 0)
 
