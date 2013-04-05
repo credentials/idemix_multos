@@ -281,7 +281,7 @@ void main(void) {
             ReturnSW(ISO7816_SW_SECURITY_STATUS_NOT_SATISFIED);
           }
           if (!((wrapped || CheckCase(3)) &&
-              (Lc == 2 + SIZE_H + 2 || Lc == 2 + SIZE_H + 2 + SIZE_TIMESTAMP))) {
+              (Lc == 2 + SIZE_H + 2 || Lc == 2 + SIZE_H + 2 + 2 + SIZE_TIMESTAMP))) {
             ReturnSW(ISO7816_SW_WRONG_LENGTH);
           }
           if (P1P2 != 0) {
