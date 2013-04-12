@@ -51,7 +51,7 @@ void pin_update(PIN* pin, ByteArray buffer);
 /**
  * Whether a PIN code is required
  */
-#define pin_required (((credential->flags & PIN_FLAGS) & session.prove.disclose) != 0)
+#define pin_required (((credential->userFlags.protect | credential->issuerFlags.protect) & session.prove.disclose) != 0)
 
 #define PIN_FLAGS 0xFF00
 

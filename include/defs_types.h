@@ -25,6 +25,7 @@
 #define NULL 0x0000
 
 typedef unsigned int uint;
+typedef uint Size;
 typedef const char *String;
 
 typedef unsigned char Byte;
@@ -42,7 +43,7 @@ typedef Number Numbers[];
 
 typedef struct {
   ByteArray data;
-  int size;
+  Size size;
 } Value;
 typedef Value *ValueArray;
 
@@ -70,14 +71,23 @@ typedef struct {
   Number response;
 } CLProof;
 
+typedef uint AttributeMask;
+typedef uint CredentialIdentifier;
+
+typedef struct {
+  AttributeMask protect;
+  Byte RFU;
+} CredentialFlags;
+
 typedef struct {
   CLPublicKey issuerKey;
   CLSignature signature;
   CLMessages attribute;
   CLProof proof;
   Byte size;
-  int flags;
-  int id;
+  CredentialFlags issuerFlags;
+  CredentialFlags userFlags;
+  CredentialIdentifier id;
 } Credential;
 
 typedef struct {
@@ -91,10 +101,10 @@ typedef struct {
   Byte timestamp[SIZE_TIMESTAMP];
   Byte terminal[SIZE_TERMINAL_ID];
   Byte action;
-  int credential;
+  CredentialIdentifier credential;
   union {
     struct {
-      int selection;
+      AttributeMask selection;
     } prove;
     Byte data[5];
   } details;
@@ -113,11 +123,11 @@ typedef union {
   } apdu; // SIZE_PUBLIC
 
   struct {
-	int id;
-	Hash context;
-	int selection;
-	Byte timestamp[SIZE_TIMESTAMP];
-	Byte terminal[SIZE_TERMINAL_ID];
+    CredentialIdentifier id;
+    Hash context;
+    AttributeMask selection;
+    Byte timestamp[SIZE_TIMESTAMP];
+    Byte terminal[SIZE_TERMINAL_ID];
   } verificationSetup;
 
   struct {
@@ -138,13 +148,13 @@ typedef union {
   } prove; // 20 + 307 + 20 + 16 + 138 + 128 + 231 + 45 = 905
 
   struct {
-	int id;
-	Hash context;
-	int size;
-	int flags;
-	Byte timestamp[SIZE_TIMESTAMP];
+    CredentialIdentifier id;
+    Hash context;
+    Size size;
+    CredentialFlags flags;
+    Byte timestamp[SIZE_TIMESTAMP];
   } issuanceSetup;
-  
+
   struct {
     Number U; // 128
     union {
@@ -164,6 +174,11 @@ typedef union {
   struct {
     Byte buffer[SIZE_BUFFER_C2]; // 438
   } vfyPrf; // 438
+
+  struct {
+    CredentialFlags user;
+    CredentialFlags issuer;
+  } adminFlags;
 } PublicData;
 
 typedef union {
@@ -171,7 +186,7 @@ typedef union {
 
   struct {
     ResponseM mHat[SIZE_L]; // 74*6 (444)
-    int disclose; // 2
+    AttributeMask disclose; // 2
 #ifdef SIMULATOR
     // Store values to work around the simulator clearing public
     Hash context; // 32
