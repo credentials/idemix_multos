@@ -1,4 +1,8 @@
-*idemix-0.7-5262d7f (22 March 2012)
+*idemix-0.7.1-0f55efc (12 April 2013)
+
+Bugfix which repairs logging timestamps and adds per-attribute PIN protection.
+
+*idemix-0.7-5262d7f (22 March 2013)
 
 Dropped SHA-1 in favour of SHA-256. Reorganised APDU handling to adhere to the specification.
 
