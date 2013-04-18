@@ -43,30 +43,22 @@
  */
 void selectAttributes(int selection) {
 
-  // Do not allow modification of the selection within a protocol session.
-  if (session.prove.disclose != 0) {
-    debugError("selectAttributes(): selection cannot be modified once set");
-    ReturnSW(ISO7816_SW_COMMAND_NOT_ALLOWED_AGAIN);
-  }
-
   // Never disclose the master secret.
-  if (selection & 0x0001 != 0) {
+  if ((selection & 0x0001) != 0) {
     debugError("selectAttributes(): master secret cannot be disclosed");
     credential = NULL;
     ReturnSW(ISO7816_SW_WRONG_DATA);
   }
 
-#ifdef EXPIRY
   // Always disclose the expiry attribute.
-  if (selection & 0x0002 == 0) {
+  if ((selection & 0x0002) == 0) {
     debugError("selectAttributes(): expiry attribute must be disclosed");
     credential = NULL;
     ReturnSW(ISO7816_SW_WRONG_DATA);
   }
-#endif // EXPIRY
 
   // Do not allow non-existant attributes.
-  if (selection & (0xFFFF << credential->size + 1) != 0) {
+  if ((selection & (0xFFFF << credential->size + 1)) != 0) {
     debugError("selectAttributes(): selection contains non-existant attributes");
     credential = NULL;
     ReturnSW(ISO7816_SW_REFERENCED_DATA_NOT_FOUND);
@@ -75,7 +67,6 @@ void selectAttributes(int selection) {
   // Set the attribute disclosure selection.
   session.prove.disclose = selection;
   debugInteger("Disclosure selection", session.prove.disclose);
-  log->details.prove.selection = selection;
 }
 
 /**

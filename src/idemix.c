@@ -610,6 +610,7 @@ void main(void) {
               COPYN(SIZE_TERMINAL_ID, log->terminal, terminal);
               log->action = ACTION_PROVE;
               log->credential = credential->id;
+              log->details.prove.selection = session.prove.disclose;
 
               ReturnSW(ISO7816_SW_NO_ERROR);
             }
