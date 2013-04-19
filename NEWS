@@ -1,3 +1,7 @@
+*idemix-0.7.2-2525d3c (19 April 2013)
+
+Bugfix which repairs the double verification issue.
+
 *idemix-0.7.1-0f55efc (12 April 2013)
 
 Bugfix which repairs logging timestamps and adds per-attribute PIN protection.
