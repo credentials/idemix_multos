@@ -96,6 +96,7 @@ void constructProof(void) {
   debugValue("vTilde", public.prove.vHat, SIZE_V_);
   // IMPORTANT: Correction to the length of rA to prevent negative values
   crypto_generate_random(public.prove.rA + 1, LENGTH_R_A - 13);
+  public.prove.rA[0] = 0x00;
   debugValue("rA", public.prove.rA, SIZE_R_A);
 
   // Compute A' = A * S^r_A
